@@ -1,0 +1,847 @@
+#include "GameManager.h"
+#include "SceneManager.h"
+#include "UIManager.h"
+#include "BattleManager.h"
+#include "EventManager.h"
+#include "FileLoader.h"
+#include "PicLoader.h"
+#include <iostream>
+#include <fstream>
+#include <algorithm>
+#include <random>
+#include <direct.h> // For _getcwd on Windows
+#include <io.h>     // For access
+#define getcwd _getcwd
+#define access _access
+
+GameManager& GameManager::getInstance() {
+    static GameManager instance;
+    return instance;
+}
+
+GameManager::GameManager() 
+    : m_window(nullptr), m_renderer(nullptr), m_screenSurface(nullptr), m_screenTexture(nullptr),
+      m_isRunning(false), m_currentSceneId(0), m_mainMapX(0), m_mainMapY(0), 
+      m_cameraX(0), m_cameraY(0), m_mainMapFace(0), m_walkFrame(0), m_playedTitleAnim(false),
+      m_currentState(GameState::TitleScreen), m_systemMenuSelection(0)
+{
+    m_x50.resize(65536, 0); // -32768 to 32767 mapped to 0..65535
+}
+
+GameManager::~GameManager() {
+    Quit();
+}
+
+bool GameManager::Init() {
+    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_EVENTS)) {
+        std::cerr << "SDL could not initialize! SDL_Error: " << SDL_GetError() << std::endl;
+        return false;
+    }
+
+    if (!TTF_Init()) {
+        std::cerr << "SDL_ttf could not initialize! SDL_ttf Error: " << SDL_GetError() << std::endl;
+        return false;
+    }
+
+    m_window = SDL_CreateWindow("KYS Promise (C++ Refactor)", 640, 480, 0); 
+    if (!m_window) {
+        std::cerr << "Window could not be created! SDL_Error: " << SDL_GetError() << std::endl;
+        return false;
+    }
+
+    m_renderer = SDL_CreateRenderer(m_window, NULL); // SDL3 defaults are good
+    if (!m_renderer) {
+        std::cerr << "Renderer could not be created! SDL_Error: " << SDL_GetError() << std::endl;
+        return false;
+    }
+    
+    SDL_SetRenderVSync(m_renderer, 1); // Enable VSync
+
+    // Logical resolution
+    // SDL3: SDL_SetRenderLogicalPresentation(renderer, w, h, mode)
+    SDL_SetRenderLogicalPresentation(m_renderer, 640, 480, SDL_LOGICAL_PRESENTATION_LETTERBOX);
+
+    m_screenSurface = SDL_CreateSurface(640, 480, SDL_PIXELFORMAT_ARGB8888);
+    m_screenTexture = SDL_CreateTexture(m_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, 640, 480);
+
+    if (!UIManager::getInstance().Init(m_renderer, m_window)) {
+        std::cerr << "Failed to init UIManager" << std::endl;
+        return false;
+    }
+
+    // Initialize Subsystems
+    if (!SceneManager::getInstance().Init()) {
+        std::cerr << "Failed to init SceneManager" << std::endl;
+        return false;
+    }
+
+    if (!EventManager::getInstance().Init()) {
+        std::cerr << "Failed to init EventManager" << std::endl;
+        return false;
+    }
+
+    if (!BattleManager::getInstance().Init()) {
+        std::cerr << "Failed to init BattleManager" << std::endl;
+        return false;
+    }
+
+    // Find Save Directory
+    std::string savePrefix = "../save/";
+    if (access((savePrefix + "ranger.grp").c_str(), 0) != 0) {
+        savePrefix = "../../save/";
+        if (access((savePrefix + "ranger.grp").c_str(), 0) != 0) {
+            savePrefix = "../../../save/";
+             if (access((savePrefix + "ranger.grp").c_str(), 0) != 0) {
+                 savePrefix = "save/"; // Try current dir
+             }
+        }
+    }
+    
+    // Convert to absolute path to bypass FileLoader's resource prefixing
+    char absPath[1024];
+    if (_fullpath(absPath, savePrefix.c_str(), 1024) != NULL) {
+        savePrefix = std::string(absPath) + "\\";
+    }
+    
+    // Store save path for later use (e.g. InitNewGame)
+    m_savePath = savePrefix;
+    
+    std::cout << "[GameManager] Discovered Save Path: " << savePrefix << std::endl;
+
+    // Load initial data
+    std::cout << "[GameManager] Loading Scene Data from " << savePrefix << std::endl;
+    std::string alldefPath = savePrefix + "alldef.grp";
+    if (!SceneManager::getInstance().LoadEventData(alldefPath)) {
+         std::cerr << "Failed to load Event Data from " << alldefPath << ", trying resource path 'alldef.grp'..." << std::endl;
+         if (!SceneManager::getInstance().LoadEventData("alldef.grp")) {
+             std::cerr << "CRITICAL: Failed to load alldef.grp from anywhere!" << std::endl;
+         }
+    }
+    
+    std::string allsinPath = savePrefix + "allsin.grp";
+    if (!SceneManager::getInstance().LoadMapData(allsinPath)) {
+         std::cerr << "Failed to load Map Data from " << allsinPath << ", trying resource path 'allsin.grp'..." << std::endl;
+         if (!SceneManager::getInstance().LoadMapData("allsin.grp")) {
+             std::cerr << "CRITICAL: Failed to load allsin.grp from anywhere!" << std::endl;
+         }
+    }
+
+    loadData(savePrefix);
+
+    m_currentState = GameState::TitleScreen;
+    m_systemMenuSelection = 0;
+
+    m_isRunning = true;
+    return true;
+}
+
+void GameManager::loadData(const std::string& savePrefix) {
+    // KYS loads initial data from "save/ranger.grp" (or similar) when num=0
+    // But Pascal code shows:
+    // if num = 0 then filename := 'ranger';
+    // idx := fileopen(AppPath + 'save/ranger.idx', fmopenread);
+    // grp := fileopen(AppPath + 'save/' + filename + '.grp', fmopenread);
+    //
+    // So for a new game, we should load from "save/ranger.grp".
+    // Note: The file might be named "Ranger.grp" (case sensitive on Linux, but likely "ranger.grp" or "Ranger.grp" on Windows)
+    
+    std::string rolePath = savePrefix + "ranger.grp"; // Try lowercase first as per Pascal
+    
+    // Check if ranger.grp exists, if not try Ranger.grp
+    // Actually FileLoader::loadFile might handle some path logic, but let's be explicit if possible.
+    // However, the Pascal code also loads from "save/R1.grp" for slot 1.
+    // The initial data seems to be in "ranger.grp".
+    
+    // Let's use FileLoader to load the whole file first, then parse it.
+    // Unlike individual .grp files for Roles/Items (which don't seem to exist separately in this version),
+    // KYS stores EVERYTHING in one big save file (ranger.grp / R1.grp).
+    // Structure:
+    // Header (InShip, Where, Mx, My... ~100 bytes?)
+    // TeamList
+    // Items
+    // Roles
+    // Items (Wait, RItem is separate from RItemList?)
+    // Scenes
+    // Magics
+    // Shops
+    
+    // We need to match this structure to load data correctly!
+    // Simply loading "role.grp" was wrong because that file doesn't exist.
+    // We must load "ranger.grp" and seek to the correct offsets.
+    // Offsets are stored in "ranger.idx".
+    
+    std::string idxPath = savePrefix + "ranger.idx";
+    
+    // Direct load (bypass FileLoader which enforces resource path)
+    std::ifstream idxFile(idxPath, std::ios::binary | std::ios::ate);
+    if (!idxFile) {
+         std::cerr << "Failed to open " << idxPath << std::endl;
+         return;
+    }
+    std::streamsize idxSize = idxFile.tellg();
+    idxFile.seekg(0, std::ios::beg);
+    std::vector<uint8_t> idxData(idxSize);
+    idxFile.read((char*)idxData.data(), idxSize);
+    
+    if (idxData.size() < 24) { // At least 6 integers * 4 bytes
+        std::cerr << "Failed to load ranger.idx or invalid size" << std::endl;
+        return;
+    }
+    
+    const int32_t* idxPtr = reinterpret_cast<const int32_t*>(idxData.data());
+    int RoleOffset = idxPtr[0];
+    int ItemOffset = idxPtr[1];
+    int SceneOffset = idxPtr[2];
+    int MagicOffset = idxPtr[3];
+    int WeiShopOffset = idxPtr[4];
+    int TotalLen = idxPtr[5];
+    
+    std::cout << "Ranger IDX Offsets: Role=" << RoleOffset 
+              << ", Item=" << ItemOffset 
+              << ", Scene=" << SceneOffset 
+              << ", Magic=" << MagicOffset << std::endl;
+              
+    std::ifstream grpFile(rolePath, std::ios::binary | std::ios::ate);
+    if (!grpFile) {
+        // Try capitalized "Ranger.grp"
+        rolePath = savePrefix + "Ranger.grp";
+        grpFile.open(rolePath, std::ios::binary | std::ios::ate);
+    }
+    
+    if (!grpFile) {
+        std::cerr << "Failed to load ranger.grp" << std::endl;
+        return;
+    }
+    
+    std::streamsize grpSize = grpFile.tellg();
+    grpFile.seekg(0, std::ios::beg);
+    std::vector<uint8_t> saveBytes(grpSize);
+    grpFile.read((char*)saveBytes.data(), grpSize);
+    
+    const uint8_t* dataPtr = saveBytes.data();
+    
+    // 0. Load Header (Global State)
+    if (RoleOffset > 0) {
+        // Assume Header is at the beginning
+        // KYS Save Header structure (Partial, based on Pascal code):
+        // Offset 0: InShip (2)
+        // Offset 2: InSubMap (2) -> Current Scene ID
+        // Offset 4: MainMapX (2)
+        // Offset 6: MainMapY (2)
+        // Offset 8: MainMapFace (2)
+        
+        if (RoleOffset >= 22) {
+             m_currentSceneId = *(int16_t*)(dataPtr + 2);
+             m_mainMapX = *(int16_t*)(dataPtr + 4);
+             m_mainMapY = *(int16_t*)(dataPtr + 6);
+             m_mainMapFace = *(int16_t*)(dataPtr + 8);
+             
+             // Sync SceneManager
+             SceneManager::getInstance().SetCurrentScene(m_currentSceneId);
+             
+             // Check for invalid scene ID (0 is sometimes valid, but usually main menu or test)
+             // If Scene ID is 0, it might be uninitialized or wrong.
+             // But KYS Scene 0 is a valid scene (usually).
+             
+             // Fallback: If Scene ID is 0 and X/Y are 0, it's likely a bad header read.
+             if (m_currentSceneId == 0 && m_mainMapX == 0 && m_mainMapY == 0) {
+                 std::cerr << "WARNING: Loaded suspicious initial state (Scene 0, 0,0). Ranger.grp might be empty/invalid." << std::endl;
+                 // Force fallback to known start if user is stuck?
+                 // But user said "New Game enters Mongolian Tent" before.
+                 // Maybe we should trust it unless it's strictly 0,0,0.
+             }
+             
+             std::cout << "[loadData] Header Loaded: Scene=" << m_currentSceneId 
+                       << " Pos=(" << m_mainMapX << "," << m_mainMapY << ")" 
+                       << " Face=" << m_mainMapFace << std::endl;
+                       
+             // Load TeamList
+             // Assuming TeamList starts at offset 22 (0x16)
+             // KYS TeamList size: 6? 
+             // Let's verify size.
+             // If we assume TeamList is array[0..5] of integer (16-bit) -> 12 bytes.
+             int16_t* teamSrc = (int16_t*)(dataPtr + 22);
+             m_teamList.assign(MAX_TEAM_SIZE, -1); // Reset
+             for(int i=0; i<MAX_TEAM_SIZE; ++i) {
+                 if (22 + i*2 < RoleOffset) {
+                     m_teamList[i] = teamSrc[i];
+                 }
+             }
+             std::cout << "[loadData] TeamList: " << m_teamList[0] << ", " << m_teamList[1] << "..." << std::endl;
+        }
+    }
+    
+    // 1. Load Roles
+    // Size = ItemOffset - RoleOffset
+    if (ItemOffset > RoleOffset && ItemOffset <= saveBytes.size()) {
+        int roleDataSize = ItemOffset - RoleOffset;
+        int numRoles = roleDataSize / ROLE_DATA_SIZE; // ROLE_DATA_SIZE is bytes (e.g. 91*2)
+        m_roles.resize(numRoles);
+        
+        const int16_t* roleSrc = reinterpret_cast<const int16_t*>(dataPtr + RoleOffset);
+        for (int i = 0; i < numRoles; ++i) {
+            m_roles[i].loadFromBuffer(roleSrc + i * (ROLE_DATA_SIZE/2), ROLE_DATA_SIZE);
+        }
+        std::cout << "Loaded " << numRoles << " roles from ranger.grp" << std::endl;
+    }
+    
+    // 2. Load Items
+    // Size = SceneOffset - ItemOffset
+    if (SceneOffset > ItemOffset && SceneOffset <= saveBytes.size()) {
+        int itemDataSize = SceneOffset - ItemOffset;
+        int numItems = itemDataSize / ITEM_DATA_SIZE;
+        m_items.resize(numItems);
+        
+        const int16_t* itemSrc = reinterpret_cast<const int16_t*>(dataPtr + ItemOffset);
+        for (int i = 0; i < numItems; ++i) {
+            m_items[i].loadFromBuffer(itemSrc + i * (ITEM_DATA_SIZE/2), ITEM_DATA_SIZE);
+        }
+        std::cout << "Loaded " << numItems << " items from ranger.grp" << std::endl;
+    }
+    
+    // 3. Load Magics
+    // Size = WeiShopOffset - MagicOffset
+    if (WeiShopOffset > MagicOffset && WeiShopOffset <= saveBytes.size()) {
+        int magicDataSize = WeiShopOffset - MagicOffset;
+        int numMagics = magicDataSize / MAGIC_DATA_SIZE;
+        m_magics.resize(numMagics);
+        
+        const int16_t* magicSrc = reinterpret_cast<const int16_t*>(dataPtr + MagicOffset);
+        for (int i = 0; i < numMagics; ++i) {
+            m_magics[i].loadFromBuffer(magicSrc + i * (MAGIC_DATA_SIZE/2), MAGIC_DATA_SIZE);
+        }
+        std::cout << "Loaded " << numMagics << " magics from ranger.grp" << std::endl;
+    }
+    
+    // 4. Load Scenes
+    // Size = MagicOffset - SceneOffset
+    // NOTE: In Pascal: RScene: array of TScene;
+    // TScene size is 26 * 2 = 52 bytes.
+    if (MagicOffset > SceneOffset && MagicOffset <= saveBytes.size()) {
+         int sceneDataSize = MagicOffset - SceneOffset;
+         int numScenes = sceneDataSize / 52; // TScene is 52 bytes
+         std::vector<Scene> scenes(numScenes);
+         
+         const int16_t* sceneSrc = reinterpret_cast<const int16_t*>(dataPtr + SceneOffset);
+         for (int i = 0; i < numScenes; ++i) {
+             scenes[i].loadFromBuffer(sceneSrc + i * 26, 52); // 26 int16s = 52 bytes
+         }
+         SceneManager::getInstance().SetScenes(scenes);
+         std::cout << "Loaded " << numScenes << " scenes from ranger.grp. Data Size: " << sceneDataSize << " bytes." << std::endl;
+    }
+}
+
+void GameManager::InitNewGame() {
+    // KYS New Game: Load initial state from ranger.grp
+    // User feedback indicates that ranger.grp acts as the "New Game Save".
+    
+    std::string loadPath = m_savePath;
+    if (loadPath.empty()) {
+        loadPath = "save/"; // Fallback
+    }
+    
+    // Reload data (including Header which sets Scene/Pos)
+    loadData(loadPath);
+    
+    // OVERRIDE for New Game: Force start in Scene 0 (Temple)
+    // ranger.grp header usually contains World Map state (-1), which is wrong for New Game start.
+    // The actual start sequence is handled by Event 101 in Scene 0.
+    m_currentSceneId = 0; 
+    
+    // Updated based on user feedback: Correct start position in Scene 0 is (38, 38)
+    m_mainMapX = 38;
+    m_mainMapY = 38;
+    
+    SceneManager::getInstance().SetCurrentScene(m_currentSceneId);
+    
+    // Sync Camera to Player
+    setMainMapPosition(m_mainMapX, m_mainMapY);
+    
+    // Reset Inventory if not loaded from ranger.grp (Header doesn't contain items, but item array does)
+    // Actually, loadData reloads m_items.
+    // But does m_items contain the *amount*?
+    // In KYS, RItem array usually contains item definitions + amount? 
+    // Wait, KYS original RItem has 'Number' field?
+    // Let's assume loadData handles it.
+    
+    // Initial Event Check to trigger opening cutscene (Auto-Run)
+    // For New Game, we explicitly trigger Event 101 (Opening)
+    // This is critical because ranger.grp might place us on World Map (-1) without active events.
+    std::cout << "[InitNewGame] Triggering Opening Event 101..." << std::endl;
+    EventManager::getInstance().ExecuteEvent(101);
+    
+    // Also check for auto-events in the current scene (just in case)
+   // EventManager::getInstance().CheckAutoEvents(m_currentSceneId);
+    
+    // Debug: Print initial position
+    std::cout << "[InitNewGame] Scene: " << m_currentSceneId << " Pos: (" << m_mainMapX << ", " << m_mainMapY << ")" << std::endl;
+    
+    // Debug: Check Tile at position
+    int16_t tile = SceneManager::getInstance().GetSceneTile(m_currentSceneId, 0, m_mainMapX, m_mainMapY);
+    std::cout << "[InitNewGame] Tile at (" << m_mainMapX << ", " << m_mainMapY << ") Layer 0: " << tile << std::endl;
+}
+
+void GameManager::RandomizeRoleStats(Role& role) {
+    // Simple randomization for testing
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(20, 30);
+    std::uniform_int_distribution<> hp_dis(50, 100);
+
+    role.setMaxHP(hp_dis(gen));
+    role.setCurrentHP(role.getMaxHP());
+    role.setMaxMP(hp_dis(gen));
+    role.setCurrentMP(role.getMaxMP());
+
+    role.setAttack(dis(gen));
+    role.setDefence(dis(gen));
+    role.setSpeed(dis(gen));
+    role.setMedcine(dis(gen));
+    role.setFist(dis(gen));
+}
+
+void GameManager::Run() {
+    while (m_isRunning) {
+        SDL_RenderClear(m_renderer);
+
+        if (m_currentState == GameState::TitleScreen) {
+            UpdateTitleScreen();
+        } else if (m_currentState == GameState::CharacterCreation) {
+            UpdateCharacterCreation();
+        } else if (m_currentState == GameState::Roaming) {
+            UpdateRoaming();
+        } else if (m_currentState == GameState::Battle) {
+            BattleManager::getInstance().RunBattle();
+            m_currentState = GameState::Roaming; 
+        } else if (m_currentState == GameState::SystemMenu) {
+            UpdateSystemMenu();
+        } else if (m_currentState == GameState::InventoryMenu) {
+            UpdateInventoryMenu();
+        }
+        
+        // Present is called in Update functions
+        SDL_Delay(10);
+    }
+    std::cout << "Exiting Game Loop..." << std::endl;
+}
+
+void GameManager::Quit() {
+    m_isRunning = false;
+    
+    // Cleanup Subsystems
+    // SceneManager::getInstance().Cleanup(); // SceneManager does not have Cleanup
+    // BattleManager::getInstance().Cleanup();
+    // UIManager::getInstance().Cleanup(); // Managed by static instance but good to have explicit cleanup if needed
+
+    if (m_screenTexture) {
+        SDL_DestroyTexture(m_screenTexture);
+        m_screenTexture = nullptr;
+    }
+    
+    if (m_screenSurface) {
+        SDL_DestroySurface(m_screenSurface);
+        m_screenSurface = nullptr;
+    }
+
+    if (m_renderer) {
+        SDL_DestroyRenderer(m_renderer);
+        m_renderer = nullptr;
+    }
+
+    if (m_window) {
+        SDL_DestroyWindow(m_window);
+        m_window = nullptr;
+    }
+
+    TTF_Quit();
+    SDL_Quit();
+}
+
+void GameManager::UpdateTitleScreen() {
+    if (!m_playedTitleAnim) {
+        UIManager::getInstance().PlayTitleAnimation();
+        m_playedTitleAnim = true;
+    }
+    
+    
+    SDL_Event e;
+    while (SDL_PollEvent(&e) != 0) {
+        if (e.type == SDL_EVENT_QUIT) {
+            m_isRunning = false;
+        } else if (e.type == SDL_EVENT_KEY_DOWN) {
+            switch (e.key.key) {
+                case SDLK_UP:
+                    m_titleMenuSelection--;
+                    if (m_titleMenuSelection < 0) m_titleMenuSelection = 2;
+                    break;
+                case SDLK_DOWN:
+                    m_titleMenuSelection++;
+                    if (m_titleMenuSelection > 2) m_titleMenuSelection = 0;
+                    break;
+                case SDLK_RETURN:
+                case SDLK_SPACE:
+                    if (m_titleMenuSelection == 0) {
+                        m_currentState = GameState::CharacterCreation;
+                        RandomizeRoleStats(getRole(0));
+                    } else if (m_titleMenuSelection == 1) {
+                        UIManager::getInstance().ShowSaveLoadMenu(false);
+                    } else if (m_titleMenuSelection == 2) {
+                        m_isRunning = false;
+                    }
+                    break;
+                case SDLK_ESCAPE:
+                    m_isRunning = false;
+                    break;
+            }
+        }
+    }
+    
+    UIManager::getInstance().DrawTitleBackground();
+    DrawTitleMenu();
+    SDL_RenderPresent(m_renderer);
+}
+
+void GameManager::DrawTitleMenu() {
+    const char* items[] = { "新 游 戏 (Start Game)", "载 入 进 度 (Load Game)", "离 开 游 戏 (Quit Game)" };
+    int startX = 220;
+    int startY = 300;
+    int gapY = 40;
+    
+    for (int i = 0; i < 3; ++i) {
+        uint32_t color = (i == m_titleMenuSelection) ? 0xFF0000 : 0xFFFFFF;
+        UIManager::getInstance().DrawShadowTextUtf8(items[i], startX, startY + i * gapY, color, 0x000000, 24);
+    }
+}
+
+void GameManager::UpdateCharacterCreation() {
+    SDL_Event e;
+    while (SDL_PollEvent(&e) != 0) {
+        if (e.type == SDL_EVENT_QUIT) {
+            m_isRunning = false;
+        } else if (e.type == SDL_EVENT_KEY_DOWN) {
+            if (e.key.key == SDLK_R || e.key.key == SDLK_SPACE) {
+                RandomizeRoleStats(getRole(0));
+            } else if (e.key.key == SDLK_Y || e.key.key == SDLK_RETURN) {
+                InitNewGame();
+                m_currentState = GameState::Roaming;
+            } else if (e.key.key == SDLK_ESCAPE) {
+                m_currentState = GameState::TitleScreen;
+            }
+        }
+    }
+    UIManager::getInstance().ShowCharacterCreation(getRole(0));
+}
+
+void GameManager::UpdateRoaming() {
+    EventManager::getInstance().CheckEvent(m_currentSceneId, m_mainMapX, m_mainMapY);
+
+    int pendingEvent = EventManager::getInstance().GetPendingEvent();
+    if (pendingEvent != -1) {
+        EventManager::getInstance().ClearPendingEvent();
+        EventManager::getInstance().ExecuteEvent(pendingEvent);
+    }
+
+    SDL_Event e;
+    while (SDL_PollEvent(&e) != 0) {
+        if (e.type == SDL_EVENT_QUIT) {
+            m_isRunning = false;
+        } else if (e.type == SDL_EVENT_KEY_DOWN) {
+            int dx = 0, dy = 0;
+            switch (e.key.key) {
+                case SDLK_UP:    case SDLK_W: dx = -1; m_mainMapFace = 1; break;
+                case SDLK_DOWN:  case SDLK_S: dx = 1;  m_mainMapFace = 0; break;
+                case SDLK_LEFT:  case SDLK_A: dy = -1; m_mainMapFace = 2; break;
+                case SDLK_RIGHT: case SDLK_D: dy = 1;  m_mainMapFace = 3; break;
+                
+                case SDLK_RETURN:
+                case SDLK_SPACE:
+                    {
+                        int frontX = m_mainMapX;
+                        int frontY = m_mainMapY;
+                        switch(m_mainMapFace) {
+                            case 0: frontX++; break; // Down
+                            case 1: frontX--; break; // Up
+                            case 2: frontY--; break; // Left
+                            case 3: frontY++; break; // Right
+                        }
+                        EventManager::getInstance().CheckEvent(m_currentSceneId, frontX, frontY);
+                    }
+                    break;
+                    
+                case SDLK_C: 
+                    if (!m_teamList.empty()) {
+                        UIManager::getInstance().ShowStatus(m_teamList[0]);
+                    }
+                    break;
+
+                case SDLK_ESCAPE:
+                    m_currentState = GameState::SystemMenu;
+                    m_systemMenuSelection = 0;
+                    break;
+            }
+            
+            if (dx != 0 || dy != 0) {
+                int nextX = m_mainMapX + dx;
+                int nextY = m_mainMapY + dy;
+                
+                if (SceneManager::getInstance().CanWalk(nextX, nextY)) {
+                    m_mainMapX = nextX;
+                    m_mainMapY = nextY;
+                    m_cameraX = m_mainMapX;
+                    m_cameraY = m_mainMapY;
+                    updateWalkFrame();
+                    EventManager::getInstance().CheckEvent(m_currentSceneId, m_mainMapX, m_mainMapY);
+                }
+            }
+        }
+    }
+    
+    if (m_screenSurface) {
+        SDL_FillSurfaceRect(m_screenSurface, NULL, 0x000000);
+        SceneManager::getInstance().DrawScene(m_renderer, m_cameraX, m_cameraY);
+        RenderScreenTo(m_renderer);
+    }
+    SDL_RenderPresent(m_renderer);
+}
+
+void GameManager::UpdateSystemMenu() {
+    SDL_Event e;
+    while (SDL_PollEvent(&e) != 0) {
+        if (e.type == SDL_EVENT_QUIT) {
+            m_isRunning = false;
+        } else if (e.type == SDL_EVENT_KEY_DOWN) {
+            switch (e.key.key) {
+                case SDLK_UP:
+                case SDLK_KP_8:
+                    if (m_systemMenuSelection == 1 || m_systemMenuSelection == 2 || m_systemMenuSelection == 3) m_systemMenuSelection--;
+                    else if (m_systemMenuSelection == 4) m_systemMenuSelection++;
+                    else if (m_systemMenuSelection == 5) m_systemMenuSelection = 0;
+                    break;
+                    
+                case SDLK_DOWN:
+                case SDLK_KP_2:
+                    if (m_systemMenuSelection == 0 || m_systemMenuSelection == 1 || m_systemMenuSelection == 2) m_systemMenuSelection++;
+                    else if (m_systemMenuSelection == 5 || m_systemMenuSelection == 4) m_systemMenuSelection--;
+                    break;
+                    
+                case SDLK_RIGHT:
+                case SDLK_KP_6:
+                    if (m_systemMenuSelection == 0) m_systemMenuSelection++;
+                    else if (m_systemMenuSelection == 3 || m_systemMenuSelection == 4) m_systemMenuSelection--;
+                    else if (m_systemMenuSelection == 5) m_systemMenuSelection = 0;
+                    break;
+                    
+                case SDLK_LEFT:
+                case SDLK_KP_4:
+                    if (m_systemMenuSelection == 0) m_systemMenuSelection = 5;
+                    else if (m_systemMenuSelection == 3 || m_systemMenuSelection == 2) m_systemMenuSelection++;
+                    else if (m_systemMenuSelection == 5 || m_systemMenuSelection == 1) m_systemMenuSelection--;
+                    break;
+
+                case SDLK_RETURN:
+                case SDLK_SPACE:
+                    if (m_systemMenuSelection == 5) { // Item
+                         m_currentState = GameState::InventoryMenu;
+                    } else if (m_systemMenuSelection == 2) { // System
+                         // TODO: Implement System Options
+                    }
+                    break;
+                    
+                case SDLK_ESCAPE:
+                    m_currentState = GameState::Roaming;
+                    break;
+            }
+        }
+    }
+    
+    UIManager::getInstance().RenderMenuSystem(m_systemMenuSelection);
+    SDL_RenderPresent(m_renderer);
+}
+
+void GameManager::UpdateInventoryMenu() {
+    SDL_Event e;
+    while (SDL_PollEvent(&e) != 0) {
+        if (e.type == SDL_EVENT_QUIT) {
+             m_isRunning = false;
+        } else if (e.type == SDL_EVENT_KEY_DOWN) {
+             if (e.key.key == SDLK_ESCAPE) {
+                 m_currentState = GameState::SystemMenu;
+             }
+        }
+    }
+    
+    // Draw Inventory (Placeholder)
+    // UIManager::getInstance().RenderInventoryMenu(); 
+    // Need to implement RenderInventoryMenu in UIManager first
+    SDL_RenderClear(m_renderer);
+    UIManager::getInstance().DrawShadowTextUtf8("Inventory Menu (TODO)", 200, 200, 0xFFFFFF, 0x000000, 30);
+    SDL_RenderPresent(m_renderer);
+}
+
+void GameManager::RenderScreenTo(SDL_Renderer* renderer) {
+    if (!renderer || !m_screenSurface || !m_screenTexture) return;
+    SDL_UpdateTexture(m_screenTexture, NULL, m_screenSurface->pixels, m_screenSurface->pitch);
+    SDL_RenderTexture(renderer, m_screenTexture, NULL, NULL);
+}
+
+Role& GameManager::getRole(int index) {
+    if (index < 0 || index >= m_roles.size()) {
+        static Role dummy; 
+        return dummy; 
+    }
+    return m_roles[index];
+}
+
+Item& GameManager::getItem(int index) {
+    if (index < 0 || index >= m_items.size()) {
+        static Item dummy;
+        return dummy;
+    }
+    return m_items[index];
+}
+
+Scene& GameManager::getScene(int index) {
+    Scene* scene = SceneManager::getInstance().GetScene(index);
+    if (scene) {
+        return *scene;
+    }
+    static Scene dummy;
+    return dummy;
+}
+
+Magic& GameManager::getMagic(int index) {
+    if (index < 0 || index >= m_magics.size()) {
+        static Magic dummy;
+        return dummy;
+    }
+    return m_magics[index];
+}
+
+PicImage* GameManager::getHead(int index) {
+    if (m_heads.empty()) {
+        int count = PicLoader::getPicCount("resource/Heads.Pic");
+        if (count > 0) {
+            m_heads.resize(count);
+        }
+    }
+
+    if (index >= 0 && index < m_heads.size()) {
+        if (m_heads[index].surface == nullptr) {
+            m_heads[index] = PicLoader::loadPic("resource/Heads.Pic", index);
+        }
+        return &m_heads[index];
+    }
+    return nullptr;
+}
+
+void GameManager::setCameraPosition(int x, int y) {
+    m_cameraX = x;
+    m_cameraY = y;
+}
+
+void GameManager::setMainMapPosition(int x, int y) {
+    m_mainMapX = x;
+    m_mainMapY = y;
+    m_cameraX = x;
+    m_cameraY = y;
+}
+
+void GameManager::enterScene(int sceneId) {
+    m_currentSceneId = sceneId;
+    SceneManager::getInstance().SetCurrentScene(sceneId);
+}
+
+void GameManager::AddItem(int itemId, int amount) {
+    for (auto& item : m_inventory) {
+        if (item.id == itemId) {
+            item.amount += amount;
+            if (item.amount > MAX_ITEM_AMOUNT) item.amount = MAX_ITEM_AMOUNT;
+            return;
+        }
+    }
+    InventoryItem newItem;
+    newItem.id = itemId;
+    newItem.amount = amount;
+    if (newItem.amount > MAX_ITEM_AMOUNT) newItem.amount = MAX_ITEM_AMOUNT;
+    m_inventory.push_back(newItem);
+}
+
+int GameManager::getItemAmount(int itemId) {
+    for (const auto& item : m_inventory) {
+        if (item.id == itemId) return item.amount;
+    }
+    return 0;
+}
+
+void GameManager::useItem(int itemId) {
+    // Basic logic
+    if (getItemAmount(itemId) > 0) {
+        // Apply effect...
+        // Decrease count
+        for (auto it = m_inventory.begin(); it != m_inventory.end(); ++it) {
+            if (it->id == itemId) {
+                it->amount--;
+                if (it->amount <= 0) {
+                    m_inventory.erase(it);
+                }
+                break;
+            }
+        }
+    }
+}
+
+void GameManager::EatOneItem(int roleNum, int itemId, int where) {
+    if (roleNum < 0 || roleNum >= m_roles.size()) return;
+    if (itemId < 0 || itemId >= m_items.size()) return;
+
+    Role& role = m_roles[roleNum];
+    Item& item = m_items[itemId];
+    
+    if (where == 0) {
+        if (item.getEquipType() == 0) {
+            role.setCurrentHP(std::min((int)role.getMaxHP(), role.getCurrentHP() + item.getAddCurrentHP()));
+            role.setCurrentMP(std::min((int)role.getMaxMP(), role.getCurrentMP() + item.getAddCurrentMP()));
+            
+            role.setMaxHP(std::min(MAX_HP, role.getMaxHP() + item.getAddMaxHP()));
+            role.setMaxMP(std::min(MAX_MP, role.getMaxMP() + item.getAddMaxMP()));
+            
+            role.setPhyPower(std::min(MAX_PHYSICAL_POWER, role.getPhyPower() + item.getAddPhyPower()));
+            role.setPoision(std::max(0, role.getPoision() - item.getAddPoi()));
+            
+            role.setSpeed(std::min(100, role.getSpeed() + item.getAddSpeed()));
+            role.setAttack(std::min(100, role.getAttack() + item.getAddAttack()));
+            role.setDefence(std::min(100, role.getDefence() + item.getAddDefence()));
+            
+            role.setMedcine(std::min(100, role.getMedcine() + item.getAddMedcine()));
+            role.setMedPoi(std::min(100, role.getMedPoi() + item.getAddMedPoi()));
+            role.setUsePoi(std::min(100, role.getUsePoi() + item.getAddUsePoi()));
+            role.setDefPoi(std::min(100, role.getDefPoi() + item.getAddDefPoi()));
+            
+            role.setFist(std::min(100, role.getFist() + item.getAddFist()));
+            role.setSword(std::min(100, role.getSword() + item.getAddSword()));
+            role.setKnife(std::min(100, role.getKnife() + item.getAddKnife()));
+            role.setUnusual(std::min(100, role.getUnusual() + item.getAddUnusual()));
+            role.setHidWeapon(std::min(100, role.getHidWeapon() + item.getAddHidWeapon()));
+        }
+    }
+}
+
+// Stubs for Getters needed by header
+int GameManager::GetRoleMedcine(int roleNum, bool checkEquip) { return getRole(roleNum).getMedcine(); }
+int GameManager::GetRoleMedPoi(int roleNum, bool checkEquip) { return getRole(roleNum).getMedPoi(); }
+int GameManager::GetRoleUsePoi(int roleNum, bool checkEquip) { return getRole(roleNum).getUsePoi(); }
+int GameManager::GetRoleDefPoi(int roleNum, bool checkEquip) { return getRole(roleNum).getDefPoi(); }
+int GameManager::GetRoleFist(int roleNum, bool checkEquip) { return getRole(roleNum).getFist(); }
+int GameManager::GetRoleSword(int roleNum, bool checkEquip) { return getRole(roleNum).getSword(); }
+int GameManager::GetRoleKnife(int roleNum, bool checkEquip) { return getRole(roleNum).getKnife(); }
+int GameManager::GetRoleUnusual(int roleNum, bool checkEquip) { return getRole(roleNum).getUnusual(); }
+int GameManager::GetRoleHidWeapon(int roleNum, bool checkEquip) { return getRole(roleNum).getHidWeapon(); }
+
+bool GameManager::GetEquipState(int roleIdx, int state) { return false; } // TODO
+int GameManager::GetGongtiLevel(int roleIdx, int magicId) { return 0; } // TODO
+bool GameManager::GetGongtiState(int roleIdx, int state) { return false; } // TODO
+void GameManager::JoinParty(int roleId) { /* TODO */ }
+void GameManager::LeaveParty(int roleId) { /* TODO */ }
+void GameManager::Rest() { /* TODO */ }
+void GameManager::SaveGame(int slot) { /* TODO */ }
+void GameManager::LoadGame(int slot) { /* TODO */ }

@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="D:\program\misc\kys-promise-main\cpp_reborn\tests\check_talk.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\program\misc\kys-promise-main\cpp_reborn\src\FileLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="D:\program\misc\kys-promise-main\cpp_reborn\tests\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{1CF44683-F8D4-3C56-BBF1-F21BFA728E8E}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
