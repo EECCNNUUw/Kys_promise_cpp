@@ -1,12 +1,17 @@
 ﻿#include "UIManager.h"
 #include "GameManager.h"
 #include "PicLoader.h"
+#include "TextManager.h"
 #include "GraphicsUtils.h"
 #include <SDL3/SDL.h>
 #include <SDL3_ttf/SDL_ttf.h>
 #include <iostream>
 #include <cmath>
 #include <algorithm>
+
+namespace {
+    std::string g_loadedFontPath;
+}
 
 UIManager& UIManager::getInstance() {
     static UIManager instance;
@@ -24,6 +29,14 @@ bool UIManager::Init(SDL_Renderer* renderer, SDL_Window* window) {
     m_window = window;
     // Load font - Try multiple paths
     const char* fontPaths[] = {
+        "C:/Windows/Fonts/msyh.ttc",
+        "C:/Windows/Fonts/msyh.ttf",
+        "C:/Windows/Fonts/msjh.ttc",
+        "C:/Windows/Fonts/simsun.ttc",
+        "C:/Windows/Fonts/simsun.ttf",
+        "C:/Windows/Fonts/simhei.ttf",
+        "C:/Windows/Fonts/kaiu.ttf",
+        "C:/Windows/Fonts/mingliu.ttc",
         "resource/simkai.ttf",
         "C:/Windows/Fonts/simkai.ttf",
         "resource/font.ttf"
@@ -31,7 +44,11 @@ bool UIManager::Init(SDL_Renderer* renderer, SDL_Window* window) {
     
     for (const auto& path : fontPaths) {
         m_font = TTF_OpenFont(path, 20);
-        if (m_font) break;
+        if (m_font) {
+            g_loadedFontPath = path;
+            std::cout << "[UIManager] Loaded font: " << path << std::endl;
+            break;
+        }
     }
     
     if (!m_font) {
@@ -60,6 +77,15 @@ void UIManager::Cleanup() {
     if (m_texMenuBackground) SDL_DestroyTexture(m_texMenuBackground);
     
     TTF_Quit();
+}
+
+SDL_Color UIManager::Uint32ToColor(uint32_t color) {
+    SDL_Color c;
+    c.r = (color >> 16) & 0xFF;
+    c.g = (color >> 8) & 0xFF;
+    c.b = color & 0xFF;
+    c.a = (color >> 24) & 0xFF;
+    return c;
 }
 
 bool UIManager::LoadSystemGraphics() {
@@ -144,6 +170,8 @@ void UIManager::DrawShadowTextUtf8(const std::string& text, int x, int y, uint32
 }
 
 void UIManager::DrawHead(int headId, int x, int y) {
+    if (headId < 0) return; // Prevent invalid head index
+
     PicImage pic = PicLoader::loadPic("resource/Heads.Pic", headId);
     if (pic.surface) {
          SDL_Texture* tex = SDL_CreateTextureFromSurface(m_renderer, pic.surface);
@@ -667,19 +695,476 @@ void UIManager::ShowItem(int menuSelection) {
 }
 
 // Stubs for missing implementations
-void UIManager::PlayTitleAnimation() {}
-void UIManager::DrawTitleScreen() {}
-void UIManager::DrawTitleBackground() {}
-void UIManager::DrawCenteredTexture(SDL_Texture* tex) {}
-void UIManager::DrawText(const std::string& text, int x, int y, uint32_t color, int fontSize) {}
-void UIManager::DrawTextUtf8(const std::string& text, int x, int y, uint32_t color, int fontSize) {}
-void UIManager::DrawShadowText(const std::string& text, int x, int y, uint32_t color1, uint32_t color2, int fontSize) {}
-void UIManager::ShowCharacterCreation(const Role& role) {}
-void UIManager::ShowSaveLoadMenu(bool isSave) {}
-void UIManager::ShowDialogue(const std::string& text, int headId, int mode, const std::string& name) {}
-void UIManager::ShowTitle(const std::string& text, int x, int y, uint32_t color1, uint32_t color2) {}
-int UIManager::ShowChoice(const std::string& text) { return 0; }
-void UIManager::ShowItemNotification(int itemId, int amount) {}
-void UIManager::FadeScreen(bool fadeIn) {}
-void UIManager::FlashScreen(uint32_t color, int durationMs) {}
-void UIManager::UpdateScreen() { SDL_RenderPresent(m_renderer); }
+void UIManager::PlayTitleAnimation() {
+    int frameCount = PicLoader::getPicCount("resource/Begin.Pic");
+    if (frameCount <= 0) return;
+
+    bool skip = false;
+    SDL_Event event;
+
+    // 播放开场动画 (Begin.Pic)
+    for (int i = 0; i < frameCount && !skip; ++i) {
+        // 检测跳过输入
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_EVENT_QUIT) {
+                skip = true;
+                break;
+            }
+            if (event.type == SDL_EVENT_KEY_UP) {
+                if (event.key.key == SDLK_ESCAPE || event.key.key == SDLK_RETURN || event.key.key == SDLK_SPACE) {
+                    skip = true;
+                    break;
+                }
+            }
+        }
+
+        PicImage pic = PicLoader::loadPic("resource/Begin.Pic", i);
+        if (pic.surface) {
+            SDL_Texture* tex = SDL_CreateTextureFromSurface(m_renderer, pic.surface);
+            if (tex) {
+                SDL_RenderClear(m_renderer);
+                
+                // 模拟 Pascal 的 ZoomPic 逻辑，拉伸至全屏
+                int w, h;
+                SDL_GetWindowSize(m_window, &w, &h);
+                SDL_FRect dest = { 0.0f, 0.0f, (float)w, (float)h };
+                SDL_RenderTexture(m_renderer, tex, NULL, &dest);
+                
+                SDL_RenderPresent(m_renderer);
+                SDL_DestroyTexture(tex);
+            }
+            PicLoader::freePic(pic);
+        }
+        SDL_Delay(40); // 同步 Pascal 的 sdl_delay(20)
+    }
+
+    // 动画播放完后，加载 Background.Pic 的 Index 1 作为开始菜单背景
+    if (m_texBeginBackground) {
+        SDL_DestroyTexture(m_texBeginBackground);
+    }
+    
+    PicImage bgPic = PicLoader::loadPic("resource/Background.Pic", 0);
+    if (bgPic.surface) {
+        m_texBeginBackground = SDL_CreateTextureFromSurface(m_renderer, bgPic.surface);
+        PicLoader::freePic(bgPic);
+    }
+}
+
+void UIManager::DrawTitleScreen() {
+    // 绘制开始菜单画面
+    DrawTitleBackground();
+    // 可以在此处添加按钮绘制逻辑，对应 Pascal 的 drawtitlepic(0, x, y)
+}
+
+void UIManager::DrawTitleBackground() {
+    if (m_texBeginBackground) {
+        int w, h;
+        SDL_GetWindowSize(m_window, &w, &h);
+        SDL_FRect dest = { 0.0f, 0.0f, (float)w, (float)h };
+        SDL_RenderTexture(m_renderer, m_texBeginBackground, NULL, &dest);
+    }
+}
+void UIManager::DrawCenteredTexture(SDL_Texture* tex) {
+    if (!tex) return;
+    int w, h;
+    SDL_GetWindowSize(m_window, &w, &h);
+    float tw, th;
+    SDL_GetTextureSize(tex, &tw, &th);
+    
+    SDL_FRect dest = { (float)(w - tw) / 2, (float)(h - th) / 2, tw, th };
+    SDL_RenderTexture(m_renderer, tex, NULL, &dest);
+}
+
+void UIManager::DrawText(const std::string& text, int x, int y, uint32_t color, int fontSize) {
+    // Assumes GBK input, uses TextManager to convert and render
+    TextManager::getInstance().RenderText(text, x, y, color);
+}
+
+void UIManager::DrawTextUtf8(const std::string& text, int x, int y, uint32_t color, int fontSize) {
+    TextManager::getInstance().RenderTextUtf8(text, x, y, color, fontSize);
+}
+
+void UIManager::DrawShadowText(const std::string& text, int x, int y, uint32_t color1, uint32_t color2, int fontSize) {
+    // Shadow
+    TextManager::getInstance().RenderText(text, x + 1, y + 1, color2);
+    // Main
+    TextManager::getInstance().RenderText(text, x, y, color1);
+}
+
+void UIManager::ShowCharacterCreation(const Role& role) {
+    if (m_texBeginBackground) {
+        DrawTitleBackground();
+    }
+
+    DrawRectangle(100, 100, 440, 200, 0, 0xFFFFFFFF, 200);
+    if (m_font) {
+        const int wrapWidth = 420;
+        SDL_Color shadow = { 0, 0, 0, 255 };
+        SDL_Color main = { 255, 255, 255, 255 };
+        SDL_Surface* s2 = TTF_RenderText_Solid_Wrapped(m_font, "請輸入主角姓名: (Enter 確認 / Backspace 刪除 / R 重骰 / Esc 返回)", 0, shadow, wrapWidth);
+        if (s2) {
+            SDL_Texture* t2 = SDL_CreateTextureFromSurface(m_renderer, s2);
+            SDL_FRect d2 = { 121.0f, 141.0f, (float)s2->w, (float)s2->h };
+            SDL_RenderTexture(m_renderer, t2, NULL, &d2);
+            SDL_DestroyTexture(t2);
+            SDL_DestroySurface(s2);
+        }
+
+        SDL_Surface* s1 = TTF_RenderText_Solid_Wrapped(m_font, "請輸入主角姓名: (Enter 確認 / Backspace 刪除 / R 重骰 / Esc 返回)", 0, main, wrapWidth);
+        if (s1) {
+            SDL_Texture* t1 = SDL_CreateTextureFromSurface(m_renderer, s1);
+            SDL_FRect d1 = { 120.0f, 140.0f, (float)s1->w, (float)s1->h };
+            SDL_RenderTexture(m_renderer, t1, NULL, &d1);
+            SDL_DestroyTexture(t1);
+            SDL_DestroySurface(s1);
+        }
+    }
+    DrawShadowTextUtf8(TextManager::getInstance().nameToUtf8(role.getName()), 280, 200, 0xFFFF00FF, 0x000000FF);
+}
+
+void UIManager::ShowSaveLoadMenu(bool isSave) {
+    bool running = true;
+    int currentSelection = 0;
+    SDL_Event event;
+    const int SLOT_COUNT = 3;
+
+    while (running) {
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_EVENT_QUIT) {
+                GameManager::getInstance().Quit();
+                return;
+            }
+            if (event.type == SDL_EVENT_KEY_DOWN) {
+                if (event.key.key == SDLK_ESCAPE) {
+                    running = false;
+                } else if (event.key.key == SDLK_DOWN || event.key.key == SDLK_KP_2) {
+                    currentSelection = (currentSelection + 1) % SLOT_COUNT;
+                } else if (event.key.key == SDLK_UP || event.key.key == SDLK_KP_8) {
+                    currentSelection = (currentSelection + SLOT_COUNT - 1) % SLOT_COUNT;
+                } else if (event.key.key == SDLK_RETURN || event.key.key == SDLK_SPACE) {
+                    if (isSave) {
+                        GameManager::getInstance().SaveGame(currentSelection + 1);
+                        ShowDialogue("進度已保存", 0, 0); 
+                    } else {
+                        GameManager::getInstance().LoadGame(currentSelection + 1);
+                        running = false; // Exit menu after load
+                    }
+                }
+            }
+        }
+
+        SDL_RenderClear(m_renderer);
+        if (m_texMenuBackground) {
+            SDL_RenderTexture(m_renderer, m_texMenuBackground, NULL, NULL);
+        } else {
+            // If no background captured, use default grey
+            SDL_SetRenderDrawColor(m_renderer, 50, 50, 50, 255);
+            SDL_RenderClear(m_renderer);
+        }
+
+        DrawRectangle(150, 50, 340, 300, 0, 0xFFFFFFFF, 100);
+        DrawShadowTextUtf8(isSave ? "保存進度" : "讀取進度", 280, 60, 0xFFFFFFFF, 0x000000FF);
+
+        for (int i = 0; i < SLOT_COUNT; ++i) {
+            uint32_t color = (i == currentSelection) ? 0xFFFF00FF : 0xFFFFFFFF;
+            std::string slotName = "進度 " + std::to_string(i + 1);
+            // Check if file exists (Stub logic, assuming exists for display)
+            // In real impl, check file existence.
+            DrawShadowTextUtf8(slotName, 200, 100 + i * 50, color, 0x000000FF);
+        }
+
+        SDL_RenderPresent(m_renderer);
+        SDL_Delay(16);
+    }
+}
+
+void UIManager::ShowDialogue(const std::string& text, int headId, int mode, const std::string& nameUtf8, const std::string& nameRawBytes) {
+    SDL_Event event;
+    static bool s_showNameDebug = false;
+
+    auto bytesToHex = [](const std::string& s, size_t maxBytes) -> std::string {
+        static const char* kHex = "0123456789ABCDEF";
+        std::string out;
+        size_t n = std::min(maxBytes, s.size());
+        out.reserve(n * 3 + 8);
+        for (size_t i = 0; i < n; ++i) {
+            unsigned char b = static_cast<unsigned char>(s[i]);
+            out.push_back(kHex[(b >> 4) & 0xF]);
+            out.push_back(kHex[b & 0xF]);
+            if (i + 1 < n) out.push_back(' ');
+        }
+        if (s.size() > maxBytes) out += " ..";
+        return out;
+    };
+
+    auto hasReplacement = [](const std::string& s) -> bool {
+        for (size_t i = 0; i + 2 < s.size(); ++i) {
+            if (static_cast<unsigned char>(s[i]) == 0xEF &&
+                static_cast<unsigned char>(s[i + 1]) == 0xBF &&
+                static_cast<unsigned char>(s[i + 2]) == 0xBD) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    auto sanitizeLabel = [](std::string s) -> std::string {
+        while (!s.empty()) {
+            unsigned char b = static_cast<unsigned char>(s.back());
+            if (b == 0 || b <= 0x20 || b == 0x7F) s.pop_back();
+            else break;
+        }
+        size_t zeroPos = s.find('\0');
+        if (zeroPos != std::string::npos) s.resize(zeroPos);
+        return s;
+    };
+
+    auto takePageText = [&](const std::string& remaining, int wrapWidth, int maxTextHeight) -> std::string {
+        if (!m_font || wrapWidth <= 10 || maxTextHeight <= 5) return remaining;
+        if (remaining.empty()) return remaining;
+
+        std::vector<size_t> ends;
+        ends.reserve(remaining.size());
+        size_t i = 0;
+        while (i < remaining.size()) {
+            size_t j = i + 1;
+            while (j < remaining.size() && (static_cast<unsigned char>(remaining[j]) & 0xC0) == 0x80) {
+                j++;
+            }
+            ends.push_back(j);
+            i = j;
+        }
+
+        auto fits = [&](size_t endIndex) -> bool {
+            SDL_Color c = { 255, 255, 255, 255 };
+            std::string candidate = remaining.substr(0, endIndex);
+            SDL_Surface* s = TTF_RenderText_Solid_Wrapped(m_font, candidate.c_str(), 0, c, wrapWidth);
+            if (!s) return true;
+            bool ok = s->h <= maxTextHeight;
+            SDL_DestroySurface(s);
+            return ok;
+        };
+
+        size_t lo = 0;
+        size_t hi = ends.size();
+        size_t best = 0;
+        while (lo < hi) {
+            size_t mid = (lo + hi) / 2;
+            size_t endIndex = ends[mid];
+            if (fits(endIndex)) {
+                best = endIndex;
+                lo = mid + 1;
+            } else {
+                hi = mid;
+            }
+        }
+
+        if (best == 0) best = ends.front();
+        return remaining.substr(0, best);
+    };
+
+    std::string showName = sanitizeLabel(nameUtf8);
+    std::string remainingText = text;
+    std::string rawNameBytes = nameRawBytes;
+
+    while (true) {
+        int w, h;
+        SDL_GetWindowSize(m_window, &w, &h);
+
+        int boxH = 150;
+        int boxY = h - boxH - 20;
+        const int textX = (headId >= 0) ? 150 : 40;
+        const int textY = boxY + 40;
+        const int wrapWidth = (w - 20) - textX;
+        const int maxTextH = (boxY + boxH - 10) - textY;
+
+        std::string pageText = sanitizeLabel(takePageText(remainingText, wrapWidth, maxTextH));
+        if (pageText.empty() && !remainingText.empty()) {
+            pageText = remainingText.substr(0, 1);
+        }
+
+        bool waiting = true;
+        while (waiting) {
+            while (SDL_PollEvent(&event)) {
+                if (event.type == SDL_EVENT_QUIT) {
+                    GameManager::getInstance().Quit();
+                    return;
+                }
+                if (event.type == SDL_EVENT_KEY_UP) {
+                    if (event.key.key == SDLK_F3) {
+                        s_showNameDebug = !s_showNameDebug;
+                    }
+                    if (event.key.key == SDLK_SPACE || event.key.key == SDLK_RETURN || event.key.key == SDLK_ESCAPE) {
+                        waiting = false;
+                    }
+                }
+                if (event.type == SDL_EVENT_MOUSE_BUTTON_UP) {
+                    waiting = false;
+                }
+            }
+
+            GameManager::getInstance().RenderScreenTo(m_renderer);
+
+            DrawRectangle(20, boxY, w - 40, boxH, 0x000000CC, 0xFFFFFFFF, 200);
+
+            if (headId >= 0) {
+                DrawHead(headId, 40, boxY + 25);
+            }
+
+            if (!showName.empty()) {
+                DrawShadowTextUtf8(showName, 40, boxY + 5, 0xFFFF00FF, 0x000000FF);
+            }
+            if (s_showNameDebug && headId >= 0) {
+                if (rawNameBytes.empty()) rawNameBytes = showName;
+                std::string d1 = std::string("FONT: ") + (g_loadedFontPath.empty() ? "<none>" : g_loadedFontPath);
+                std::string d2 = std::string("RAW(") + std::to_string(rawNameBytes.size()) + "): " + bytesToHex(rawNameBytes, 24);
+                std::string d3 = std::string("UTF8(") + std::to_string(showName.size()) + ") repl=" + (hasReplacement(showName) ? "1" : "0") + ": " + bytesToHex(showName, 24);
+                DrawShadowTextUtf8(d1, 40, boxY + 22, 0xFFFFFFFF, 0x000000FF);
+                DrawShadowTextUtf8(d2, 40, boxY + 38, 0xFFFFFFFF, 0x000000FF);
+                DrawShadowTextUtf8(d3, 40, boxY + 54, 0xFFFFFFFF, 0x000000FF);
+            }
+
+            if (m_font && wrapWidth > 10 && !pageText.empty()) {
+                SDL_Color shadow = { 0, 0, 0, 255 };
+                SDL_Color main = { 255, 255, 255, 255 };
+
+                SDL_Surface* s2 = TTF_RenderText_Solid_Wrapped(m_font, pageText.c_str(), 0, shadow, wrapWidth);
+                if (s2) {
+                    SDL_Texture* t2 = SDL_CreateTextureFromSurface(m_renderer, s2);
+                    SDL_FRect d2 = { (float)(textX + 1), (float)(textY + 1), (float)s2->w, (float)s2->h };
+                    SDL_RenderTexture(m_renderer, t2, NULL, &d2);
+                    SDL_DestroyTexture(t2);
+                    SDL_DestroySurface(s2);
+                }
+
+                SDL_Surface* s1 = TTF_RenderText_Solid_Wrapped(m_font, pageText.c_str(), 0, main, wrapWidth);
+                if (s1) {
+                    SDL_Texture* t1 = SDL_CreateTextureFromSurface(m_renderer, s1);
+                    SDL_FRect d1 = { (float)textX, (float)textY, (float)s1->w, (float)s1->h };
+                    SDL_RenderTexture(m_renderer, t1, NULL, &d1);
+                    SDL_DestroyTexture(t1);
+                    SDL_DestroySurface(s1);
+                }
+            }
+
+            SDL_RenderPresent(m_renderer);
+            SDL_Delay(16);
+        }
+
+        if (pageText.size() >= remainingText.size()) break;
+        remainingText.erase(0, pageText.size());
+        while (!remainingText.empty() && (remainingText[0] == '\n' || remainingText[0] == '\r')) {
+            remainingText.erase(0, 1);
+        }
+    }
+}
+
+void UIManager::ShowTitle(const std::string& text, int x, int y, uint32_t color1, uint32_t color2) {
+    DrawShadowText(text, x, y, color1, color2, 40); // Larger font for title
+}
+
+int UIManager::ShowChoice(const std::string& text) {
+    // Parse choices from text (e.g., "Yes/No" or similar?)
+    // Pascal often passes options in a specific way or just uses a menu.
+    // Assuming simple Yes/No for now or single choice.
+    // Or maybe the text is the prompt, and we provide standard choices?
+    // Let's implement a simple Yes/No dialog.
+    
+    bool running = true;
+    int selection = 0; // 0=Yes, 1=No
+    SDL_Event event;
+
+    while (running) {
+        while (SDL_PollEvent(&event)) {
+             if (event.type == SDL_EVENT_QUIT) {
+                GameManager::getInstance().Quit();
+                return 0;
+            }
+            if (event.type == SDL_EVENT_KEY_DOWN) {
+                if (event.key.key == SDLK_LEFT || event.key.key == SDLK_RIGHT) {
+                    selection = !selection;
+                }
+                if (event.key.key == SDLK_RETURN || event.key.key == SDLK_SPACE) {
+                    return (selection == 0) ? 1 : 0; // 1 for Yes
+                }
+            }
+        }
+
+        GameManager::getInstance().RenderScreenTo(m_renderer);
+        
+        // Draw Box
+        int w, h;
+        SDL_GetWindowSize(m_window, &w, &h);
+        DrawRectangle(w/2 - 150, h/2 - 60, 300, 120, 0x000000CC, 0xFFFFFFFF, 200);
+        
+        DrawText(text, w/2 - 100, h/2 - 40, 0xFFFFFFFF);
+
+        // Draw Options
+        uint32_t colYes = (selection == 0) ? 0xFFFF00FF : 0xFFFFFFFF;
+        uint32_t colNo = (selection == 1) ? 0xFFFF00FF : 0xFFFFFFFF;
+        
+        DrawShadowTextUtf8("是 (Yes)", w/2 - 80, h/2 + 10, colYes, 0x000000FF);
+        DrawShadowTextUtf8("否 (No)", w/2 + 20, h/2 + 10, colNo, 0x000000FF);
+
+        SDL_RenderPresent(m_renderer);
+        SDL_Delay(16);
+    }
+    return 0;
+}
+
+void UIManager::ShowItemNotification(int itemId, int amount) {
+    // Show a timed notification
+    Item& item = GameManager::getInstance().getItem(itemId);
+    std::string msg = std::string("獲得 ") + TextManager::getInstance().gbkToUtf8(item.getName()) +
+        (amount > 1 ? " x" + std::to_string(amount) : "");
+    
+    // Just show dialogue for now, simplest way
+    ShowDialogue(msg, -1, 0);
+}
+
+void UIManager::FadeScreen(bool fadeIn) {
+    // fadeIn: Black -> Transparent
+    // !fadeIn: Transparent -> Black
+    
+    int w, h;
+    SDL_GetWindowSize(m_window, &w, &h);
+    
+    int steps = 20;
+    for (int i = 0; i <= steps; ++i) {
+        int alpha = fadeIn ? (255 - i * 255 / steps) : (i * 255 / steps);
+        
+        GameManager::getInstance().RenderScreenTo(m_renderer);
+        
+        SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_BLEND);
+        SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, alpha);
+        SDL_FRect rect = { 0.0f, 0.0f, (float)w, (float)h };
+        SDL_RenderFillRect(m_renderer, &rect);
+        
+        SDL_RenderPresent(m_renderer);
+        SDL_Delay(20);
+    }
+}
+
+void UIManager::FlashScreen(uint32_t color, int durationMs) {
+    int w, h;
+    SDL_GetWindowSize(m_window, &w, &h);
+    
+    // Draw colored rect
+    GameManager::getInstance().RenderScreenTo(m_renderer);
+    
+    SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawColor(m_renderer, (color >> 24) & 0xFF, (color >> 16) & 0xFF, (color >> 8) & 0xFF, 128);
+    SDL_FRect rect = { 0.0f, 0.0f, (float)w, (float)h };
+    SDL_RenderFillRect(m_renderer, &rect);
+    
+    SDL_RenderPresent(m_renderer);
+    SDL_Delay(durationMs);
+    
+    // Clear effect
+    GameManager::getInstance().RenderScreenTo(m_renderer);
+    SDL_RenderPresent(m_renderer);
+}
+
+void UIManager::UpdateScreen() {
+    SDL_RenderPresent(m_renderer);
+}

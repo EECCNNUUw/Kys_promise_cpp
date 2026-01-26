@@ -2,6 +2,27 @@
 #include <string>
 #include <vector>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
+static std::string gbkToUtf8(const std::string& gbkStr) {
+    if (gbkStr.empty()) return "";
+#ifdef _WIN32
+    int wideLen = MultiByteToWideChar(936, 0, gbkStr.data(), static_cast<int>(gbkStr.size()), NULL, 0);
+    if (wideLen <= 0) return "";
+    std::vector<wchar_t> wBuf(static_cast<size_t>(wideLen));
+    if (MultiByteToWideChar(936, 0, gbkStr.data(), static_cast<int>(gbkStr.size()), wBuf.data(), wideLen) <= 0) return "";
+    int utf8Len = WideCharToMultiByte(CP_UTF8, 0, wBuf.data(), wideLen, NULL, 0, NULL, NULL);
+    if (utf8Len <= 0) return "";
+    std::string out(static_cast<size_t>(utf8Len), '\0');
+    if (WideCharToMultiByte(CP_UTF8, 0, wBuf.data(), wideLen, out.data(), utf8Len, NULL, NULL) <= 0) return "";
+    return out;
+#else
+    return "";
+#endif
+}
+
 // Mock GameManager
 struct GameManager {
     static GameManager& getInstance() {
@@ -34,6 +55,11 @@ int main() {
     std::string heroName = GameManager::getInstance().getRole(0).getName();
     std::cout << "Hero Name (Hex): ";
     for (unsigned char c : heroName) printf("%02X ", c);
+    std::cout << std::endl;
+    
+    std::string heroNameUtf8 = gbkToUtf8(heroName);
+    std::cout << "Hero Name UTF8 (Hex): ";
+    for (unsigned char c : heroNameUtf8) printf("%02X ", c);
     std::cout << std::endl;
 
     std::string cleanText;
@@ -124,6 +150,15 @@ int main() {
         std::cout << "SUCCESS: Surname replaced correctly." << std::endl;
     } else {
         std::cout << "FAILURE: Surname replacement failed." << std::endl;
+    }
+    
+    if (heroNameUtf8.size() >= 3 &&
+        (unsigned char)heroNameUtf8[0] == 0xE9 &&
+        (unsigned char)heroNameUtf8[1] == 0x87 &&
+        (unsigned char)heroNameUtf8[2] == 0x91) {
+        std::cout << "SUCCESS: GBK->UTF8 conversion matches expected prefix." << std::endl;
+    } else {
+        std::cout << "FAILURE: GBK->UTF8 conversion does not match expected prefix." << std::endl;
     }
 
     return 0;

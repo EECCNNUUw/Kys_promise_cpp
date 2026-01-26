@@ -12,6 +12,16 @@
 #include <thread>
 #include <chrono>
 
+namespace {
+    std::string TakeSurnameBytes(const std::string& s) {
+        if (s.empty()) return "";
+        unsigned char b0 = (unsigned char)s[0];
+        if (b0 < 0x80) return s.substr(0, 1);
+        if (s.size() >= 2) return s.substr(0, 2);
+        return s;
+    }
+}
+
 EventManager& EventManager::getInstance() {
     static EventManager instance;
     return instance;
@@ -129,7 +139,7 @@ std::string EventManager::GetNameFromData(int nameNum) {
     // Pascal: for i := 0 to namelen - 2 do namearray[i] := namearray[i] xor $FF;
     for (int i = 0; i < len; ++i) {
         uint8_t b = m_nameData[offset + i] ^ 0xFF;
-        if (b == 0) break;
+        if (b == 0 || b == 0x2A || b < 0x20) break;
         name += (char)b;
     }
     return name;
@@ -562,7 +572,7 @@ void EventManager::Instruct_NewTalk0(int headNum, int talkNum, int nameNum, int 
     std::cout << "[Instruct_NewTalk0] heroName: " << heroName << " (Len: " << heroName.length() << ")" << std::endl;
     
     // Ensure heroName has a default if empty
-    if (heroName.empty()) heroName = "小虾米"; // Fallback
+    if (heroName.empty()) heroName = "金先生"; // Fallback
 
     std::string cleanText;
     for (size_t i = 0; i < fullText.length(); ++i) {
@@ -588,8 +598,7 @@ void EventManager::Instruct_NewTalk0(int headNum, int talkNum, int nameNum, int 
             
             // %% = Given Name (Hero Name - Surname)
             if (c == '%' && nextC == '%') { 
-                std::string surname = heroName;
-                if (heroName.length() >= 2) surname = heroName.substr(0, 2); // Simple heuristic
+                std::string surname = TakeSurnameBytes(heroName);
                 
                 std::string given = "";
                 if (heroName.length() > surname.length()) {
@@ -602,9 +611,7 @@ void EventManager::Instruct_NewTalk0(int headNum, int talkNum, int nameNum, int 
             
             // $$ = Surname
             if (c == '$' && nextC == '$') { 
-                std::string surname = heroName;
-                if (heroName.length() >= 2) surname = heroName.substr(0, 2);
-                cleanText += surname; 
+                cleanText += TakeSurnameBytes(heroName); 
                 i++; 
                 continue; 
             }
@@ -659,11 +666,7 @@ void EventManager::Instruct_NewTalk0(int headNum, int talkNum, int nameNum, int 
                  unsigned char nextC = (unsigned char)fullText[i+1];
                  if (nextC == 0xA4) {
                      // Found Full Width $
-                     std::string surname = heroName;
-                     if (heroName.length() >= 2) {
-                         surname = heroName.substr(0, 2);
-                     }
-                     cleanText += surname;
+                    cleanText += TakeSurnameBytes(heroName);
                      i++; // Skip nextC
                      continue;
                  }
@@ -678,7 +681,7 @@ void EventManager::Instruct_NewTalk0(int headNum, int talkNum, int nameNum, int 
     // Handle Name
     std::string showName;
     if (nameNum > 0) {
-        showName = GetNameFromData(nameNum);
+         showName = GetNameFromData(nameNum);
     } else if (nameNum == -2) {
         // Use Name of Role with HeadNum
         int roleCount = GameManager::getInstance().getRoleCount();
@@ -696,12 +699,12 @@ void EventManager::Instruct_NewTalk0(int headNum, int talkNum, int nameNum, int 
     }
 
     std::string utf8Text = TextManager::getInstance().gbkToUtf8(cleanText);
-    std::string utf8Name = TextManager::getInstance().gbkToUtf8(showName);
+    std::string utf8Name = TextManager::getInstance().nameToUtf8(showName);
     
     // Head ID Logic:
     int drawHead = (showHead == 0) ? headNum : -1;
     
-    UIManager::getInstance().ShowDialogue(utf8Text, drawHead, place, utf8Name);
+    UIManager::getInstance().ShowDialogue(utf8Text, drawHead, place, utf8Name, showName);
 }
 
 void EventManager::Instruct_ReSetName(int type, int id, int newNameId) {
@@ -735,7 +738,7 @@ void EventManager::Instruct_Dialogue(int talkId, int headId, int mode) {
             if (!part.empty()) {
                 std::string heroName = GameManager::getInstance().getRole(0).getName();
                 std::string heroNick = GameManager::getInstance().getRole(0).getNick();
-                if (heroName.empty()) heroName = "小虾米";
+                if (heroName.empty()) heroName = TextManager::getInstance().utf8ToGbk("金先生");
 
                 // We reuse the logic from NewTalk0 via helper or just reimplement
                 // But for now, let's keep it simple as it was
@@ -747,9 +750,24 @@ void EventManager::Instruct_Dialogue(int talkId, int headId, int mode) {
                     part.replace(pos, 2, heroNick);
                 }
                 
+                std::string surname = TakeSurnameBytes(heroName);
+                std::string given = "";
+                if (heroName.length() > surname.length()) {
+                    given = heroName.substr(surname.length());
+                }
+
+                while ((pos = part.find("&&")) != std::string::npos) {
+                    part.replace(pos, 2, heroName);
+                }
+                while ((pos = part.find("%%")) != std::string::npos) {
+                    part.replace(pos, 2, given);
+                }
+                while ((pos = part.find("$$")) != std::string::npos) {
+                    part.replace(pos, 2, surname);
+                }
+
                 // Handle $ for Surname (Heuristic)
                 while ((pos = part.find("$")) != std::string::npos) {
-                     std::string surname = (heroName.length() >= 2) ? heroName.substr(0, 2) : heroName;
                      part.replace(pos, 1, surname);
                 }
                 

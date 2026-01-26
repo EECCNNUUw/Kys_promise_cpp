@@ -5,6 +5,7 @@
 #include "EventManager.h"
 #include "FileLoader.h"
 #include "PicLoader.h"
+#include "TextManager.h"
 #include <iostream>
 #include <fstream>
 #include <algorithm>
@@ -13,6 +14,17 @@
 #include <io.h>     // For access
 #define getcwd _getcwd
 #define access _access
+
+namespace {
+    void PopBackUtf8(std::string& s) {
+        if (s.empty()) return;
+        size_t i = s.size() - 1;
+        while (i > 0 && (static_cast<unsigned char>(s[i]) & 0xC0) == 0x80) {
+            --i;
+        }
+        s.erase(i);
+    }
+}
 
 GameManager& GameManager::getInstance() {
     static GameManager instance;
@@ -275,12 +287,13 @@ void GameManager::loadData(const std::string& savePrefix) {
     // Size = ItemOffset - RoleOffset
     if (ItemOffset > RoleOffset && ItemOffset <= saveBytes.size()) {
         int roleDataSize = ItemOffset - RoleOffset;
-        int numRoles = roleDataSize / ROLE_DATA_SIZE; // ROLE_DATA_SIZE is bytes (e.g. 91*2)
+        const int bytesPerRole = static_cast<int>(ROLE_DATA_SIZE * sizeof(int16));
+        int numRoles = (bytesPerRole > 0) ? (roleDataSize / bytesPerRole) : 0;
         m_roles.resize(numRoles);
         
         const int16_t* roleSrc = reinterpret_cast<const int16_t*>(dataPtr + RoleOffset);
         for (int i = 0; i < numRoles; ++i) {
-            m_roles[i].loadFromBuffer(roleSrc + i * (ROLE_DATA_SIZE/2), ROLE_DATA_SIZE);
+            m_roles[i].loadFromBuffer(roleSrc + static_cast<size_t>(i) * ROLE_DATA_SIZE, ROLE_DATA_SIZE);
         }
         std::cout << "Loaded " << numRoles << " roles from ranger.grp" << std::endl;
     }
@@ -289,12 +302,13 @@ void GameManager::loadData(const std::string& savePrefix) {
     // Size = SceneOffset - ItemOffset
     if (SceneOffset > ItemOffset && SceneOffset <= saveBytes.size()) {
         int itemDataSize = SceneOffset - ItemOffset;
-        int numItems = itemDataSize / ITEM_DATA_SIZE;
+        const int bytesPerItem = static_cast<int>(ITEM_DATA_SIZE * sizeof(int16));
+        int numItems = (bytesPerItem > 0) ? (itemDataSize / bytesPerItem) : 0;
         m_items.resize(numItems);
         
         const int16_t* itemSrc = reinterpret_cast<const int16_t*>(dataPtr + ItemOffset);
         for (int i = 0; i < numItems; ++i) {
-            m_items[i].loadFromBuffer(itemSrc + i * (ITEM_DATA_SIZE/2), ITEM_DATA_SIZE);
+            m_items[i].loadFromBuffer(itemSrc + static_cast<size_t>(i) * ITEM_DATA_SIZE, ITEM_DATA_SIZE);
         }
         std::cout << "Loaded " << numItems << " items from ranger.grp" << std::endl;
     }
@@ -303,12 +317,13 @@ void GameManager::loadData(const std::string& savePrefix) {
     // Size = WeiShopOffset - MagicOffset
     if (WeiShopOffset > MagicOffset && WeiShopOffset <= saveBytes.size()) {
         int magicDataSize = WeiShopOffset - MagicOffset;
-        int numMagics = magicDataSize / MAGIC_DATA_SIZE;
+        const int bytesPerMagic = static_cast<int>(MAGIC_DATA_SIZE * sizeof(int16));
+        int numMagics = (bytesPerMagic > 0) ? (magicDataSize / bytesPerMagic) : 0;
         m_magics.resize(numMagics);
         
         const int16_t* magicSrc = reinterpret_cast<const int16_t*>(dataPtr + MagicOffset);
         for (int i = 0; i < numMagics; ++i) {
-            m_magics[i].loadFromBuffer(magicSrc + i * (MAGIC_DATA_SIZE/2), MAGIC_DATA_SIZE);
+            m_magics[i].loadFromBuffer(magicSrc + static_cast<size_t>(i) * MAGIC_DATA_SIZE, MAGIC_DATA_SIZE);
         }
         std::cout << "Loaded " << numMagics << " magics from ranger.grp" << std::endl;
     }
@@ -319,12 +334,13 @@ void GameManager::loadData(const std::string& savePrefix) {
     // TScene size is 26 * 2 = 52 bytes.
     if (MagicOffset > SceneOffset && MagicOffset <= saveBytes.size()) {
          int sceneDataSize = MagicOffset - SceneOffset;
-         int numScenes = sceneDataSize / 52; // TScene is 52 bytes
+         const int bytesPerScene = static_cast<int>(SCENE_DATA_SIZE * sizeof(int16));
+         int numScenes = (bytesPerScene > 0) ? (sceneDataSize / bytesPerScene) : 0;
          std::vector<Scene> scenes(numScenes);
          
          const int16_t* sceneSrc = reinterpret_cast<const int16_t*>(dataPtr + SceneOffset);
          for (int i = 0; i < numScenes; ++i) {
-             scenes[i].loadFromBuffer(sceneSrc + i * 26, 52); // 26 int16s = 52 bytes
+             scenes[i].loadFromBuffer(sceneSrc + static_cast<size_t>(i) * SCENE_DATA_SIZE, SCENE_DATA_SIZE);
          }
          SceneManager::getInstance().SetScenes(scenes);
          std::cout << "Loaded " << numScenes << " scenes from ranger.grp. Data Size: " << sceneDataSize << " bytes." << std::endl;
@@ -483,6 +499,13 @@ void GameManager::UpdateTitleScreen() {
                     if (m_titleMenuSelection == 0) {
                         m_currentState = GameState::CharacterCreation;
                         RandomizeRoleStats(getRole(0));
+                        m_characterCreationNameUtf8 = TextManager::getInstance().nameToUtf8(getRole(0).getName());
+                        if (m_characterCreationNameUtf8.empty()) {
+                            m_characterCreationNameUtf8 = "金先生";
+                        }
+                        getRole(0).setName(TextManager::getInstance().utf8ToGbk(m_characterCreationNameUtf8));
+                        SDL_StartTextInput(m_window);
+                        m_characterCreationTextInputActive = true;
                     } else if (m_titleMenuSelection == 1) {
                         UIManager::getInstance().ShowSaveLoadMenu(false);
                     } else if (m_titleMenuSelection == 2) {
@@ -514,22 +537,48 @@ void GameManager::DrawTitleMenu() {
 }
 
 void GameManager::UpdateCharacterCreation() {
+
     SDL_Event e;
     while (SDL_PollEvent(&e) != 0) {
         if (e.type == SDL_EVENT_QUIT) {
             m_isRunning = false;
+            if (m_characterCreationTextInputActive) {
+                SDL_StopTextInput(m_window);
+                m_characterCreationTextInputActive = false;
+            }
         } else if (e.type == SDL_EVENT_KEY_DOWN) {
             if (e.key.key == SDLK_R || e.key.key == SDLK_SPACE) {
                 RandomizeRoleStats(getRole(0));
+            } else if (e.key.key == SDLK_BACKSPACE) {
+                PopBackUtf8(m_characterCreationNameUtf8);
+                getRole(0).setName(TextManager::getInstance().utf8ToGbk(m_characterCreationNameUtf8));
             } else if (e.key.key == SDLK_Y || e.key.key == SDLK_RETURN) {
+                if (m_characterCreationTextInputActive) {
+                    SDL_StopTextInput(m_window);
+                    m_characterCreationTextInputActive = false;
+                }
+                getRole(0).setName(TextManager::getInstance().utf8ToGbk(m_characterCreationNameUtf8));
                 InitNewGame();
                 m_currentState = GameState::Roaming;
             } else if (e.key.key == SDLK_ESCAPE) {
+                if (m_characterCreationTextInputActive) {
+                    SDL_StopTextInput(m_window);
+                    m_characterCreationTextInputActive = false;
+                }
                 m_currentState = GameState::TitleScreen;
+            }
+        } else if (e.type == SDL_EVENT_TEXT_INPUT) {
+            std::string appended = m_characterCreationNameUtf8;
+            appended += e.text.text;
+            std::string gbk = TextManager::getInstance().utf8ToGbk(appended);
+            if (!gbk.empty() && gbk.size() <= 9) {
+                m_characterCreationNameUtf8 = std::move(appended);
+                getRole(0).setName(gbk);
             }
         }
     }
     UIManager::getInstance().ShowCharacterCreation(getRole(0));
+    SDL_RenderPresent(m_renderer);
 }
 
 void GameManager::UpdateRoaming() {

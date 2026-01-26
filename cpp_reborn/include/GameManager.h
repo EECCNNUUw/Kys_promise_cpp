@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <memory>
+#include <string>
 #include <SDL3/SDL.h>
 #include "Role.h"
 #include "Item.h"
@@ -160,6 +161,8 @@ private:
     SDL_Texture* m_screenTexture;
 
     // Helper for Character Creation
+    std::string m_characterCreationNameUtf8;
+    bool m_characterCreationTextInputActive = false;
     void RandomizeRoleStats(Role& role);
     void InitNewGame();
     

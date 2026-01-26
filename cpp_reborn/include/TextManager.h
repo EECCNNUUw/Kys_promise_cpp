@@ -28,10 +28,14 @@ public:
     void RenderText(const std::string& text, int x, int y, uint32_t color);
     
     // Render UTF-8 text directly
-    void RenderTextUtf8(const std::string& text, int x, int y, SDL_Color color, int fontSize = 20);
+    void RenderTextUtf8(const std::string& text, int x, int y, uint32_t color, int fontSize = 20);
 
     // Convert GBK string to UTF-8 string
     std::string gbkToUtf8(const std::string& gbkStr);
+    std::string big5ToUtf8(const std::string& big5Str);
+    std::string nameToUtf8(const std::string& ansiStr);
+
+    std::string utf8ToGbk(const std::string& utf8Str);
 
 private:
     TextManager();

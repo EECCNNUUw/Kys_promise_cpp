@@ -52,7 +52,7 @@ public:
     void SelectShowItem();
     void ShowItem(int menuSelection);
     void ShowSaveLoadMenu(bool isSave); // Shows save/load slots
-    void ShowDialogue(const std::string& text, int headId, int mode, const std::string& name = "");
+    void ShowDialogue(const std::string& text, int headId, int mode, const std::string& nameUtf8 = "", const std::string& nameRawBytes = "");
     void ShowTitle(const std::string& text, int x, int y, uint32_t color1, uint32_t color2);
     int ShowChoice(const std::string& text); // Returns 0 for No/Cancel, 1 for Yes/Confirm
     void ShowItemNotification(int itemId, int amount);
