@@ -356,8 +356,19 @@ void GameManager::InitNewGame() {
         loadPath = "save/"; // Fallback
     }
     
+    std::string preservedHeroNameGbk;
+    if (!m_characterCreationNameUtf8.empty()) {
+        preservedHeroNameGbk = TextManager::getInstance().utf8ToGbk(m_characterCreationNameUtf8);
+    } else if (getRoleCount() > 0) {
+        preservedHeroNameGbk = getRole(0).getName();
+    }
+
     // Reload data (including Header which sets Scene/Pos)
     loadData(loadPath);
+
+    if (!preservedHeroNameGbk.empty() && getRoleCount() > 0) {
+        getRole(0).setName(preservedHeroNameGbk);
+    }
     
     // OVERRIDE for New Game: Force start in Scene 0 (Temple)
     // ranger.grp header usually contains World Map state (-1), which is wrong for New Game start.

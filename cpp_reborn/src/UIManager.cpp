@@ -1012,7 +1012,16 @@ void UIManager::ShowDialogue(const std::string& text, int headId, int mode, cons
             }
 
             if (!showName.empty()) {
-                DrawShadowTextUtf8(showName, 40, boxY + 5, 0xFFFF00FF, 0x000000FF);
+                int nameX = 40;
+                int nameY = boxY + 5;
+                if (headId >= 0) {
+                    const int headY = boxY + 25;
+                    const int approxHeadH = 64;
+                    nameY = headY + approxHeadH + 6;
+                    const int maxNameY = boxY + boxH - 24;
+                    if (nameY > maxNameY) nameY = boxY + 5;
+                }
+                DrawShadowTextUtf8(showName, nameX, nameY, 0xFFFF00FF, 0x000000FF);
             }
             if (s_showNameDebug && headId >= 0) {
                 if (rawNameBytes.empty()) rawNameBytes = showName;

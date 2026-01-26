@@ -13,12 +13,68 @@
 #include <chrono>
 
 namespace {
-    std::string TakeSurnameBytes(const std::string& s) {
+    uint16_t ReadU16LE(const std::string& s, size_t offset) {
+        if (offset + 1 >= s.size()) return 0;
+        return static_cast<uint16_t>(static_cast<uint8_t>(s[offset])) |
+               (static_cast<uint16_t>(static_cast<uint8_t>(s[offset + 1])) << 8);
+    }
+
+    std::string TrimAtZero(const std::string& s) {
+        size_t pos = s.find('\0');
+        if (pos == std::string::npos) return s;
+        return s.substr(0, pos);
+    }
+
+    bool LooksLikeUninitializedName(const std::string& s) {
+        if (s.size() >= 2 && static_cast<uint8_t>(s[0]) == 0xFF && static_cast<uint8_t>(s[1]) == 0xFF) return true;
+        return false;
+    }
+
+    bool IsDoubleSurname3Chars(uint16_t w0, uint16_t w2) {
+        return (w0 == 0x6EAB && w2 == 0x63AE) ||
+               (w0 == 0xE8A6 && w2 == 0xF9AA) ||
+               (w0 == 0x46AA && w2 == 0xE8A4) ||
+               (w0 == 0x4FA5 && w2 == 0xB0AA) ||
+               (w0 == 0x7DBC && w2 == 0x65AE) ||
+               (w0 == 0x71A5 && w2 == 0xA8B0) ||
+               (w0 == 0xD1BD && w2 == 0xAFB8) ||
+               (w0 == 0x71A5 && w2 == 0xC5AA) ||
+               (w0 == 0xD3A4 && w2 == 0x76A5) ||
+               (w0 == 0xBDA4 && w2 == 0x5DAE) ||
+               (w0 == 0xDABC && w2 == 0xA7B6) ||
+               (w0 == 0x43AD && w2 == 0xDFAB) ||
+               (w0 == 0x71A5 && w2 == 0x7BAE) ||
+               (w0 == 0xB9A7 && w2 == 0x43C3) ||
+               (w0 == 0x61B0 && w2 == 0xD5C1) ||
+               (w0 == 0x74A6 && w2 == 0xE5A4) ||
+               (w0 == 0xDDA9 && w2 == 0x5BB6);
+    }
+
+    std::string ExtractSurnameBytesGbk(const std::string& raw) {
+        std::string s = TrimAtZero(raw);
         if (s.empty()) return "";
-        unsigned char b0 = (unsigned char)s[0];
-        if (b0 < 0x80) return s.substr(0, 1);
-        if (s.size() >= 2) return s.substr(0, 2);
-        return s;
+        if (LooksLikeUninitializedName(s)) return "";
+
+        if (static_cast<uint8_t>(s[0]) < 0x80) {
+            return s.substr(0, 1);
+        }
+
+        if (s.size() == 4) {
+            return s.substr(0, 2);
+        }
+
+        if (s.size() == 6) {
+            uint16_t w0 = ReadU16LE(s, 0);
+            uint16_t w2 = ReadU16LE(s, 2);
+            if (IsDoubleSurname3Chars(w0, w2)) return s.substr(0, 4);
+            return s.substr(0, 2);
+        }
+
+        if (s.size() >= 8) {
+            return s.substr(0, 4);
+        }
+
+        return (s.size() >= 2) ? s.substr(0, 2) : s;
     }
 }
 
@@ -557,22 +613,14 @@ void EventManager::Instruct_NewTalk0(int headNum, int talkNum, int nameNum, int 
         p++;
     }
 
-    // DEBUG: Hex Dump of fullText
-    std::cout << "[Instruct_NewTalk0] TalkNum: " << actualTalkNum << " Raw Hex: ";
-    for (unsigned char c : fullText) {
-        printf("%02X ", c);
-    }
-    std::cout << std::endl;
-
     // Process Placeholders
     std::string heroName = GameManager::getInstance().getRole(0).getName();
     std::string heroNick = GameManager::getInstance().getRole(0).getNick();
-    
-    // DEBUG: Log heroName
-    std::cout << "[Instruct_NewTalk0] heroName: " << heroName << " (Len: " << heroName.length() << ")" << std::endl;
-    
+
     // Ensure heroName has a default if empty
-    if (heroName.empty()) heroName = "金先生"; // Fallback
+    if (heroName.empty() || LooksLikeUninitializedName(heroName)) heroName = TextManager::getInstance().utf8ToGbk("金先生");
+    std::string heroSurname = ExtractSurnameBytesGbk(heroName);
+    std::string heroGiven = (heroName.size() > heroSurname.size()) ? heroName.substr(heroSurname.size()) : "";
 
     std::string cleanText;
     for (size_t i = 0; i < fullText.length(); ++i) {
@@ -598,20 +646,14 @@ void EventManager::Instruct_NewTalk0(int headNum, int talkNum, int nameNum, int 
             
             // %% = Given Name (Hero Name - Surname)
             if (c == '%' && nextC == '%') { 
-                std::string surname = TakeSurnameBytes(heroName);
-                
-                std::string given = "";
-                if (heroName.length() > surname.length()) {
-                    given = heroName.substr(surname.length());
-                }
-                cleanText += given;
+                cleanText += heroGiven;
                 i++; 
                 continue; 
             }
             
             // $$ = Surname
             if (c == '$' && nextC == '$') { 
-                cleanText += TakeSurnameBytes(heroName); 
+                cleanText += heroSurname; 
                 i++; 
                 continue; 
             }
@@ -655,24 +697,6 @@ void EventManager::Instruct_NewTalk0(int headNum, int talkNum, int nameNum, int 
                 cleanText += (char)c;
             }
         }
-        else if (c == 0xA3) {
-             // Check for Full Width $ (A3 A4) -> Treat as Surname?
-             // Pascal code doesn't seem to explicitly handle A3 A4 as placeholder, 
-             // but maybe the input text uses it?
-             // User said "Now it becomes JinJin", implying $$ was used.
-             // If we handle $$ properly above, we might not need this unless user inputs full width $$.
-             // Let's keep it but ensure we don't double replace.
-             if (i + 1 < fullText.length()) {
-                 unsigned char nextC = (unsigned char)fullText[i+1];
-                 if (nextC == 0xA4) {
-                     // Found Full Width $
-                    cleanText += TakeSurnameBytes(heroName);
-                     i++; // Skip nextC
-                     continue;
-                 }
-             }
-             cleanText += (char)c;
-        }
         else {
             cleanText += (char)c;
         }
@@ -696,6 +720,9 @@ void EventManager::Instruct_NewTalk0(int headNum, int talkNum, int nameNum, int 
         if (showName.empty() && headNum == 0 && roleCount > 0) {
             showName = GameManager::getInstance().getRole(0).getName();
         }
+    }
+    if (showName.empty() && headNum == 0) {
+        showName = heroName;
     }
 
     std::string utf8Text = TextManager::getInstance().gbkToUtf8(cleanText);
@@ -738,7 +765,7 @@ void EventManager::Instruct_Dialogue(int talkId, int headId, int mode) {
             if (!part.empty()) {
                 std::string heroName = GameManager::getInstance().getRole(0).getName();
                 std::string heroNick = GameManager::getInstance().getRole(0).getNick();
-                if (heroName.empty()) heroName = TextManager::getInstance().utf8ToGbk("金先生");
+                if (heroName.empty() || LooksLikeUninitializedName(heroName)) heroName = TextManager::getInstance().utf8ToGbk("金先生");
 
                 // We reuse the logic from NewTalk0 via helper or just reimplement
                 // But for now, let's keep it simple as it was
@@ -750,11 +777,8 @@ void EventManager::Instruct_Dialogue(int talkId, int headId, int mode) {
                     part.replace(pos, 2, heroNick);
                 }
                 
-                std::string surname = TakeSurnameBytes(heroName);
-                std::string given = "";
-                if (heroName.length() > surname.length()) {
-                    given = heroName.substr(surname.length());
-                }
+                std::string surname = ExtractSurnameBytesGbk(heroName);
+                std::string given = (heroName.length() > surname.length()) ? heroName.substr(surname.length()) : "";
 
                 while ((pos = part.find("&&")) != std::string::npos) {
                     part.replace(pos, 2, heroName);
@@ -766,11 +790,6 @@ void EventManager::Instruct_Dialogue(int talkId, int headId, int mode) {
                     part.replace(pos, 2, surname);
                 }
 
-                // Handle $ for Surname (Heuristic)
-                while ((pos = part.find("$")) != std::string::npos) {
-                     part.replace(pos, 1, surname);
-                }
-                
                 std::string utf8Text = TextManager::getInstance().gbkToUtf8(part);
                 UIManager::getInstance().ShowDialogue(utf8Text, headId, mode);
             }

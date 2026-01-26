@@ -2,164 +2,83 @@
 #include <string>
 #include <vector>
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
-
-static std::string gbkToUtf8(const std::string& gbkStr) {
-    if (gbkStr.empty()) return "";
-#ifdef _WIN32
-    int wideLen = MultiByteToWideChar(936, 0, gbkStr.data(), static_cast<int>(gbkStr.size()), NULL, 0);
-    if (wideLen <= 0) return "";
-    std::vector<wchar_t> wBuf(static_cast<size_t>(wideLen));
-    if (MultiByteToWideChar(936, 0, gbkStr.data(), static_cast<int>(gbkStr.size()), wBuf.data(), wideLen) <= 0) return "";
-    int utf8Len = WideCharToMultiByte(CP_UTF8, 0, wBuf.data(), wideLen, NULL, 0, NULL, NULL);
-    if (utf8Len <= 0) return "";
-    std::string out(static_cast<size_t>(utf8Len), '\0');
-    if (WideCharToMultiByte(CP_UTF8, 0, wBuf.data(), wideLen, out.data(), utf8Len, NULL, NULL) <= 0) return "";
-    return out;
-#else
-    return "";
-#endif
+static uint16_t ReadU16LE(const std::string& s, size_t offset) {
+    if (offset + 1 >= s.size()) return 0;
+    return static_cast<uint16_t>(static_cast<uint8_t>(s[offset])) |
+           (static_cast<uint16_t>(static_cast<uint8_t>(s[offset + 1])) << 8);
 }
 
-// Mock GameManager
-struct GameManager {
-    static GameManager& getInstance() {
-        static GameManager instance;
-        return instance;
+static bool IsDoubleSurname3Chars(uint16_t w0, uint16_t w2) {
+    return (w0 == 0x6EAB && w2 == 0x63AE) ||
+           (w0 == 0xE8A6 && w2 == 0xF9AA) ||
+           (w0 == 0x46AA && w2 == 0xE8A4) ||
+           (w0 == 0x4FA5 && w2 == 0xB0AA) ||
+           (w0 == 0x7DBC && w2 == 0x65AE) ||
+           (w0 == 0x71A5 && w2 == 0xA8B0) ||
+           (w0 == 0xD1BD && w2 == 0xAFB8) ||
+           (w0 == 0x71A5 && w2 == 0xC5AA) ||
+           (w0 == 0xD3A4 && w2 == 0x76A5) ||
+           (w0 == 0xBDA4 && w2 == 0x5DAE) ||
+           (w0 == 0xDABC && w2 == 0xA7B6) ||
+           (w0 == 0x43AD && w2 == 0xDFAB) ||
+           (w0 == 0x71A5 && w2 == 0x7BAE) ||
+           (w0 == 0xB9A7 && w2 == 0x43C3) ||
+           (w0 == 0x61B0 && w2 == 0xD5C1) ||
+           (w0 == 0x74A6 && w2 == 0xE5A4) ||
+           (w0 == 0xDDA9 && w2 == 0x5BB6);
+}
+
+static std::string ExtractSurnameBytesGbk(const std::string& s) {
+    if (s.empty()) return "";
+    if (static_cast<uint8_t>(s[0]) < 0x80) return s.substr(0, 1);
+
+    if (s.size() == 4) return s.substr(0, 2);
+
+    if (s.size() == 6) {
+        uint16_t w0 = ReadU16LE(s, 0);
+        uint16_t w2 = ReadU16LE(s, 2);
+        if (IsDoubleSurname3Chars(w0, w2)) return s.substr(0, 4);
+        return s.substr(0, 2);
     }
-    struct Role {
-        std::string getName() { return "\xBD\xF0\xD3\xB9"; } // "Jin Yong" in GBK (Jin=BD F0, Yong=D3 B9) - Wait, let's verify GBK
-        // Jin: 金 (GBK: BDF0)
-        // Yong: 庸 (GBK: D3B9)
-        std::string getNick() { return "Nick"; }
-    };
-    Role getRole(int i) { return Role(); }
-};
+
+    if (s.size() >= 8) return s.substr(0, 4);
+
+    return (s.size() >= 2) ? s.substr(0, 2) : s;
+}
+
+static std::string ReplaceNewTalk0Placeholders(const std::string& text, const std::string& heroName) {
+    std::string heroSurname = ExtractSurnameBytesGbk(heroName);
+    std::string heroGiven = (heroName.size() > heroSurname.size()) ? heroName.substr(heroSurname.size()) : "";
+
+    std::string out;
+    for (size_t i = 0; i < text.size(); ++i) {
+        unsigned char c = static_cast<unsigned char>(text[i]);
+        if (i + 1 < text.size()) {
+            unsigned char n = static_cast<unsigned char>(text[i + 1]);
+            if (c == '*' && n == '*') { out.push_back('\n'); ++i; continue; }
+            if (c == '&' && n == '&') { out += heroName; ++i; continue; }
+            if (c == '%' && n == '%') { out += heroGiven; ++i; continue; }
+            if (c == '$' && n == '$') { out += heroSurname; ++i; continue; }
+        }
+        out.push_back(static_cast<char>(c));
+    }
+    return out;
+}
 
 int main() {
-    // 1. Setup Data
-    // String: "$先生" and "＄先生"
-    // $ : 24
-    // ＄: A3 A4
-    // Xian: CF 88
-    // Sheng: CA A6
-    std::string fullText = "\x24\xCF\x88\xCA\xA6\x2A\xA3\xA4\xCF\x88\xCA\xA6"; 
-    
-    std::cout << "Original Text (Hex): ";
-    for (unsigned char c : fullText) printf("%02X ", c);
-    std::cout << std::endl;
+    std::string hero3DoubleSurname = "\xAB\x6E\xAE\x63\xBD\xF0";
+    std::string hero3SingleSurname = "\xBD\xF0\xD3\xB9\xCF\x88";
 
-    // 2. Logic from EventManager
-    std::string heroName = GameManager::getInstance().getRole(0).getName();
-    std::cout << "Hero Name (Hex): ";
-    for (unsigned char c : heroName) printf("%02X ", c);
-    std::cout << std::endl;
-    
-    std::string heroNameUtf8 = gbkToUtf8(heroName);
-    std::cout << "Hero Name UTF8 (Hex): ";
-    for (unsigned char c : heroNameUtf8) printf("%02X ", c);
-    std::cout << std::endl;
+    std::string input = "[[$$]]-[[%%]]-[[&&]]\xA3\xA4**";
+    std::string out1 = ReplaceNewTalk0Placeholders(input, hero3DoubleSurname);
+    std::string out2 = ReplaceNewTalk0Placeholders(input, hero3SingleSurname);
 
-    std::string cleanText;
-    for (size_t i = 0; i < fullText.length(); ++i) {
-        unsigned char c = (unsigned char)fullText[i];
-        
-        // Check for escaped characters first
-        if (i + 1 < fullText.length()) {
-            unsigned char nextC = (unsigned char)fullText[i + 1];
-            if (c == '*' && nextC == '*') { cleanText += '*'; i++; continue; }
-            if (c == '&' && nextC == '&') { cleanText += '&'; i++; continue; }
-            if (c == '#' && nextC == '#') { cleanText += '#'; i++; continue; }
-            if (c == '@' && nextC == '@') { cleanText += '@'; i++; continue; }
-            // Special handling for $$: Only escape if strictly $$
-            if (c == '$' && nextC == '$') { cleanText += '$'; i++; continue; }
-            if (c == '%' && nextC == '%') { cleanText += '%'; i++; continue; }
-        }
+    if (out1.find("\xAB\x6E\xAE\x63") == std::string::npos) return 1;
+    if (out1.find("\xBD\xF0") == std::string::npos) return 2;
+    if (out1.find("\xA3\xA4") == std::string::npos) return 3;
 
-        // Control Codes
-        if (c == '^') {
-            if (i + 1 < fullText.length()) {
-                // Skip color code
-                i++;
-                continue;
-            }
-        }
-        else if (c == '*') {
-            // Newline
-            cleanText += '\n';
-        }
-        else if (c == '@') {
-            // Placeholder @0, @N
-            if (i + 1 < fullText.length()) {
-                char nextC = fullText[i+1];
-                if (nextC == '0') {
-                    cleanText += heroName;
-                    i++;
-                } else if (nextC == 'N') {
-                    cleanText += "Nick"; // Mock
-                    i++;
-                } else {
-                    cleanText += (char)c;
-                }
-            } else {
-                cleanText += (char)c;
-            }
-        }
-        else if (c == '$') {
-            // Placeholder for Surname
-            // Heuristic: First 2 bytes of GBK name
-            std::string surname = heroName;
-            if (heroName.length() >= 2) {
-                surname = heroName.substr(0, 2);
-            }
-            cleanText += surname;
-            std::cout << "[Test] Replaced $ with " << surname << std::endl;
-        }
-        else if (c == 0xA3) {
-             // Check for Full Width $ (A3 A4)
-             if (i + 1 < fullText.length()) {
-                 unsigned char nextC = (unsigned char)fullText[i+1];
-                 if (nextC == 0xA4) {
-                     // Found Full Width $
-                     std::string surname = heroName;
-                     if (heroName.length() >= 2) {
-                         surname = heroName.substr(0, 2);
-                     }
-                     cleanText += surname;
-                     std::cout << "[Test] Replaced Full-Width $ with " << surname << std::endl;
-                     i++; // Skip nextC
-                     continue;
-                 }
-             }
-             cleanText += (char)c;
-        }
-        else {
-            cleanText += (char)c;
-        }
-    }
-
-    std::cout << "Clean Text (Hex): ";
-    for (unsigned char c : cleanText) printf("%02X ", c);
-    std::cout << std::endl;
-    
-    // Expected: BD F0 CF 88 CA A6 (Jin Xian Sheng)
-    // Check if result matches
-    if (cleanText.length() >= 2 && (unsigned char)cleanText[0] == 0xBD && (unsigned char)cleanText[1] == 0xF0) {
-        std::cout << "SUCCESS: Surname replaced correctly." << std::endl;
-    } else {
-        std::cout << "FAILURE: Surname replacement failed." << std::endl;
-    }
-    
-    if (heroNameUtf8.size() >= 3 &&
-        (unsigned char)heroNameUtf8[0] == 0xE9 &&
-        (unsigned char)heroNameUtf8[1] == 0x87 &&
-        (unsigned char)heroNameUtf8[2] == 0x91) {
-        std::cout << "SUCCESS: GBK->UTF8 conversion matches expected prefix." << std::endl;
-    } else {
-        std::cout << "FAILURE: GBK->UTF8 conversion does not match expected prefix." << std::endl;
-    }
+    if (out2.find("\xBD\xF0") == std::string::npos) return 4;
+    if (out2.find("\xD3\xB9\xCF\x88") == std::string::npos) return 5;
 
     return 0;
 }
