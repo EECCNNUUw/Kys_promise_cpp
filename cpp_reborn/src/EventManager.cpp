@@ -1003,6 +1003,21 @@ void EventManager::Instruct_LeaveParty(int roleId) {
 }
 
 void EventManager::Instruct_SetScene(int sceneId, int x, int y, int dir) {
+    // Support jumping to World Map (sceneId = -1)
+    if (sceneId == -1) {
+        // Jump to World Map
+        GameManager::getInstance().enterScene(-1);
+        // Set player position to default or saved position
+        // For now, use center of world map
+        GameManager::getInstance().setMainMapPosition(240, 240);
+        if (dir >= 0) {
+            GameManager::getInstance().setMainMapFace(dir);
+        }
+        Instruct_Redraw();
+        return;
+    }
+    
+    // Normal scene change
     GameManager::getInstance().enterScene(sceneId);
     if (x > 0 || y > 0) { 
         GameManager::getInstance().setMainMapPosition(x, y);

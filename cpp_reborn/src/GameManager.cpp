@@ -651,6 +651,35 @@ void GameManager::UpdateRoaming() {
                     m_cameraY = m_mainMapY;
                     updateWalkFrame();
                     EventManager::getInstance().CheckEvent(m_currentSceneId, m_mainMapX, m_mainMapY);
+                    
+                    // Check if player is at scene exit (only if in a scene, not on world map)
+                    if (m_currentSceneId >= 0) {
+                        Scene* scene = SceneManager::getInstance().GetScene(m_currentSceneId);
+                        if (scene) {
+                            for (int i = 0; i < 3; i++) {
+                                int exitX = scene->getExitX(i);
+                                int exitY = scene->getExitY(i);
+                                if (exitX >= 0 && exitY >= 0 && m_mainMapX == exitX && m_mainMapY == exitY) {
+                                    // Player reached scene exit, jump to world map
+                                    enterScene(-1);
+                                    // Set player position to scene's main entrance on world map
+                                    int worldX = scene->getMainEntranceX1();
+                                    int worldY = scene->getMainEntranceY1();
+                                    if (worldX >= 0 && worldY >= 0) {
+                                        setMainMapPosition(worldX, worldY);
+                                    } else {
+                                        // Default to center of world map
+                                        setMainMapPosition(240, 240);
+                                    }
+                                    // Force redraw
+                                    if (m_screenSurface) {
+                                        SDL_FillSurfaceRect(m_screenSurface, NULL, 0);
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -665,57 +694,8 @@ void GameManager::UpdateRoaming() {
 }
 
 void GameManager::UpdateSystemMenu() {
-    SDL_Event e;
-    while (SDL_PollEvent(&e) != 0) {
-        if (e.type == SDL_EVENT_QUIT) {
-            m_isRunning = false;
-        } else if (e.type == SDL_EVENT_KEY_DOWN) {
-            switch (e.key.key) {
-                case SDLK_UP:
-                case SDLK_KP_8:
-                    if (m_systemMenuSelection == 1 || m_systemMenuSelection == 2 || m_systemMenuSelection == 3) m_systemMenuSelection--;
-                    else if (m_systemMenuSelection == 4) m_systemMenuSelection++;
-                    else if (m_systemMenuSelection == 5) m_systemMenuSelection = 0;
-                    break;
-                    
-                case SDLK_DOWN:
-                case SDLK_KP_2:
-                    if (m_systemMenuSelection == 0 || m_systemMenuSelection == 1 || m_systemMenuSelection == 2) m_systemMenuSelection++;
-                    else if (m_systemMenuSelection == 5 || m_systemMenuSelection == 4) m_systemMenuSelection--;
-                    break;
-                    
-                case SDLK_RIGHT:
-                case SDLK_KP_6:
-                    if (m_systemMenuSelection == 0) m_systemMenuSelection++;
-                    else if (m_systemMenuSelection == 3 || m_systemMenuSelection == 4) m_systemMenuSelection--;
-                    else if (m_systemMenuSelection == 5) m_systemMenuSelection = 0;
-                    break;
-                    
-                case SDLK_LEFT:
-                case SDLK_KP_4:
-                    if (m_systemMenuSelection == 0) m_systemMenuSelection = 5;
-                    else if (m_systemMenuSelection == 3 || m_systemMenuSelection == 2) m_systemMenuSelection++;
-                    else if (m_systemMenuSelection == 5 || m_systemMenuSelection == 1) m_systemMenuSelection--;
-                    break;
-
-                case SDLK_RETURN:
-                case SDLK_SPACE:
-                    if (m_systemMenuSelection == 5) { // Item
-                         m_currentState = GameState::InventoryMenu;
-                    } else if (m_systemMenuSelection == 2) { // System
-                         // TODO: Implement System Options
-                    }
-                    break;
-                    
-                case SDLK_ESCAPE:
-                    m_currentState = GameState::Roaming;
-                    break;
-            }
-        }
-    }
-    
-    UIManager::getInstance().RenderMenuSystem(m_systemMenuSelection);
-    SDL_RenderPresent(m_renderer);
+    UIManager::getInstance().ShowMenu();
+    m_currentState = GameState::Roaming;
 }
 
 void GameManager::UpdateInventoryMenu() {

@@ -355,10 +355,10 @@ void SceneManager::DrawClouds(SDL_Renderer* renderer, int centerX, int centerY) 
 }
 
 void SceneManager::DrawWorldMap(SDL_Renderer* renderer, int centerX, int centerY) {
-    if (m_wIdxData.empty() || m_wPicData.empty() || m_worldMapData.empty()) {
+    if (m_mmapIdxData.empty() || m_mmapPicData.empty() || m_worldMapData.empty()) {
         static bool loggedEmpty = false;
         if (!loggedEmpty) {
-            std::cerr << "[DrawWorldMap] Resources empty! Idx: " << m_wIdxData.size() << " Pic: " << m_wPicData.size() << " Map: " << m_worldMapData.size() << std::endl;
+            std::cerr << "[DrawWorldMap] Resources empty! Idx: " << m_mmapIdxData.size() << " Pic: " << m_mmapPicData.size() << " Map: " << m_worldMapData.size() << std::endl;
             loggedEmpty = true;
         }
         return;
@@ -403,14 +403,14 @@ void SceneManager::DrawWorldMap(SDL_Renderer* renderer, int centerX, int centerY
             // Culling
             if (x < -100 || x > 740 || y < -100 || y > 580) continue; 
             
-            // Draw Tile using wmp
+            // Draw Tile using mmap.grp/mmap.idx (Mpic/Midx in Pascal)
             if (tile > 0) {
                 // tile / 2 ?
                 int picIndex = (tile / 2);
-                if (picIndex < m_wIdxData.size()) {
-                    int offset = m_wIdxData[picIndex];
-                    if (offset > 0 && offset < m_wPicData.size()) {
-                        GraphicsUtils::DrawRLE8(GameManager::getInstance().getScreenSurface(), x, y, &m_wPicData[offset], m_wPicData.size() - offset);
+                if (picIndex < m_mmapIdxData.size()) {
+                    int offset = m_mmapIdxData[picIndex];
+                    if (offset > 0 && offset < m_mmapPicData.size()) {
+                        GraphicsUtils::DrawRLE8(GameManager::getInstance().getScreenSurface(), x, y, &m_mmapPicData[offset], m_mmapPicData.size() - offset);
                     }
                 }
             }
