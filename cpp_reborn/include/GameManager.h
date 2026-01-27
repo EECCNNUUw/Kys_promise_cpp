@@ -12,26 +12,39 @@
 class GameManager {
     // Global Variables (x50 array from Pascal)
     // Range: -32768 to 32767 (mapped to 0..65535)
+    // 对应Pascal中的全局变量数组 x50
+    // 用于存储游戏全局状态变量，如事件标志、开关等
+    // Pascal中使用 SmallInt (16位)，范围 -32768..32767
+    // C++中我们使用 vector 存储，并通过偏移量 32768 映射到 0..65535
     std::vector<int16_t> m_x50;
 
 public:
+    // 单例模式：对应 Pascal 中的 kys_main.pas 的全局作用域
     static GameManager& getInstance();
 
+    // 获取全局变量值
+    // 对应 Pascal: function get_x50(index: integer): integer;
     int16_t getX50(int index) const {
         if (index < -32768 || index > 32767) return 0;
         return m_x50[index + 32768];
     }
 
+    // 设置全局变量值
+    // 对应 Pascal: procedure set_x50(index, value: integer);
     void setX50(int index, int16_t value) {
         if (index < -32768 || index > 32767) return;
         m_x50[index + 32768] = value;
     }
 
+    // 初始化游戏系统（SDL, 字体, 窗口等）
     bool Init();
+    // 游戏主循环
     void Run();
+    // 退出游戏并清理资源
     void Quit();
 
     // Data Access
+    // 数据访问接口：对应 Pascal 中的全局数组 RRole, RItem, RScene, RMagic
     Role& getRole(int index);
     int getRoleCount() const { return (int)m_roles.size(); }
     Item& getItem(int index);
@@ -42,9 +55,20 @@ public:
     PicImage* getHead(int index); // Get cached head image
     
     // Global State Helpers
+    // 全局状态辅助函数
     void setMainMapPosition(int x, int y);
     void setCameraPosition(int x, int y); // Separate Camera Position
     
+    // Global State Variables (Pascal Save Header)
+    int16_t m_inShip = 0;
+    int16_t m_shipX = 0, m_shipY = 0;
+    int16_t m_shipFace = 0;
+    int16_t m_subMapFace = 0; // SFace
+    int16_t m_gameTime = 0;
+    int16_t m_time = 0;
+    int16_t m_timeEvent = 0;
+    int16_t m_randomEvent = 0;
+
     // Render Helper
     SDL_Surface* getScreenSurface() { return m_screenSurface; }
     void RenderScreenTo(SDL_Renderer* renderer);
@@ -114,6 +138,7 @@ public:
     // Testing Helpers
     void addMagicForTest(const Magic& m) { m_magics.push_back(m); }
     void addRoleForTest(const Role& r) { m_roles.push_back(r); }
+    void addItemForTest(const Item& i) { m_items.push_back(i); }
     void clearDataForTest() { m_magics.clear(); m_roles.clear(); m_items.clear(); }
 
 private:

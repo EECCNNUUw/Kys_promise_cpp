@@ -15,8 +15,8 @@ static int GetMagicLevel(int rnum, int mnum) {
     if (rnum < 0) return 0;
     Role& role = GameManager::getInstance().getRole(rnum);
     for (int i = 0; i < 10; ++i) {
-        if (role.getMagic(i) == mnum) {
-            return role.getMagLevel(i);
+        if (role.getMagicID(i) == mnum) {
+            return role.getMagicLevel(i);
         }
     }
     return -1;
@@ -200,6 +200,9 @@ static int GetRoleUnusual(int rnum, bool equip) {
 
 
 // Port of CalNewHurtValue
+// 计算伤害值核心公式
+// 所谓“武功威力3”即武功威力成长值，1000为基准，大于1000则越高级增长速度越快，反之增长速度越慢
+// 对应 Pascal 的 CalNewHurtValue (kys_battle.pas)
 static int CalNewHurtValue(int lv, int minVal, int maxVal, int proportion) {
     if (proportion == 0) proportion = 100;
     double p = proportion / 1000.0;
@@ -225,7 +228,7 @@ static int GetRoleDifficulty(int rnum) {
 
 static int GetRoleMedcine(int rnum, bool equip) {
     Role& role = GameManager::getInstance().getRole(rnum);
-    int result = role.getMedcine();
+    int result = role.getMedicine();
     // TODO: Add Gongti/Equip bonuses if any (usually Medcine doesn't have equip bonuses in vanilla, but check pas)
     // Pascal GetRoleMedcine checks Gongti and Equip.
     if (role.getGongti() > -1) {
@@ -503,6 +506,7 @@ void BattleManager::MoveRole(int roleIdx, int x, int y) {
 }
 
 void BattleManager::CalSelectableArea(int roleIdx) {
+    // Reset selection layer
     for(int y=0; y<64; y++)
         for(int x=0; x<64; x++)
             m_battleField[3][x][y] = -1;
@@ -514,6 +518,8 @@ void BattleManager::CalSelectableArea(int roleIdx) {
     int maxStep = GameManager::getInstance().getRole(role.getRNum()).getSpeed() / 10;
     if (maxStep < 1) maxStep = 1;
 
+    // BFS for movement range
+    // 广度优先搜索计算移动范围
     std::vector<std::pair<int, int>> queue;
     queue.push_back({startX, startY});
     m_battleField[3][startX][startY] = 0;
@@ -533,6 +539,11 @@ void BattleManager::CalSelectableArea(int roleIdx) {
             int ny = cy + dy[i];
             
             if (nx >= 0 && nx < 64 && ny >= 0 && ny < 64) {
+                // Check if passable:
+                // m_battleField[3][nx][ny] == -1 : Not visited
+                // m_battleField[0][nx][ny] > 0 : Has ground
+                // m_battleField[1][nx][ny] == 0 : No building
+                // m_battleField[2][nx][ny] == -1 : No other role
                 if (m_battleField[3][nx][ny] == -1 && 
                     m_battleField[0][nx][ny] > 0 &&
                     m_battleField[1][nx][ny] == 0 &&
@@ -547,10 +558,13 @@ void BattleManager::CalSelectableArea(int roleIdx) {
 }
 
 void BattleManager::AutoBattle(int roleIdx) {
+    // Simple AI Implementation
+    // 简易 AI 实现，对应 Pascal 的 AutoBattle
     BattleRole& actor = m_battleRoles[roleIdx];
     Role& role = GameManager::getInstance().getRole(actor.getRNum());
     
     // 1. Self Heal / Restore (Priority)
+    // 优先尝试自我治疗/恢复
     if (actor.getActed() == 0 && role.getCurrentHP() < role.getMaxHP() / 5) {
         if (rand() % 100 < 70) {
             if (GetRoleMedcine(actor.getRNum(), true) >= 50 && role.getPhyPower() >= 50 && rand() % 100 < 50) {
@@ -577,6 +591,7 @@ void BattleManager::AutoBattle(int roleIdx) {
     if (actor.getActed()) return;
 
     // 2. Hidden Weapon (If equipped or in inventory)
+    // 尝试使用暗器 (简化逻辑)
     // Simplified: Only if in range of an enemy?
     // Or just check if we can use it.
     // For now, skip complex AI for HiddenWeapon moving.
@@ -584,6 +599,8 @@ void BattleManager::AutoBattle(int roleIdx) {
     int targetIdx = -1;
     int minDist = 9999;
     
+    // Find nearest enemy
+    // 寻找最近的敌人
     for (int i = 0; i < m_battleRoles.size(); ++i) {
         if (m_battleRoles[i].getDead()) continue;
         if (m_battleRoles[i].getTeam() == actor.getTeam()) continue;
@@ -617,7 +634,8 @@ void BattleManager::AutoBattle(int roleIdx) {
         }
 
         if (minDist <= 1) {
-            // Attack
+            // Attack (Melee or Magic)
+            // 攻击 (近战或武功)
             BattleRole& target = m_battleRoles[targetIdx];
             Role& tData = GameManager::getInstance().getRole(target.getRNum());
             Role& aData = GameManager::getInstance().getRole(actor.getRNum());
@@ -626,10 +644,10 @@ void BattleManager::AutoBattle(int roleIdx) {
             int magicId = -1;
             int level = 1;
             for(int i=0; i<10; i++) {
-                 int m = aData.getMagic(i);
+                 int m = aData.getMagicID(i);
                  if (m > 0) {
                      magicId = m;
-                     level = aData.getMagLevel(i) / 100;
+                     level = aData.getMagicLevel(i) / 100;
                      if (level < 1) level = 1; 
                      break;
                  }
@@ -652,6 +670,7 @@ void BattleManager::AutoBattle(int roleIdx) {
             ShowHurtValue(0);
         } else {
             // Move towards target
+            // 向目标移动
             CalSelectableArea(roleIdx);
             
             int bestX = actor.getX();

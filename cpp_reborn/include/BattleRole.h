@@ -3,127 +3,133 @@
 
 #include "GameObject.h"
 
+// 战场角色数据结构 - 对应 Pascal 原版 TBattleRole
+// TBattleRole = record
+//   case TCallType of
+//     Element: (rnum, Team, Y, X, Face, Dead, Step, Acted: smallint;
+//       Pic, ShowNumber, Progress, Round, speed: smallint;
+//       ExpGot, Auto, Show, wait, frozen, killed, Knowledge, LifeAdd: smallint;
+//       AddAtt, AddDef, AddSpd, AddStep, AddDodge, PerfectDodge: smallint);
+//     Address: (Data: array[0..26] of smallint);
+// end;
+constexpr size_t BATTLEROLE_DATA_SIZE = 27;
+
 class BattleRole : public GameObject {
 public:
     BattleRole();
     virtual ~BattleRole() = default;
 
-    // Property Accessors
-    int16_t getRNum() const;
-    void setRNum(int16_t value);
+    // 0: rnum (角色ID)
+    int16 getRNum() const { return m_data[0]; }
+    void setRNum(int16 v) { m_data[0] = v; }
 
-    int16_t getTeam() const;
-    void setTeam(int16_t value);
+    // 1: Team (队伍: 0我方, 1敌方, etc.)
+    int16 getTeam() const { return m_data[1]; }
+    void setTeam(int16 v) { m_data[1] = v; }
 
-    int16_t getY() const;
-    void setY(int16_t value);
+    // 2: Y (坐标Y)
+    int16 getY() const { return m_data[2]; }
+    void setY(int16 v) { m_data[2] = v; }
 
-    int16_t getX() const;
-    void setX(int16_t value);
+    // 3: X (坐标X)
+    int16 getX() const { return m_data[3]; }
+    void setX(int16 v) { m_data[3] = v; }
 
-    int16_t getFace() const;
-    void setFace(int16_t value);
+    // 4: Face (朝向)
+    int16 getFace() const { return m_data[4]; }
+    void setFace(int16 v) { m_data[4] = v; }
 
-    int16_t getDead() const;
-    void setDead(int16_t value);
+    // 5: Dead (是否死亡)
+    int16 getDead() const { return m_data[5]; }
+    void setDead(int16 v) { m_data[5] = v; }
 
-    int16_t getStep() const;
-    void setStep(int16_t value);
+    // 6: Step (已移动步数/状态?)
+    int16 getStep() const { return m_data[6]; }
+    void setStep(int16 v) { m_data[6] = v; }
 
-    int16_t getActed() const;
-    void setActed(int16_t value);
+    // 7: Acted (是否已行动)
+    int16 getActed() const { return m_data[7]; }
+    void setActed(int16 v) { m_data[7] = v; }
 
-    int16_t getPic() const;
-    void setPic(int16_t value);
+    // 8: Pic (贴图/动画帧)
+    int16 getPic() const { return m_data[8]; }
+    void setPic(int16 v) { m_data[8] = v; }
 
-    int16_t getShowNumber() const;
-    void setShowNumber(int16_t value);
+    // 9: ShowNumber (显示数字/伤害?)
+    int16 getShowNumber() const { return m_data[9]; }
+    void setShowNumber(int16 v) { m_data[9] = v; }
 
-    int16_t getProgress() const;
-    void setProgress(int16_t value);
+    // 10: Progress (集气槽进度)
+    int16 getProgress() const { return m_data[10]; }
+    void setProgress(int16 v) { m_data[10] = v; }
 
-    int16_t getRound() const;
-    void setRound(int16_t value);
+    // 11: Round (回合数)
+    int16 getRound() const { return m_data[11]; }
+    void setRound(int16 v) { m_data[11] = v; }
 
-    int16_t getSpeed() const;
-    void setSpeed(int16_t value);
+    // 12: speed (速度 - 战斗中可能变化)
+    int16 getSpeed() const { return m_data[12]; }
+    void setSpeed(int16 v) { m_data[12] = v; }
 
-    int16_t getExpGot() const;
-    void setExpGot(int16_t value);
+    // 13: ExpGot (获得经验)
+    int16 getExpGot() const { return m_data[13]; }
+    void setExpGot(int16 v) { m_data[13] = v; }
 
-    int16_t getAuto() const;
-    void setAuto(int16_t value);
+    // 14: Auto (自动战斗状态)
+    int16 getAuto() const { return m_data[14]; }
+    void setAuto(int16 v) { m_data[14] = v; }
 
-    int16_t getShow() const;
-    void setShow(int16_t value);
+    // 15: Show (是否显示?)
+    int16 getShow() const { return m_data[15]; }
+    void setShow(int16 v) { m_data[15] = v; }
 
-    int16_t getWait() const;
-    void setWait(int16_t value);
+    // 16: wait (等待时间?)
+    int16 getWait() const { return m_data[16]; }
+    void setWait(int16 v) { m_data[16] = v; }
 
-    int16_t getFrozen() const;
-    void setFrozen(int16_t value);
+    // 17: frozen (冻结/冰封状态)
+    int16 getFrozen() const { return m_data[17]; }
+    void setFrozen(int16 v) { m_data[17] = v; }
 
-    int16_t getKilled() const;
-    void setKilled(int16_t value);
+    // 18: killed (击杀数?)
+    int16 getKilled() const { return m_data[18]; }
+    void setKilled(int16 v) { m_data[18] = v; }
 
-    int16_t getKnowledge() const;
-    void setKnowledge(int16_t value);
+    // 19: Knowledge (见识/知识 - 战斗中可能用到?)
+    int16 getKnowledge() const { return m_data[19]; }
+    void setKnowledge(int16 v) { m_data[19] = v; }
 
-    int16_t getLifeAdd() const;
-    void setLifeAdd(int16_t value);
+    // 20: LifeAdd (生命回复?)
+    int16 getLifeAdd() const { return m_data[20]; }
+    void setLifeAdd(int16 v) { m_data[20] = v; }
 
-    int16_t getAddAtt() const;
-    void setAddAtt(int16_t value);
+    // 21: AddAtt (攻击加成)
+    int16 getAddAtt() const { return m_data[21]; }
+    void setAddAtt(int16 v) { m_data[21] = v; }
 
-    int16_t getAddDef() const;
-    void setAddDef(int16_t value);
+    // 22: AddDef (防御加成)
+    int16 getAddDef() const { return m_data[22]; }
+    void setAddDef(int16 v) { m_data[22] = v; }
 
-    int16_t getAddSpd() const;
-    void setAddSpd(int16_t value);
+    // 23: AddSpd (速度加成)
+    int16 getAddSpd() const { return m_data[23]; }
+    void setAddSpd(int16 v) { m_data[23] = v; }
 
-    int16_t getAddStep() const;
-    void setAddStep(int16_t value);
+    // 24: AddStep (移动步数加成)
+    int16 getAddStep() const { return m_data[24]; }
+    void setAddStep(int16 v) { m_data[24] = v; }
 
-    int16_t getAddDodge() const;
-    void setAddDodge(int16_t value);
+    // 25: AddDodge (闪避加成?)
+    int16 getAddDodge() const { return m_data[25]; }
+    void setAddDodge(int16 v) { m_data[25] = v; }
 
-    int16_t getPerfectDodge() const;
-    void setPerfectDodge(int16_t value);
+    // 26: PerfectDodge (完美闪避?)
+    int16 getPerfectDodge() const { return m_data[26]; }
+    void setPerfectDodge(int16 v) { m_data[26] = v; }
 
-    // Helper to get level from underlying Role
-    int16_t getLevel() const;
-
-private:
-    // Indices based on TBattleRole definition in kys_main.pas
-    enum Index {
-        IDX_RNUM = 0,
-        IDX_TEAM = 1,
-        IDX_Y = 2,
-        IDX_X = 3,
-        IDX_FACE = 4,
-        IDX_DEAD = 5,
-        IDX_STEP = 6,
-        IDX_ACTED = 7,
-        IDX_PIC = 8,
-        IDX_SHOWNUMBER = 9,
-        IDX_PROGRESS = 10,
-        IDX_ROUND = 11,
-        IDX_SPEED = 12,
-        IDX_EXPGOT = 13,
-        IDX_AUTO = 14,
-        IDX_SHOW = 15,
-        IDX_WAIT = 16,
-        IDX_FROZEN = 17,
-        IDX_KILLED = 18,
-        IDX_KNOWLEDGE = 19,
-        IDX_LIFEADD = 20,
-        IDX_ADDATT = 21,
-        IDX_ADDDEF = 22,
-        IDX_ADDSPD = 23,
-        IDX_ADDSTEP = 24,
-        IDX_ADDDODGE = 25,
-        IDX_PERFECTDODGE = 26
-    };
+    // Helper to get level from underlying Role (Implemented in cpp due to dependency)
+    // 获取角色等级 (实现位于cpp文件中，因为依赖GameManager)
+    int16 getLevel() const;
 };
 
 #endif // BATTLEROLE_H

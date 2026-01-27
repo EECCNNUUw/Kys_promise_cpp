@@ -61,6 +61,7 @@ file(GLOB_RECURSE SOURCES "src/*.cpp")
 list(FILTER SOURCES EXCLUDE REGEX ".*dump_header\\.cpp$")
 list(FILTER SOURCES EXCLUDE REGEX ".*save_inspector\\.cpp$")
 list(FILTER SOURCES EXCLUDE REGEX ".*analyze_data\\.cpp$")
+list(FILTER SOURCES EXCLUDE REGEX ".*inspect_pic_header\\.cpp$")
 
 # Add executable
 add_executable(kys_cpp ${SOURCES})
@@ -72,6 +73,13 @@ disable_vcpkg_applocal(test_loading)
 target_link_libraries(test_loading PRIVATE SDL3::SDL3 SDL3_ttf::SDL3_ttf SDL3_image::SDL3_image)
 if(WIN32)
     target_link_libraries(test_loading PRIVATE winmm)
+endif()
+
+add_executable(test_save_load tests/test_save_load.cpp src/SceneManager.cpp src/FileLoader.cpp src/GraphicsUtils.cpp src/GameManager.cpp src/TextManager.cpp src/PicLoader.cpp src/BattleManager.cpp src/BattleRole.cpp src/EventManager.cpp src/UIManager.cpp src/SoundManager.cpp src/WarData.cpp)
+disable_vcpkg_applocal(test_save_load)
+target_link_libraries(test_save_load PRIVATE SDL3::SDL3 SDL3_ttf::SDL3_ttf SDL3_image::SDL3_image)
+if(WIN32)
+    target_link_libraries(test_save_load PRIVATE winmm)
 endif()
 
 add_executable(test_event tests/test_event.cpp src/SceneManager.cpp src/FileLoader.cpp src/GraphicsUtils.cpp src/GameManager.cpp src/TextManager.cpp src/PicLoader.cpp src/BattleManager.cpp src/BattleRole.cpp src/EventManager.cpp src/UIManager.cpp src/SoundManager.cpp src/WarData.cpp)
@@ -134,6 +142,10 @@ target_link_libraries(save_inspector PRIVATE)
 add_executable(analyze_data src/analyze_data.cpp)
 disable_vcpkg_applocal(analyze_data)
 target_link_libraries(analyze_data PRIVATE)
+
+add_executable(inspect_pic_header src/inspect_pic_header.cpp)
+disable_vcpkg_applocal(inspect_pic_header)
+target_link_libraries(inspect_pic_header PRIVATE)
 
 
 # Link libraries

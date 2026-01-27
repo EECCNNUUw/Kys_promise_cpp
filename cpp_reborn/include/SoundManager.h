@@ -4,7 +4,8 @@
 #include <map>
 #include <SDL3/SDL.h>
 
-// Simple Sound Manager using SDL3 Native Audio
+// 简易音频管理器 - 使用 SDL3 原生音频
+// 对应 Pascal 原版 kys_engine.pas 中的音频部分
 class SoundManager {
 public:
     static SoundManager& getInstance();
@@ -12,14 +13,18 @@ public:
     bool Init();
     void Quit();
 
-    // Music (Not fully implemented for native SDL3 without codecs, placeholders)
+    // 播放音乐 (Music)
+    // Pascal: PlayMusic / PlayCD
+    // 目前使用 SDL3 占位，原版使用 MP3/MIDI
     void PlayMusic(int musicId);
     void StopMusic();
 
-    // Sound Effect
+    // 播放音效 (Sound Effect)
+    // Pascal: PlayWave / PlaySound
+    // 对应 e.grp (音效资源)
     void PlaySound(int soundId);
 
-    // Update loop (for cleaning up streams if needed)
+    // 更新循环 (清理流等)
     void Update();
 
 private:
@@ -34,12 +39,10 @@ private:
         SDL_AudioSpec spec;
     };
 
-    // Resources
+    // 音频资源缓存
     std::map<int, AudioData> m_soundCache;
     
-    // Active streams (we can keep track to clean them up, or let SDL handle it?)
-    // SDL3 streams bound to device need to be destroyed.
-    // We can store active streams.
+    // 活动音频流
     std::vector<SDL_AudioStream*> m_activeStreams;
 
     SDL_AudioDeviceID m_deviceId;
