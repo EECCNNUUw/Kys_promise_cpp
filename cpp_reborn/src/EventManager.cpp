@@ -648,7 +648,9 @@ void EventManager::Instruct_NewTalk0(int headNum, int talkNum, int nameNum, int 
     std::string heroNick = GameManager::getInstance().getRole(0).getNick();
 
     // Ensure heroName has a default if empty
-    if (heroName.empty() || LooksLikeUninitializedName(heroName)) heroName = TextManager::getInstance().utf8ToGbk("金先生");
+    if (heroName.empty() || LooksLikeUninitializedName(heroName)) 
+        
+        heroName = TextManager::getInstance().gbkToUtf8("金先生");
     std::string heroSurname = ExtractSurnameBytesGbk(heroName);
     std::string heroGiven = (heroName.size() > heroSurname.size()) ? heroName.substr(heroSurname.size()) : "";
 
@@ -795,7 +797,9 @@ void EventManager::Instruct_Dialogue(int talkId, int headId, int mode) {
             if (!part.empty()) {
                 std::string heroName = GameManager::getInstance().getRole(0).getName();
                 std::string heroNick = GameManager::getInstance().getRole(0).getNick();
-                if (heroName.empty() || LooksLikeUninitializedName(heroName)) heroName = TextManager::getInstance().utf8ToGbk("金先生");
+                if (heroName.empty() || LooksLikeUninitializedName(heroName))
+                    
+                    heroName = TextManager::getInstance().utf8ToGbk("金先生");
 
                 // We reuse the logic from NewTalk0 via helper or just reimplement
                 // But for now, let's keep it simple as it was
