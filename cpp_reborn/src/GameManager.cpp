@@ -435,7 +435,7 @@ void GameManager::InitNewGame() {
     }
     
     // OVERRIDE for New Game: Force start in Scene 0 (Temple)
-    // 修正：新游戏强制从场景0（圣堂/软体娃娃处）开始
+    // 修正：新游戏强制从场景0（圣堂）开始
     // ranger.grp 的头部可能保存的是大地图状态(-1)，这对新游戏是不正确的。
     // 实际的开场剧情由场景0的事件101处理。
     m_currentSceneId = 0; 
@@ -573,13 +573,13 @@ void GameManager::UpdateTitleScreen() {
                     break;
                 case SDLK_RETURN:
                 case SDLK_SPACE:
-                    if (m_titleMenuSelection == 0) {
+                    if (m_titleMenuSelection == 0) {// 新游戏
                         m_currentState = GameState::CharacterCreation;
-                        RandomizeRoleStats(getRole(0));
-                        m_characterCreationNameUtf8 = TextManager::getInstance().nameToUtf8(getRole(0).getName());
-                        if (m_characterCreationNameUtf8.empty()) {
+                        //RandomizeRoleStats(getRole(0));
+                        //m_characterCreationNameUtf8 = TextManager::getInstance().nameToUtf8(getRole(0).getName());
+                        //if (m_characterCreationNameUtf8.empty()) {
                             m_characterCreationNameUtf8 = "金先生";
-                        }
+                       // }
                         getRole(0).setName(TextManager::getInstance().utf8ToGbk(m_characterCreationNameUtf8));
                         SDL_StartTextInput(m_window);
                         m_characterCreationTextInputActive = true;
@@ -659,8 +659,6 @@ void GameManager::UpdateCharacterCreation() {
 }
 
 void GameManager::UpdateRoaming() {
-    EventManager::getInstance().CheckEvent(m_currentSceneId, m_mainMapX, m_mainMapY);
-
     int pendingEvent = EventManager::getInstance().GetPendingEvent();
     if (pendingEvent != -1) {
         EventManager::getInstance().ClearPendingEvent();
@@ -690,7 +688,8 @@ void GameManager::UpdateRoaming() {
                             case 2: frontY--; break; // Left
                             case 3: frontY++; break; // Right
                         }
-                        EventManager::getInstance().CheckEvent(m_currentSceneId, frontX, frontY);
+                        // Manual trigger (isManual = true)
+                        EventManager::getInstance().CheckEvent(m_currentSceneId, frontX, frontY, true);
                     }
                     break;
                     
@@ -701,6 +700,8 @@ void GameManager::UpdateRoaming() {
                     break;
                 
                 case SDLK_ESCAPE:
+                    SceneManager::getInstance().DrawScene(m_renderer, m_cameraX, m_cameraY);
+                    RenderScreenTo(m_renderer);
                     UIManager::getInstance().ShowMenu();
                     break;
             }
@@ -715,7 +716,8 @@ void GameManager::UpdateRoaming() {
                     m_cameraX = m_mainMapX;
                     m_cameraY = m_mainMapY;
                     updateWalkFrame();
-                    EventManager::getInstance().CheckEvent(m_currentSceneId, m_mainMapX, m_mainMapY);
+                    // Auto trigger (isManual = false)
+                    EventManager::getInstance().CheckEvent(m_currentSceneId, m_mainMapX, m_mainMapY, false);
                 }
             }
         }

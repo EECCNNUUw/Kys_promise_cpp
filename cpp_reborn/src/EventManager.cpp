@@ -201,15 +201,29 @@ std::string EventManager::GetNameFromData(int nameNum) {
     return name;
 }
 
-void EventManager::CheckEvent(int sceneId, int x, int y) {
+void EventManager::CheckEvent(int sceneId, int x, int y, bool isManual) {
     int16_t eventIndex = SceneManager::getInstance().GetSceneTile(sceneId, 3, x, y);
     
     if (eventIndex >= 0) {
+        int16_t condition = SceneManager::getInstance().GetEventData(sceneId, eventIndex, 0);
         int16_t scriptId = SceneManager::getInstance().GetEventData(sceneId, eventIndex, 4);
         
-        if (scriptId > 0) {
+        // KYS Condition Logic:
+        // Condition 0: Auto-trigger when stepping on tile
+        // Condition 1: Trigger when pressing Space/Enter
+        // Condition -1: Disabled
+        
+        bool shouldTrigger = false;
+        if (condition == 0 && !isManual) {
+            shouldTrigger = true;
+        } else if (condition == 1 && isManual) {
+            shouldTrigger = true;
+        }
+        
+        if (shouldTrigger && scriptId > 0) {
             m_currentSceneId = sceneId;
             m_currentEventId = eventIndex;
+            std::cout << "[CheckEvent] Triggering Event " << eventIndex << " (Script " << scriptId << ") Condition=" << condition << " Manual=" << isManual << std::endl;
             ExecuteEvent(scriptId);
         }
     }
@@ -801,8 +815,6 @@ void EventManager::Instruct_Dialogue(int talkId, int headId, int mode) {
                     
                     heroName = TextManager::getInstance().utf8ToGbk("金先生");
 
-                // We reuse the logic from NewTalk0 via helper or just reimplement
-                // But for now, let's keep it simple as it was
                 size_t pos;
                 while ((pos = part.find("@0")) != std::string::npos) {
                     part.replace(pos, 2, heroName);
@@ -1281,7 +1293,7 @@ void EventManager::Instruct_JmpScene(int sceneId, int x, int y) {
     // Pascal JmpScene calls CheckEvent3 at the end.
     SceneManager::getInstance().DrawScene(GameManager::getInstance().getRenderer(), finalX, finalY); // Force draw
     GameManager::getInstance().UpdateRoaming(); // Force update roaming logic
-    CheckEvent(sceneId, finalX, finalY);
+    CheckEvent(sceneId, finalX, finalY, false);
 }
 
 void EventManager::Instruct_Movement(int eventId, int x, int y) {

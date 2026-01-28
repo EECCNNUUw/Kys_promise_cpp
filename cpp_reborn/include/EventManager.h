@@ -20,8 +20,8 @@ public:
 
     // Event Handling
     // Check if there is an event at (x, y) in sceneId
-    // 检查指定坐标是否有事件触发（对应 Pascal 的 CheckEvent）
-    void CheckEvent(int sceneId, int x, int y);
+    // isManual: true if triggered by Space/Enter, false if triggered by stepping on it
+    void CheckEvent(int sceneId, int x, int y, bool isManual = false);
 
     // Check for Auto-Run events (Condition == 0) in the scene
     // 检查场景中的自动触发事件（条件为0的事件）

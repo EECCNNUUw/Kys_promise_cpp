@@ -99,7 +99,7 @@ private:
     int m_worldMapWidth = 480;
     int m_worldMapHeight = 480;
     
-    // 大地图资源
+    // 战斗地图资源
     std::vector<uint8_t> m_wPicData; // wmp.grp
     std::vector<int32_t> m_wIdxData; // wdx.grp
 
@@ -125,7 +125,7 @@ private:
     std::vector<uint8_t> m_sPicData; // smp
     std::vector<int32_t> m_sIdxData; // sdx
     
-    // 角色精灵资源 (RLE压缩) - mmap.grp/mmap.idx
+    // 大地图资源 (RLE压缩) - mmap.grp/mmap.idx
     std::vector<uint8_t> m_mmapPicData; 
     std::vector<int32_t> m_mmapIdxData;
 

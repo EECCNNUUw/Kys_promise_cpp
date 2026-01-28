@@ -96,6 +96,9 @@ bool UIManager::LoadSystemGraphics() {
         PicImage pic = PicLoader::loadPic("resource/Background.Pic", index);
         if (pic.surface) {
             SDL_Texture* tex = SDL_CreateTextureFromSurface(m_renderer, pic.surface);
+            if (tex) {
+                SDL_SetTextureBlendMode(tex, SDL_BLENDMODE_BLEND); // 确保透明通道生效
+            }
             PicLoader::freePic(pic);
             return tex;
         }
