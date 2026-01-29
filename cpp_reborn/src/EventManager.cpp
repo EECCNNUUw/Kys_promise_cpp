@@ -277,7 +277,9 @@ void EventManager::ExecuteEvent(int eventScriptId) {
                   << " End: " << scriptEnd << " Size: " << m_eventScripts.size() << std::endl;
         return;
     }
-    
+    // 在执行前锁死当前场景和事件 ID
+    m_executingSceneId = m_currentSceneId;
+    m_executingEventId = m_currentEventId;
     int pc = scriptStart; 
     
     std::cout << "Event " << eventScriptId << " Start. PC: " << pc << " End: " << scriptEnd << std::endl;
@@ -600,6 +602,8 @@ void EventManager::ExecuteEvent(int eventScriptId) {
                 break;
         }
     }
+    m_executingSceneId = -1;
+    m_executingEventId = -1;
 }
 
     // Implementations for new opcodes
@@ -887,8 +891,8 @@ void EventManager::Instruct_ModifyEvent(const std::vector<int16_t>& args) {
     int sceneId = args[0];
     int eventId = args[1];
     
-    if (sceneId == -2) sceneId = SceneManager::getInstance().GetCurrentSceneId();
-    // if (eventId == -2) eventId = m_currentEventId;
+    if (sceneId == -2) sceneId = m_executingSceneId; // 修正：使用执行时的场景 ID
+    if (eventId == -2) eventId = m_executingEventId; // 修正：处理当前事件 ID
     
     SceneManager& sm = SceneManager::getInstance();
 
@@ -1124,12 +1128,14 @@ void EventManager::Instruct_Redraw() {
 }
 
 void EventManager::Instruct_UpdateEvent(int sceneId, int eventId, int index, int value) {
-    if (sceneId == -2) sceneId = SceneManager::getInstance().GetCurrentSceneId();
+   if (sceneId == -2) sceneId = m_executingSceneId; // 使用锁死的上下文
+    if (eventId == -2) eventId = m_executingEventId; // 必须处理 eventId 为 -2 的情况
     SceneManager::getInstance().SetEventData(sceneId, eventId, index, value);
 }
 
 void EventManager::Instruct_26(int sceneId, int eventId, int add1, int add2, int add3) {
-    if (sceneId == -2) sceneId = SceneManager::getInstance().GetCurrentSceneId();
+    if (sceneId == -2) sceneId = m_executingSceneId;
+    if (eventId == -2) eventId = m_executingEventId;
     
     int16_t val2 = SceneManager::getInstance().GetEventData(sceneId, eventId, 2);
     int16_t val3 = SceneManager::getInstance().GetEventData(sceneId, eventId, 3);
@@ -1141,7 +1147,7 @@ void EventManager::Instruct_26(int sceneId, int eventId, int add1, int add2, int
 }
 
 void EventManager::Instruct_38(int sceneId, int layer, int oldPic, int newPic) {
-    if (sceneId == -2) sceneId = SceneManager::getInstance().GetCurrentSceneId();
+    if (sceneId == -2) sceneId = m_executingSceneId;
     
     // Iterate over all tiles in layer and replace oldPic with newPic
     // Pascal: Sdata[snum, layernum, i1, i2]
@@ -1159,7 +1165,8 @@ void EventManager::Instruct_38(int sceneId, int layer, int oldPic, int newPic) {
 void EventManager::Instruct_27(int eventId, int beginPic, int endPic) {
     // Animation: Updates DData[e, 5] (Pic) from beginPic to endPic
     // In KYS, this is blocking animation.
-    int sceneId = SceneManager::getInstance().GetCurrentSceneId();
+    int sceneId = m_executingSceneId;
+    if (eventId == -2) eventId = m_executingEventId;
     
     // Store original pic? Pascal logic:
     // oldpic := DData[CurScene, enum, 5];
@@ -1188,7 +1195,8 @@ void EventManager::Instruct_23(int eventId, int action, int step, int speed) {
     // Modifies DData[CurScene, eventId, 5] (Pic)
     // Sequence: CurrentPic + action, CurrentPic + 2*action, ...
     
-    int sceneId = SceneManager::getInstance().GetCurrentSceneId();
+    int sceneId = m_executingSceneId;
+    if (eventId == -2) eventId = m_executingEventId;
     
     // Safety Check
     if (eventId < 0) {
@@ -1224,7 +1232,11 @@ void EventManager::Instruct_23(int eventId, int action, int step, int speed) {
 
 void EventManager::Instruct_44(int eventId1, int beginPic1, int endPic1, int eventId2, int beginPic2, int endPic2) {
     // Dual Animation
-    int sceneId = SceneManager::getInstance().GetCurrentSceneId();
+    int sceneId = m_executingSceneId;
+    if (eventId1 == -2) eventId1 = m_executingEventId;
+    // eventId2 can also be -2, although rare for dual animation
+    if (eventId2 == -2) eventId2 = m_executingEventId;
+
     int len1 = abs(endPic1 - beginPic1);
     int len2 = abs(endPic2 - beginPic2);
     int len = std::max(len1, len2);
@@ -1309,7 +1321,9 @@ void EventManager::Instruct_Movement(int eventId, int x, int y) {
     // In instruct_27: UpdateScene(DData[..., 10], DData[..., 9], ...)
     // So 10 is X, 9 is Y?
     
-    int sceneId = SceneManager::getInstance().GetCurrentSceneId();
+    int sceneId = m_executingSceneId;
+    if (eventId == -2) eventId = m_executingEventId;
+
     int oldX = SceneManager::getInstance().GetEventData(sceneId, eventId, 10);
     int oldY = SceneManager::getInstance().GetEventData(sceneId, eventId, 9);
     

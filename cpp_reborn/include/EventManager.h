@@ -42,7 +42,9 @@ public:
 
 private:
     int m_pendingScriptId = -1;
-
+ // 新增：锁死当前执行脚本的场景和事件上下文
+    int m_executingSceneId = -1;
+    int m_executingEventId = -1;
     EventManager();
     ~EventManager() = default;
     EventManager(const EventManager&) = delete;

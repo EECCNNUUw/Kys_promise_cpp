@@ -84,6 +84,9 @@ public:
     // 绘制精灵 (来自 mmap.grp, 角色/NPC)
     void DrawMmapSprite(SDL_Renderer* renderer, int picIndex, int x, int y, int frame = 0);
 
+    // 绘制精灵 (来自 Scene.Pic, 动态物体)
+    void DrawScenePicSprite(SDL_Renderer* renderer, int picIndex, int x, int y, int frame = 0);
+
     // 通用精灵绘制 (根据 picIndex 自动判断来源)
     void DrawSprite(SDL_Renderer* renderer, int picIndex, int x, int y, int frame = 0);
 
@@ -99,9 +102,9 @@ private:
     int m_worldMapWidth = 480;
     int m_worldMapHeight = 480;
     
-    // 战斗地图资源
-    std::vector<uint8_t> m_wPicData; // wmp.grp
-    std::vector<int32_t> m_wIdxData; // wdx.grp
+    // 战斗地图资源 (WarMap) - wmp/wdx
+    std::vector<uint8_t> m_wmpPicData; // wmp
+    std::vector<int32_t> m_wmpIdxData; // wdx
 
     // 绘制大地图
     void DrawWorldMap(SDL_Renderer* renderer, int centerX, int centerY);
@@ -121,13 +124,20 @@ private:
     };
     std::vector<EventData> m_eventData;
     
-    // 场景图块资源 (RLE压缩) - smp.grp/sdx.grp
-    std::vector<uint8_t> m_sPicData; // smp
-    std::vector<int32_t> m_sIdxData; // sdx
+    // 场景图块资源 (SceneMap) - smp/sdx
+    std::vector<uint8_t> m_smpPicData; // smp
+    std::vector<int32_t> m_smpIdxData; // sdx
     
-    // 大地图资源 (RLE压缩) - mmap.grp/mmap.idx
-    std::vector<uint8_t> m_mmapPicData; 
-    std::vector<int32_t> m_mmapIdxData;
+    // 大地图资源 (MaxMap) - mmap.grp/mmap.idx
+    std::vector<uint8_t> m_mmpPicData; // mmp
+    std::vector<int32_t> m_mmpIdxData; // midx
+
+    // 动态场景贴图 (Scene.Pic) - PNG 格式集合
+    struct ScenePic {
+        int x, y, black;
+        SDL_Surface* surface = nullptr;
+    };
+    std::vector<ScenePic> m_scenePics;
 
     // 云层数据
     struct Cloud {

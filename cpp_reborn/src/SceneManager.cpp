@@ -3,6 +3,7 @@
 #include "GraphicsUtils.h"
 #include "GameManager.h"
 #include "TextManager.h"
+#include <SDL3_image/SDL_image.h>
 #include <iostream>
 #include <cstring>
 #include <algorithm>
@@ -20,17 +21,17 @@ bool SceneManager::Init() {
         std::cerr << "Warning: Failed to load tile resources (smp/sdx)" << std::endl;
         // Don't fail completely, maybe resources are missing but we can still load map logic
     }
-    // 5. Load World Map Resources (wmp/wdx)
-    m_wPicData = FileLoader::loadFile("resource/wmp");
+    // 5. 加载战斗地图资源 (WarMap) - wmp/wdx
+    m_wmpPicData = FileLoader::loadFile("resource/wmp");
     auto wIdxBytes = FileLoader::loadFile("resource/wdx");
     
-    if (!m_wPicData.empty() && !wIdxBytes.empty()) {
+    if (!m_wmpPicData.empty() && !wIdxBytes.empty()) {
         size_t count = wIdxBytes.size() / 4;
-        m_wIdxData.resize(count);
-        memcpy(m_wIdxData.data(), wIdxBytes.data(), wIdxBytes.size());
-        std::cout << "[SceneManager] Loaded wmp/wdx. Pic Data: " << m_wPicData.size() << " bytes, Idx Count: " << count << std::endl;
+        m_wmpIdxData.resize(count);
+        memcpy(m_wmpIdxData.data(), wIdxBytes.data(), wIdxBytes.size());
+        std::cout << "[SceneManager] Loaded WarMap (wmp/wdx). Pic Data: " << m_wmpPicData.size() << " bytes, Idx Count: " << count << std::endl;
     } else {
-        std::cerr << "[SceneManager] Failed to load wmp/wdx" << std::endl;
+        std::cerr << "[SceneManager] Failed to load WarMap (wmp/wdx)" << std::endl;
     }
     
     // 6. Load World Map Layout (EARTH.002)
@@ -67,30 +68,71 @@ bool SceneManager::LoadWorldMap() {
 bool SceneManager::LoadResources() {
 
 
-    // 1. Load Tile Graphics (smp/sdx)
-    m_sPicData = FileLoader::loadFile("resource/smp");
+    // 1. 加载场景图块资源 (SceneMap) - smp/sdx
+    m_smpPicData = FileLoader::loadFile("resource/smp");
     auto idxBytes = FileLoader::loadFile("resource/sdx");
     
-    if (!m_sPicData.empty() && !idxBytes.empty()) {
+    if (!m_smpPicData.empty() && !idxBytes.empty()) {
         size_t count = idxBytes.size() / 4;
-        m_sIdxData.resize(count);
-        memcpy(m_sIdxData.data(), idxBytes.data(), idxBytes.size());
+        m_smpIdxData.resize(count);
+        memcpy(m_smpIdxData.data(), idxBytes.data(), idxBytes.size());
+        std::cout << "[SceneManager] Loaded SceneMap (smp/sdx) with " << count << " tiles." << std::endl;
     } else {
-        std::cerr << "Failed to load smp/sdx" << std::endl;
+        std::cerr << "Failed to load SceneMap (smp/sdx)" << std::endl;
         return false; 
     }
     
-    // 2. Load Sprite Graphics (mmap.grp/mmap.idx)
-    m_mmapPicData = FileLoader::loadFile("resource/mmap.grp");
+    // 2. 加载大地图贴图资源 (MaxMap) - mmap.grp/mmap.idx
+    m_mmpPicData = FileLoader::loadFile("resource/mmap.grp");
     auto mmapIdxBytes = FileLoader::loadFile("resource/mmap.idx");
     
-    if (!m_mmapPicData.empty() && !mmapIdxBytes.empty()) {
+    if (!m_mmpPicData.empty() && !mmapIdxBytes.empty()) {
         size_t count = mmapIdxBytes.size() / 4;
-        m_mmapIdxData.resize(count);
-        memcpy(m_mmapIdxData.data(), mmapIdxBytes.data(), mmapIdxBytes.size());
-        std::cout << "Loaded mmap.grp with " << count << " sprites." << std::endl;
+        m_mmpIdxData.resize(count);
+        memcpy(m_mmpIdxData.data(), mmapIdxBytes.data(), mmapIdxBytes.size());
+        std::cout << "[SceneManager] Loaded MaxMap (mmp/midx) with " << count << " sprites." << std::endl;
     } else {
-        std::cerr << "Failed to load mmap.grp/mmap.idx" << std::endl;
+        std::cerr << "Failed to load MaxMap (mmap.grp/mmap.idx)" << std::endl;
+    }
+
+    // 2.5 加载动态场景贴图资源 (Scene.Pic)
+    auto scenePicData = FileLoader::loadFile("resource/Scene.Pic");
+    if (!scenePicData.empty()) {
+        const uint8_t* ptr = scenePicData.data();
+        int32_t count;
+        memcpy(&count, ptr, 4);
+        ptr += 4;
+        
+        m_scenePics.resize(count);
+        for (int i = 0; i < count; ++i) {
+            int32_t offset;
+            memcpy(&offset, scenePicData.data() + (i + 1) * 4, 4);
+            
+            const uint8_t* picPtr = scenePicData.data() + offset;
+            memcpy(&m_scenePics[i].x, picPtr, 4);
+            memcpy(&m_scenePics[i].y, picPtr + 4, 4);
+            memcpy(&m_scenePics[i].black, picPtr + 8, 4);
+            
+            // The rest is PNG data
+            // Length calculation: next_offset - current_offset - 12
+            int32_t nextOffset;
+            if (i < count - 1) {
+                memcpy(&nextOffset, scenePicData.data() + (i + 2) * 4, 4);
+            } else {
+                nextOffset = scenePicData.size();
+            }
+            int32_t pngLen = nextOffset - offset - 12;
+            
+            if (pngLen > 0) {
+                SDL_IOStream* stream = SDL_IOFromConstMem(picPtr + 12, pngLen);
+                if (stream) {
+                    m_scenePics[i].surface = IMG_LoadTyped_IO(stream, true, "PNG");
+                }
+            }
+        }
+        std::cout << "[SceneManager] Loaded Scene.Pic with " << count << " sprites." << std::endl;
+    } else {
+        std::cerr << "Failed to load Scene.Pic" << std::endl;
     }
 
     // 3. Load Cloud Graphics (cloud.grp/cloud.idx)
@@ -355,10 +397,10 @@ void SceneManager::DrawClouds(SDL_Renderer* renderer, int centerX, int centerY) 
 }
 
 void SceneManager::DrawWorldMap(SDL_Renderer* renderer, int centerX, int centerY) {
-    if (m_wIdxData.empty() || m_wPicData.empty() || m_worldMapData.empty()) {
+    if (m_mmpIdxData.empty() || m_mmpPicData.empty() || m_worldMapData.empty()) {
         static bool loggedEmpty = false;
         if (!loggedEmpty) {
-            std::cerr << "[DrawWorldMap] Resources empty! Idx: " << m_wIdxData.size() << " Pic: " << m_wPicData.size() << " Map: " << m_worldMapData.size() << std::endl;
+            std::cerr << "[DrawWorldMap] MaxMap Resources empty! Idx: " << m_mmpIdxData.size() << " Pic: " << m_mmpPicData.size() << " Map: " << m_worldMapData.size() << std::endl;
             loggedEmpty = true;
         }
         return;
@@ -403,14 +445,14 @@ void SceneManager::DrawWorldMap(SDL_Renderer* renderer, int centerX, int centerY
             // Culling
             if (x < -100 || x > 740 || y < -100 || y > 580) continue; 
             
-            // Draw Tile using wmp
+            // Draw Tile using mmp (MaxMap)
             if (tile > 0) {
                 // tile / 2 ?
                 int picIndex = (tile / 2);
-                if (picIndex < m_wIdxData.size()) {
-                    int offset = m_wIdxData[picIndex];
-                    if (offset > 0 && offset < m_wPicData.size()) {
-                        GraphicsUtils::DrawRLE8(GameManager::getInstance().getScreenSurface(), x, y, &m_wPicData[offset], m_wPicData.size() - offset);
+                if (picIndex < m_mmpIdxData.size()) {
+                    int offset = m_mmpIdxData[picIndex];
+                    if (offset > 0 && offset < m_mmpPicData.size()) {
+                        GraphicsUtils::DrawRLE8(GameManager::getInstance().getScreenSurface(), x, y, &m_mmpPicData[offset], m_mmpPicData.size() - offset);
                     }
                 }
             }
@@ -432,9 +474,8 @@ void SceneManager::DrawWorldMap(SDL_Renderer* renderer, int centerX, int centerY
     int frame = GameManager::getInstance().getWalkFrame();
     int playerPic = 2501 + spriteFace * 7 + frame;
     
-    // Draw Player using mmap (or smp?)
-    // Usually on World Map, player uses same sprite.
-    DrawSmpSprite(renderer, playerPic, screenX, screenY, 0);
+    // Draw Player using mmp (MaxMap) on World Map
+    DrawMmapSprite(renderer, playerPic, screenX, screenY, 0);
     
     // Draw Clouds
     DrawClouds(renderer, centerX, centerY);
@@ -448,10 +489,10 @@ void SceneManager::DrawScene(SDL_Renderer* renderer, int centerX, int centerY) {
     }
 
     // Safety check: if resources failed to load, don't draw
-    if (m_sIdxData.empty() || m_sPicData.empty()) {
+    if (m_smpIdxData.empty() || m_smpPicData.empty()) {
         static bool logged = false;
         if (!logged) {
-            std::cerr << "[DrawScene] CRITICAL: Tile resources (smp/sdx) are empty! Cannot draw scene." << std::endl;
+            std::cerr << "[DrawScene] CRITICAL: SceneMap resources (smp/sdx) are empty! Cannot draw scene." << std::endl;
             logged = true;
         }
         return;
@@ -631,7 +672,7 @@ void SceneManager::DrawScene(SDL_Renderer* renderer, int centerX, int centerY) {
                     if (eventPic > 0) {
                         DrawSmpSprite(renderer, (eventPic / 2) - 1, x, drawY, 0);
                     } else if (eventPic < 0) {
-                        DrawMmapSprite(renderer, (-eventPic / 2) - 1, x, drawY, 0);
+                        DrawScenePicSprite(renderer, (-eventPic / 2), x, drawY, 0);
                     }
                 }
             }
@@ -656,41 +697,63 @@ void SceneManager::DrawScene(SDL_Renderer* renderer, int centerX, int centerY) {
 static const float CHAR_SCALE = 1.15f;
 
 void SceneManager::DrawTile(SDL_Renderer* renderer, int picIndex, int x, int y, int offX, int offY) {
-    if (picIndex < 0 || picIndex >= m_sIdxData.size()) return;
+    if (picIndex < 0 || picIndex >= m_smpIdxData.size()) return;
     
-    int offset = m_sIdxData[picIndex];
-    if (offset <= 0 || offset >= m_sPicData.size()) return; // Offset 0 is usually invalid/empty
+    int offset = m_smpIdxData[picIndex];
+    if (offset <= 0 || offset >= m_smpPicData.size()) return; // Offset 0 is usually invalid/empty
     
     SDL_Surface* screen = GameManager::getInstance().getScreenSurface();
     if (!screen) return;
     
-    GraphicsUtils::DrawRLE8(screen, x, y, &m_sPicData[offset], m_sPicData.size() - offset);
+    GraphicsUtils::DrawRLE8(screen, x, y, &m_smpPicData[offset], m_smpPicData.size() - offset);
 }
 
 void SceneManager::DrawSmpSprite(SDL_Renderer* renderer, int picIndex, int x, int y, int frame) {
-    if (m_sPicData.empty() || m_sIdxData.empty()) return;
-    if (picIndex < 0 || picIndex >= (int)m_sIdxData.size()) return;
+    if (m_smpPicData.empty() || m_smpIdxData.empty()) return;
+    if (picIndex < 0 || picIndex >= (int)m_smpIdxData.size()) return;
     
-    int offset = m_sIdxData[picIndex];
-    if (offset <= 0 || offset >= (int)m_sPicData.size()) return;
+    int offset = m_smpIdxData[picIndex];
+    if (offset <= 0 || offset >= (int)m_smpPicData.size()) return;
     
     SDL_Surface* screen = GameManager::getInstance().getScreenSurface();
     if (!screen) return;
     
-    GraphicsUtils::DrawRLE8(screen, x, y, &m_sPicData[offset], m_sPicData.size() - offset, 0, CHAR_SCALE);
+    GraphicsUtils::DrawRLE8(screen, x, y, &m_smpPicData[offset], m_smpPicData.size() - offset, 0, CHAR_SCALE);
 }
 
 void SceneManager::DrawMmapSprite(SDL_Renderer* renderer, int picIndex, int x, int y, int frame) {
-    if (m_mmapPicData.empty() || m_mmapIdxData.empty()) return;
-    if (picIndex < 0 || picIndex >= (int)m_mmapIdxData.size()) return;
+    if (m_mmpPicData.empty() || m_mmpIdxData.empty()) return;
+    if (picIndex < 0 || picIndex >= (int)m_mmpIdxData.size()) return;
     
-    int offset = m_mmapIdxData[picIndex];
-    if (offset <= 0 || offset >= (int)m_mmapPicData.size()) return;
+    int offset = m_mmpIdxData[picIndex];
+    if (offset <= 0 || offset >= (int)m_mmpPicData.size()) return;
     
     SDL_Surface* screen = GameManager::getInstance().getScreenSurface();
     if (!screen) return;
     
-    GraphicsUtils::DrawRLE8(screen, x, y, &m_mmapPicData[offset], m_mmapPicData.size() - offset, 0, CHAR_SCALE);
+    GraphicsUtils::DrawRLE8(screen, x, y, &m_mmpPicData[offset], m_mmpPicData.size() - offset, 0, CHAR_SCALE);
+}
+
+void SceneManager::DrawScenePicSprite(SDL_Renderer* renderer, int picIndex, int x, int y, int frame) {
+    if (picIndex < 0 || picIndex >= (int)m_scenePics.size()) return;
+    
+    const auto& sp = m_scenePics[picIndex];
+    if (!sp.surface) return;
+    
+    SDL_Surface* screen = GameManager::getInstance().getScreenSurface();
+    if (!screen) return;
+    
+    // PNGs in Scene.Pic already have their own offset (sp.x, sp.y)
+    // In Pascal: x1 := px - Scenepic[num].x + 1;
+    SDL_Rect dest = { x - sp.x, y - sp.y, sp.surface->w, sp.surface->h };
+    
+    // Scale if needed
+    if (CHAR_SCALE != 1.0f) {
+        dest.w = (int)(dest.w * CHAR_SCALE);
+        dest.h = (int)(dest.h * CHAR_SCALE);
+    }
+    
+    SDL_BlitSurface(sp.surface, NULL, screen, &dest);
 }
 
 void SceneManager::DrawSprite(SDL_Renderer* renderer, int picIndex, int x, int y, int frame) {
