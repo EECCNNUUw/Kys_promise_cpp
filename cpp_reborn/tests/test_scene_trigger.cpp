@@ -21,12 +21,24 @@ int main() {
          std::cerr << "Failed to load allsin.grp. Test might fail." << std::endl;
     }
 
-    // 2. Setup Test Data
     int testSceneId = 0;
     int testX = 10;
     int testY = 10;
-    int testEventIndex = 1; // Use Event 1
-    int testScriptId = 9999; // Use a high ID that likely doesn't exist but triggers "Invalid ID" or "Out of bounds" log
+    int testEventIndex = 1;
+    int testScriptId = 9999;
+
+    int hallX = 28;
+    int hallY = 14;
+    std::cout << "Scene " << testSceneId << " Layer 3 at (" << hallX << "," << hallY << "): "
+              << SceneManager::getInstance().GetSceneTile(testSceneId, 3, hallX, hallY) << std::endl;
+    for (int e = 0; e < 200; ++e) {
+        int16_t ex = SceneManager::getInstance().GetEventData(testSceneId, e, 10);
+        int16_t ey = SceneManager::getInstance().GetEventData(testSceneId, e, 9);
+        if ((ex == hallX && ey == hallY) || (ex == hallY && ey == hallX)) {
+            int16_t pic = SceneManager::getInstance().GetEventData(testSceneId, e, 5);
+            std::cout << "Event " << e << " at (" << ex << "," << ey << ") Pic=" << pic << std::endl;
+        }
+    }
     
     // Inject Event at (10, 10) in Layer 3
     SceneManager::getInstance().SetSceneTile(testSceneId, 3, testX, testY, testEventIndex);

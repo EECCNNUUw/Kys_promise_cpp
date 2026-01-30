@@ -69,6 +69,9 @@ public:
     // 获取场景定义对象
     Scene* GetScene(int sceneId);
     
+    // 刷新事件层 (根据 DData 同步 SData 的 Layer 3)
+    void RefreshEventLayer(int sceneId);
+    
     // 加载资源 (贴图等)
     bool LoadResources();
     

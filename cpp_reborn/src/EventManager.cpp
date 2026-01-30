@@ -338,8 +338,39 @@ void EventManager::ExecuteEvent(int eventScriptId) {
             }
             case 3: {
                 // Instruct 3: 修改事件属性 (ModifyEvent)
+                // Need to read args explicitly to debug
+                int snum = ReadScriptArg(pc);
+                int enum_ = ReadScriptArg(pc);
+                int m = ReadScriptArg(pc);
+                int v = ReadScriptArg(pc);
+                int arg4 = ReadScriptArg(pc);
+                int arg5 = ReadScriptArg(pc);
+                int arg6 = ReadScriptArg(pc);
+                int arg7 = ReadScriptArg(pc);
+                int arg8 = ReadScriptArg(pc);
+                int arg9 = ReadScriptArg(pc);
+                int arg10 = ReadScriptArg(pc);
+                int arg11 = ReadScriptArg(pc);
+                int arg12 = ReadScriptArg(pc);
+                
+                // Debug: Check ModEvent args
+                // std::cout << "Opcode 3 Args: S=" << snum << " E=" << enum_ << " M=" << m << " V=" << v 
+                //           << " ... 11=" << arg11 << " 12=" << arg12 << std::endl;
+
                 std::vector<int16_t> args;
-                for(int k=0; k<13; ++k) args.push_back(ReadScriptArg(pc));
+                args.push_back(snum);
+                args.push_back(enum_);
+                args.push_back(m);
+                args.push_back(v);
+                args.push_back(arg4);
+                args.push_back(arg5);
+                args.push_back(arg6);
+                args.push_back(arg7);
+                args.push_back(arg8);
+                args.push_back(arg9);
+                args.push_back(arg10);
+                args.push_back(arg11);
+                args.push_back(arg12);
                 Instruct_ModifyEvent(args);
                 break;
             }
@@ -902,7 +933,7 @@ void EventManager::Instruct_ModifyEvent(const std::vector<int16_t>& args) {
 
     // Pascal Logic:
     // list[0]..list[12]
-    // DData Index 9 is Y, Index 10 is X.
+    // Reverting: DData Index 9 is Y, Index 10 is X.
     // If list[11] == -2, use current Y (Index 9)
     // If list[12] == -2, use current X (Index 10)
     
@@ -953,13 +984,13 @@ void EventManager::Instruct_ModifyEvent(const std::vector<int16_t>& args) {
     // RELAXED CHECK: If args[0] is -2, it means current scene.
     // If args[0] is explicitly set, check if it matches current scene.
     int currentSceneId = GameManager::getInstance().getCurrentSceneId();
-    bool isCurrentScene = (sceneId == -2) || (sceneId == currentSceneId);
+    bool isCurrentScene = (sceneId == -2) || (sceneId == -1) || (sceneId == currentSceneId); // Fixed: -1 also means current scene in KYS scripts
     
     std::cout << "ModEvent Check: Scene=" << sceneId << " (Cur=" << currentSceneId << ") Event=" << eventId << std::endl;
 
     if (isCurrentScene) {
-        // Re-fetch sceneId if it was -2
-        if (sceneId == -2) sceneId = currentSceneId;
+        // Re-fetch sceneId if it was -2 or -1
+        if (sceneId == -2 || sceneId == -1) sceneId = currentSceneId;
 
         int newCondition = sm.GetEventData(sceneId, eventId, 0);
         int newScriptId = sm.GetEventData(sceneId, eventId, 4);

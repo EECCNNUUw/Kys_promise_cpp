@@ -77,6 +77,17 @@ bool SceneManager::LoadResources() {
         m_smpIdxData.resize(count);
         memcpy(m_smpIdxData.data(), idxBytes.data(), idxBytes.size());
         std::cout << "[SceneManager] Loaded SceneMap (smp/sdx) with " << count << " tiles." << std::endl;
+        
+        // Debug: Print first few offsets to verify loading
+        std::cout << "  First 5 Offsets: ";
+        for(int i=0; i<5 && i<count; ++i) std::cout << m_smpIdxData[i] << " ";
+        std::cout << std::endl;
+        
+        // Check offset for Player Sprite (approx 2501)
+        if (count > 2501) {
+             std::cout << "  Player Offset (2501): " << m_smpIdxData[2501] << std::endl;
+        }
+        
     } else {
         std::cerr << "Failed to load SceneMap (smp/sdx)" << std::endl;
         return false; 
@@ -170,6 +181,32 @@ bool SceneManager::LoadEventData(const std::string& path) {
     for (size_t i = 0; i < count; ++i) {
         memcpy(m_eventData[i].data, data.data() + i * sceneSize, sceneSize);
     }
+
+    // Debug: Check Scene 0 Data immediately after load
+    if (count > 0) {
+        std::cout << "[LoadEventData] Loaded " << count << " scenes. Checking Scene 0..." << std::endl;
+        bool hasActive = false;
+        for (int e = 0; e < 200; ++e) {
+             if (m_eventData[0].data[e][0] != 0) {
+                 hasActive = true;
+                 if (e < 5) { // Print first few active events
+                     std::cout << "  Event " << e << " Active=" << m_eventData[0].data[e][0] 
+                               << " X=" << m_eventData[0].data[e][1] 
+                               << " Y=" << m_eventData[0].data[e][2] 
+                               << " Pic=" << m_eventData[0].data[e][5] << std::endl;
+                 }
+             }
+        }
+        if (!hasActive) {
+            std::cerr << "[LoadEventData] WARNING: Scene 0 has NO active events! The file might be empty or zeroed." << std::endl;
+            // Hex dump first 32 bytes
+            std::cout << "  Raw Hex Dump (First 32 bytes): ";
+            for(int k=0; k<32 && k<data.size(); ++k) {
+                printf("%02X ", data[k]);
+            }
+            std::cout << std::endl;
+        }
+    }
     
     // Debug: Check Scene 0, Event 3 (Kong Pili?)
     if (count > 0) {
@@ -181,6 +218,11 @@ bool SceneManager::LoadEventData(const std::string& path) {
     }
     
     std::cout << "Loaded " << count << " scenes event data from " << path << std::endl;
+    
+    if (m_currentSceneId >= 0) {
+        RefreshEventLayer(m_currentSceneId);
+    }
+    
     return true;
 }
 
@@ -212,6 +254,10 @@ bool SceneManager::LoadMapData(const std::string& path) {
     m_mapData.resize(data.size() / 2);
     memcpy(m_mapData.data(), data.data(), data.size());
     
+    if (m_currentSceneId >= 0) {
+        RefreshEventLayer(m_currentSceneId);
+    }
+    
     return true;
 }
 
@@ -230,6 +276,9 @@ void SceneManager::SetScenes(const std::vector<Scene>& scenes) {
 
 void SceneManager::SetCurrentScene(int sceneId) {
     m_currentSceneId = sceneId;
+    if (sceneId >= 0) {
+        RefreshEventLayer(sceneId);
+    }
 }
 
 Scene* SceneManager::GetScene(int sceneId) {
@@ -365,6 +414,36 @@ void SceneManager::UpdateEventPosition(int sceneId, int eventId, int oldX, int o
     if (newX >= 0 && newY >= 0) {
         SetSceneTile(sceneId, 3, newX, newY, eventId);
     }
+}
+
+void SceneManager::RefreshEventLayer(int sceneId) {
+    if (sceneId < 0 || (size_t)sceneId >= m_eventData.size()) {
+        std::cerr << "[RefreshEventLayer] Invalid sceneId or eventData empty. Id: " << sceneId << " Size: " << m_eventData.size() << std::endl;
+        return;
+    }
+
+    std::cout << "[RefreshEventLayer] Refreshing Scene " << sceneId << "..." << std::endl;
+    int count = 0;
+
+    // 1. 清空该场景的 Layer 3 (事件层)
+    for (int x = 0; x < SCENE_MAP_SIZE; ++x) {
+        for (int y = 0; y < SCENE_MAP_SIZE; ++y) {
+            SetSceneTile(sceneId, 3, x, y, -1); // -1 表示该位置无事件
+        }
+    }
+
+    // 2. 根据 DData (m_eventData) 重新填充 Layer 3
+    for (int e = 0; e < 200; ++e) {
+        // DData 结构: Index 10 is X, Index 9 is Y
+        int16_t x = GetEventData(sceneId, e, 10);
+        int16_t y = GetEventData(sceneId, e, 9);
+        
+        if (x >= 0 && x < SCENE_MAP_SIZE && y >= 0 && y < SCENE_MAP_SIZE) {
+            SetSceneTile(sceneId, 3, x, y, (int16_t)e);
+            count++;
+        }
+    }
+    std::cout << "[RefreshEventLayer] Refreshed " << count << " events." << std::endl;
 }
 
 void SceneManager::DrawClouds(SDL_Renderer* renderer, int centerX, int centerY) {
@@ -635,29 +714,12 @@ void SceneManager::DrawScene(SDL_Renderer* renderer, int centerX, int centerY) {
             
             // Layer 3: Event
             int16_t tile3 = GetSceneTile(m_currentSceneId, 3, i1, i2);
+            
             if (tile3 >= 0 && tile3 < 200) { // tile3 is Event ID (0..199)
                 // tile3 is eventIndex. Get EventData to find pic.
                 // KYS Event Data: Index 5 is Pic
                 int16_t eventPic = GetEventData(m_currentSceneId, tile3, 5);
                 
-                // Debug log for Scene 0 Event 3 (Kong Pili?)
-                static bool loggedEvent3 = false;
-                if (m_currentSceneId == 0 && tile3 == 3 && !loggedEvent3) {
-                     std::cout << "[DrawScene] Scene 0 Event 3 found at Map(" << i1 << "," << i2 << ")" << std::endl;
-                     std::cout << "  PicIndex (Index 5): " << eventPic << std::endl;
-                     std::cout << "  Index 1: " << GetEventData(m_currentSceneId, tile3, 1) << std::endl;
-                     loggedEvent3 = true;
-                }
-                
-                // Debug log for Event 0 (Bed/Hero)
-                static int lastEvent0Pic = -1;
-                if (m_currentSceneId == 0 && tile3 == 0) {
-                    if (eventPic != lastEvent0Pic) {
-                         std::cout << "[DrawScene] Event 0 Pic changed to: " << eventPic << " (Draw: " << (eventPic/2) << ")" << std::endl;
-                         lastEvent0Pic = eventPic;
-                    }
-                }
-
                 if (eventPic != 0) { // Pascal logic: if <> 0 then draw
                     // Check if standing on building (Layer 1)
                     int drawY = y;
@@ -665,14 +727,15 @@ void SceneManager::DrawScene(SDL_Renderer* renderer, int centerX, int centerY) {
                         drawY -= height1;
                     }
                     
-                    // DRAW EVENT
-                    // Pascal Logic: 
-                    // if pic > 0 then DrawSPic(pic div 2 - 1)
-                    // if pic < 0 then DrawRole(-pic)
                     if (eventPic > 0) {
+                        // User Logic: 8268 / 2 = 4134. Direct division, no -1.
                         DrawSmpSprite(renderer, (eventPic / 2) - 1, x, drawY, 0);
                     } else if (eventPic < 0) {
-                        DrawScenePicSprite(renderer, (-eventPic / 2), x, drawY, 0);
+                        int absPic = -eventPic;
+                        // User Logic: Negative IDs also map to SMP. 
+                        // Assuming direct division for consistency with positive IDs.
+                        int smpIndex = (absPic / 2) - 1;
+                        DrawSmpSprite(renderer, smpIndex, x, drawY, 0);
                     }
                 }
             }
@@ -710,13 +773,30 @@ void SceneManager::DrawTile(SDL_Renderer* renderer, int picIndex, int x, int y, 
 
 void SceneManager::DrawSmpSprite(SDL_Renderer* renderer, int picIndex, int x, int y, int frame) {
     if (m_smpPicData.empty() || m_smpIdxData.empty()) return;
-    if (picIndex < 0 || picIndex >= (int)m_smpIdxData.size()) return;
+    
+    // Debug: Check bounds
+    if (picIndex < 0 || picIndex >= (int)m_smpIdxData.size()) {
+        static bool loggedBounds = false;
+        if (!loggedBounds) {
+            std::cerr << "[DrawSmpSprite] Index out of bounds: " << picIndex << " Size: " << m_smpIdxData.size() << std::endl;
+            loggedBounds = true;
+        }
+        return;
+    }
     
     int offset = m_smpIdxData[picIndex];
-    if (offset <= 0 || offset >= (int)m_smpPicData.size()) return;
+    if (offset < 0 || offset >= (int)m_smpPicData.size()) {
+        // Offset 0 might be valid if the first sprite starts at 0
+        return;
+    }
     
     SDL_Surface* screen = GameManager::getInstance().getScreenSurface();
     if (!screen) return;
+    
+    // Debug: Log successful draw attempt for specific indices
+    // if (picIndex == 4141 || picIndex == 12) { // 8284/2-1 or 27/2-1
+    //    std::cout << "[DrawSmpSprite] Drawing Pic " << picIndex << " at " << x << "," << y << " Offset: " << offset << std::endl;
+    // }
     
     GraphicsUtils::DrawRLE8(screen, x, y, &m_smpPicData[offset], m_smpPicData.size() - offset, 0, CHAR_SCALE);
 }

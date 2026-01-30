@@ -1,0 +1,15 @@
+Failed to open file: resource/smp
+Failed to open file: resource/sdx
+Failed to load SceneMap (smp/sdx)
+Warning: Failed to load tile resources (smp/sdx)
+Failed to open file: resource/wmp
+Failed to open file: resource/wdx
+[SceneManager] Failed to load WarMap (wmp/wdx)
+Failed to open file: resource/EARTH.002
+Failed to open file: resource/EARTH.002
+Failed to load EARTH.002
+Failed to open file: resource/kdef.idx
+Failed to open file: resource/Kdef.idx
+Failed to load event scripts (kdef)
+Failed to init EventManager
+Game Initialization Failed!

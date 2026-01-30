@@ -308,6 +308,9 @@ void GameManager::LoadGame(int slot) {
     idxFile.read((char*)&WeiShopOffset, 4);
     idxFile.read((char*)&TotalLen, 4);
     idxFile.close();
+    
+    std::cout << "[LoadGame] Offsets: Role=" << RoleOffset << " Item=" << ItemOffset 
+              << " Scene=" << SceneOffset << " Magic=" << MagicOffset << std::endl;
 
     std::ifstream grpFile(grpPath, std::ios::binary);
     if (!grpFile) {
@@ -320,6 +323,7 @@ void GameManager::LoadGame(int slot) {
             return;
         }
     }
+    std::cout << "[LoadGame] Opened " << grpPath << std::endl;
 
     auto read16 = [&](int16_t& val) {
         grpFile.read((char*)&val, 2);
@@ -330,7 +334,10 @@ void GameManager::LoadGame(int slot) {
     read16(tempWhere);
     if (tempWhere < 0) tempWhere = 0;
     m_currentSceneId = tempWhere;
-    SceneManager::getInstance().SetCurrentScene(m_currentSceneId);
+    // Don't call SetCurrentScene here, it triggers RefreshEventLayer which fails because data isn't loaded yet.
+    // SceneManager::getInstance().SetCurrentScene(m_currentSceneId); 
+    // Just set the ID directly in SceneManager if needed, or wait until end.
+    SceneManager::getInstance().SetCurrentScene(m_currentSceneId); // Keep it but we know it fails refresh
 
     read16((int16_t&)m_mainMapY);
     read16((int16_t&)m_mainMapX);
@@ -346,6 +353,8 @@ void GameManager::LoadGame(int slot) {
     read16(m_shipFace);
     read16(m_gameTime);
 
+    std::cout << "[LoadGame] Header loaded. Scene=" << m_currentSceneId << " Pos=(" << m_mainMapX << "," << m_mainMapY << ")" << std::endl;
+
     m_teamList.resize(MAX_TEAM_SIZE);
     for(int i=0; i<MAX_TEAM_SIZE; ++i) {
         read16((int16_t&)m_teamList[i]);
@@ -356,9 +365,14 @@ void GameManager::LoadGame(int slot) {
         read16(m_inventory[i].id);
         read16(m_inventory[i].amount);
     }
-
+    
+    std::cout << "[LoadGame] Loading Roles..." << std::endl;
     grpFile.seekg(RoleOffset, std::ios::beg);
     int roleSize = (ItemOffset - RoleOffset) / (ROLE_DATA_SIZE * 2);
+    if (roleSize < 0 || roleSize > 10000) {
+        std::cerr << "[LoadGame] ERROR: Invalid roleSize " << roleSize << std::endl;
+        return;
+    }
     m_roles.resize(roleSize);
     for(int i=0; i<roleSize; ++i) {
         std::vector<int16_t> buffer(ROLE_DATA_SIZE);
@@ -366,8 +380,13 @@ void GameManager::LoadGame(int slot) {
         m_roles[i].setDataVector(buffer);
     }
 
+    std::cout << "[LoadGame] Loading Items..." << std::endl;
     grpFile.seekg(ItemOffset, std::ios::beg);
     int itemSize = (SceneOffset - ItemOffset) / (ITEM_DATA_SIZE * 2);
+    if (itemSize < 0 || itemSize > 10000) {
+        std::cerr << "[LoadGame] ERROR: Invalid itemSize " << itemSize << std::endl;
+        return;
+    }
     m_items.resize(itemSize);
     for(int i=0; i<itemSize; ++i) {
         std::vector<int16_t> buffer(ITEM_DATA_SIZE);
@@ -375,8 +394,13 @@ void GameManager::LoadGame(int slot) {
         m_items[i].setDataVector(buffer);
     }
 
+    std::cout << "[LoadGame] Loading Scenes..." << std::endl;
     grpFile.seekg(SceneOffset, std::ios::beg);
     int sceneSize = (MagicOffset - SceneOffset) / (SCENE_DATA_SIZE * 2);
+    if (sceneSize < 0 || sceneSize > 10000) {
+         std::cerr << "[LoadGame] ERROR: Invalid sceneSize " << sceneSize << std::endl;
+         return;
+    }
     std::vector<Scene> scenes(sceneSize);
     for(int i=0; i<sceneSize; ++i) {
         std::vector<int16_t> buffer(SCENE_DATA_SIZE);
@@ -385,8 +409,13 @@ void GameManager::LoadGame(int slot) {
     }
     SceneManager::getInstance().SetScenes(scenes);
 
+    std::cout << "[LoadGame] Loading Magics..." << std::endl;
     grpFile.seekg(MagicOffset, std::ios::beg);
     int magicSize = (WeiShopOffset - MagicOffset) / (MAGIC_DATA_SIZE * 2);
+    if (magicSize < 0 || magicSize > 10000) {
+        std::cerr << "[LoadGame] ERROR: Invalid magicSize " << magicSize << std::endl;
+        return;
+    }
     m_magics.resize(magicSize);
     for(int i=0; i<magicSize; ++i) {
         std::vector<int16_t> buffer(MAGIC_DATA_SIZE);
@@ -395,15 +424,23 @@ void GameManager::LoadGame(int slot) {
     }
 
     grpFile.close();
+    std::cout << "[LoadGame] ranger.grp loaded successfully." << std::endl;
 
     std::string sFilename = (slot == 0) ? "allsin.grp" : "S" + std::to_string(slot) + ".grp";
     std::string dFilename = (slot == 0) ? "alldef.grp" : "D" + std::to_string(slot) + ".grp";
     
+    std::cout << "[LoadGame] Loading Maps: " << sFilename << " & " << dFilename << std::endl;
+
     if (!SceneManager::getInstance().LoadMapData(m_savePath + sFilename)) {
         if (slot == 0) SceneManager::getInstance().LoadMapData(m_savePath + "allsin.grp");
     }
     if (!SceneManager::getInstance().LoadEventData(m_savePath + dFilename)) {
         if (slot == 0) SceneManager::getInstance().LoadEventData(m_savePath + "alldef.grp");
+    }
+    
+    // Force Refresh Layer 3 after everything is loaded
+    if (m_currentSceneId >= 0) {
+        SceneManager::getInstance().RefreshEventLayer(m_currentSceneId);
     }
     
     std::cout << "Game Loaded from Slot " << slot << std::endl;
