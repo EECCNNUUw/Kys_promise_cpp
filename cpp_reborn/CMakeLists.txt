@@ -56,14 +56,15 @@ include_directories("${LOCAL_SDL3_ROOT}/include")
 include_directories("${LOCAL_SDL3_TTF_ROOT}/include")
 include_directories("${LOCAL_SDL3_IMAGE_ROOT}/include")
 
-# Source files
+# Source and Header files
 file(GLOB_RECURSE SOURCES "src/*.cpp")
+file(GLOB_RECURSE HEADERS "include/*.h")
 list(FILTER SOURCES EXCLUDE REGEX ".*dump_header\\.cpp$")
 list(FILTER SOURCES EXCLUDE REGEX ".*save_inspector\\.cpp$")
 list(FILTER SOURCES EXCLUDE REGEX ".*analyze_data\\.cpp$")
 
 # Add executable
-add_executable(kys_cpp ${SOURCES})
+add_executable(kys_cpp ${SOURCES} ${HEADERS})
 disable_vcpkg_applocal(kys_cpp)
 
 # Test Executables

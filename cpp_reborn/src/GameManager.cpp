@@ -347,6 +347,266 @@ void GameManager::loadData(const std::string& savePrefix) {
     }
 }
 
+void GameManager::SaveGame(int slot) {
+    std::string filename = (slot == 0) ? "ranger" : "R" + std::to_string(slot);
+    std::string grpPath = m_savePath + filename + ".grp";
+    std::string idxPath = m_savePath + "ranger.idx";
+
+    std::ifstream idxFile(idxPath, std::ios::binary);
+    if (!idxFile) {
+        std::cerr << "SaveGame: Cannot open " << idxPath << std::endl;
+        return;
+    }
+
+    int32_t RoleOffset, ItemOffset, SceneOffset, MagicOffset, WeiShopOffset, TotalLen;
+    idxFile.read((char*)&RoleOffset, 4);
+    idxFile.read((char*)&ItemOffset, 4);
+    idxFile.read((char*)&SceneOffset, 4);
+    idxFile.read((char*)&MagicOffset, 4);
+    idxFile.read((char*)&WeiShopOffset, 4);
+    idxFile.read((char*)&TotalLen, 4);
+    idxFile.close();
+
+    std::ofstream grpFile(grpPath, std::ios::binary);
+    if (!grpFile) {
+        std::cerr << "SaveGame: Cannot create " << grpPath << std::endl;
+        return;
+    }
+
+    // 1. Write Roles
+    int roleBytesToWrite = ItemOffset - RoleOffset;
+    int roleBytesWritten = 0;
+    for (const auto& role : m_roles) {
+        if (roleBytesWritten + ROLE_DATA_SIZE * 2 <= roleBytesToWrite) {
+            grpFile.write((char*)role.getRawData(), ROLE_DATA_SIZE * 2);
+            roleBytesWritten += ROLE_DATA_SIZE * 2;
+        } else break;
+    }
+    while (roleBytesWritten < roleBytesToWrite) {
+        char zero = 0;
+        grpFile.write(&zero, 1);
+        roleBytesWritten++;
+    }
+
+    // 2. Write Items
+    int itemBytesToWrite = SceneOffset - ItemOffset;
+    int itemBytesWritten = 0;
+    for (const auto& item : m_items) {
+        if (itemBytesWritten + ITEM_DATA_SIZE * 2 <= itemBytesToWrite) {
+            grpFile.write((char*)item.getRawData(), ITEM_DATA_SIZE * 2);
+            itemBytesWritten += ITEM_DATA_SIZE * 2;
+        } else break;
+    }
+    while (itemBytesWritten < itemBytesToWrite) {
+        char zero = 0;
+        grpFile.write(&zero, 1);
+        itemBytesWritten++;
+    }
+
+    // 3. Write Scenes
+    int sceneBytesToWrite = MagicOffset - SceneOffset;
+    int sceneBytesWritten = 0;
+    for (const auto& scene : m_scenes) {
+        if (sceneBytesWritten + SCENE_DATA_SIZE * 2 <= sceneBytesToWrite) {
+            grpFile.write((char*)scene.getRawData(), SCENE_DATA_SIZE * 2);
+            sceneBytesWritten += SCENE_DATA_SIZE * 2;
+        } else break;
+    }
+    while (sceneBytesWritten < sceneBytesToWrite) {
+        char zero = 0;
+        grpFile.write(&zero, 1);
+        sceneBytesWritten++;
+    }
+
+    // 4. Write Magics
+    int magicBytesToWrite = WeiShopOffset - MagicOffset;
+    int magicBytesWritten = 0;
+    for (const auto& magic : m_magics) {
+        if (magicBytesWritten + MAGIC_DATA_SIZE * 2 <= magicBytesToWrite) {
+            grpFile.write((char*)magic.getRawData(), MAGIC_DATA_SIZE * 2);
+            magicBytesWritten += MAGIC_DATA_SIZE * 2;
+        } else break;
+    }
+    while (magicBytesWritten < magicBytesToWrite) {
+        char zero = 0;
+        grpFile.write(&zero, 1);
+        magicBytesWritten++;
+    }
+
+    // 5. Write Shops (WeiShop)
+    int shopBytesToWrite = TotalLen - WeiShopOffset;
+    std::vector<char> zeros(shopBytesToWrite, 0);
+    grpFile.write(zeros.data(), shopBytesToWrite);
+
+    grpFile.close();
+
+    std::string sFilename = (slot == 0) ? "allsin.grp" : "S" + std::to_string(slot) + ".grp";
+    std::string dFilename = (slot == 0) ? "alldef.grp" : "D" + std::to_string(slot) + ".grp";
+    
+    SceneManager::getInstance().SaveMapData(m_savePath + sFilename);
+    SceneManager::getInstance().SaveEventData(m_savePath + dFilename);
+    
+    std::cout << "Game Saved to Slot " << slot << std::endl;
+}
+
+void GameManager::LoadGame(int slot) {
+    std::string filename = (slot == 0) ? "ranger" : "R" + std::to_string(slot);
+    std::string grpPath = m_savePath + filename + ".grp";
+    std::string idxPath = m_savePath + "ranger.idx";
+
+    std::ifstream idxFile(idxPath, std::ios::binary);
+    if (!idxFile) {
+        std::cerr << "LoadGame: Cannot open " << idxPath << std::endl;
+        return;
+    }
+
+    int32_t RoleOffset, ItemOffset, SceneOffset, MagicOffset, WeiShopOffset, TotalLen;
+    idxFile.read((char*)&RoleOffset, 4);
+    idxFile.read((char*)&ItemOffset, 4);
+    idxFile.read((char*)&SceneOffset, 4);
+    idxFile.read((char*)&MagicOffset, 4);
+    idxFile.read((char*)&WeiShopOffset, 4);
+    idxFile.read((char*)&TotalLen, 4);
+    idxFile.close();
+    
+    std::cout << "[LoadGame] Offsets: Role=" << RoleOffset << " Item=" << ItemOffset 
+              << " Scene=" << SceneOffset << " Magic=" << MagicOffset << std::endl;
+
+    std::ifstream grpFile(grpPath, std::ios::binary);
+    if (!grpFile) {
+        if (slot == 0) {
+            grpPath = m_savePath + "Ranger.grp";
+            grpFile.open(grpPath, std::ios::binary);
+        }
+        if (!grpFile) {
+            std::cerr << "LoadGame: Cannot open " << grpPath << std::endl;
+            return;
+        }
+    }
+    std::cout << "[LoadGame] Opened " << grpPath << std::endl;
+
+    auto read16 = [&](int16_t& val) {
+        grpFile.read((char*)&val, 2);
+    };
+
+    read16(m_inShip);
+    int16_t tempWhere;
+    read16(tempWhere);
+    if (tempWhere < 0) tempWhere = 0;
+    m_currentSceneId = tempWhere;
+    // Don't call SetCurrentScene here, it triggers RefreshEventLayer which fails because data isn't loaded yet.
+    // SceneManager::getInstance().SetCurrentScene(m_currentSceneId); 
+    // Just set the ID directly in SceneManager if needed, or wait until end.
+    SceneManager::getInstance().SetCurrentScene(m_currentSceneId); // Keep it but we know it fails refresh
+
+    read16((int16_t&)m_mainMapY);
+    read16((int16_t&)m_mainMapX);
+    read16((int16_t&)m_cameraY);
+    read16((int16_t&)m_cameraX);
+    read16((int16_t&)m_mainMapFace);
+    read16(m_shipX);
+    read16(m_shipY);
+    read16(m_time);
+    read16(m_timeEvent);
+    read16(m_randomEvent);
+    read16(m_subMapFace);
+    read16(m_shipFace);
+    read16(m_gameTime);
+
+    std::cout << "[LoadGame] Header loaded. Scene=" << m_currentSceneId << " Pos=(" << m_mainMapX << "," << m_mainMapY << ")" << std::endl;
+
+    m_teamList.resize(MAX_TEAM_SIZE);
+    for(int i=0; i<MAX_TEAM_SIZE; ++i) {
+        read16((int16_t&)m_teamList[i]);
+    }
+
+    m_inventory.resize(MAX_ITEM_AMOUNT);
+    for(int i=0; i<MAX_ITEM_AMOUNT; ++i) {
+        read16(m_inventory[i].id);
+        read16(m_inventory[i].amount);
+    }
+    
+    std::cout << "[LoadGame] Loading Roles..." << std::endl;
+    grpFile.seekg(RoleOffset, std::ios::beg);
+    int roleSize = (ItemOffset - RoleOffset) / (ROLE_DATA_SIZE * 2);
+    if (roleSize < 0 || roleSize > 10000) {
+        std::cerr << "[LoadGame] ERROR: Invalid roleSize " << roleSize << std::endl;
+        return;
+    }
+    m_roles.resize(roleSize);
+    for(int i=0; i<roleSize; ++i) {
+        std::vector<int16_t> buffer(ROLE_DATA_SIZE);
+        grpFile.read((char*)buffer.data(), ROLE_DATA_SIZE * 2);
+        m_roles[i].setDataVector(buffer);
+    }
+
+    std::cout << "[LoadGame] Loading Items..." << std::endl;
+    grpFile.seekg(ItemOffset, std::ios::beg);
+    int itemSize = (SceneOffset - ItemOffset) / (ITEM_DATA_SIZE * 2);
+    if (itemSize < 0 || itemSize > 10000) {
+        std::cerr << "[LoadGame] ERROR: Invalid itemSize " << itemSize << std::endl;
+        return;
+    }
+    m_items.resize(itemSize);
+    for(int i=0; i<itemSize; ++i) {
+        std::vector<int16_t> buffer(ITEM_DATA_SIZE);
+        grpFile.read((char*)buffer.data(), ITEM_DATA_SIZE * 2);
+        m_items[i].setDataVector(buffer);
+    }
+
+    std::cout << "[LoadGame] Loading Scenes..." << std::endl;
+    grpFile.seekg(SceneOffset, std::ios::beg);
+    int sceneSize = (MagicOffset - SceneOffset) / (SCENE_DATA_SIZE * 2);
+    if (sceneSize < 0 || sceneSize > 10000) {
+         std::cerr << "[LoadGame] ERROR: Invalid sceneSize " << sceneSize << std::endl;
+         return;
+    }
+    std::vector<Scene> scenes(sceneSize);
+    for(int i=0; i<sceneSize; ++i) {
+        std::vector<int16_t> buffer(SCENE_DATA_SIZE);
+        grpFile.read((char*)buffer.data(), SCENE_DATA_SIZE * 2);
+        scenes[i].setDataVector(buffer);
+    }
+    SceneManager::getInstance().SetScenes(scenes);
+
+    std::cout << "[LoadGame] Loading Magics..." << std::endl;
+    grpFile.seekg(MagicOffset, std::ios::beg);
+    int magicSize = (WeiShopOffset - MagicOffset) / (MAGIC_DATA_SIZE * 2);
+    if (magicSize < 0 || magicSize > 10000) {
+        std::cerr << "[LoadGame] ERROR: Invalid magicSize " << magicSize << std::endl;
+        return;
+    }
+    m_magics.resize(magicSize);
+    for(int i=0; i<magicSize; ++i) {
+        std::vector<int16_t> buffer(MAGIC_DATA_SIZE);
+        grpFile.read((char*)buffer.data(), MAGIC_DATA_SIZE * 2);
+        m_magics[i].setDataVector(buffer);
+    }
+
+    grpFile.close();
+    std::cout << "[LoadGame] ranger.grp loaded successfully." << std::endl;
+
+    std::string sFilename = (slot == 0) ? "allsin.grp" : "S" + std::to_string(slot) + ".grp";
+    std::string dFilename = (slot == 0) ? "alldef.grp" : "D" + std::to_string(slot) + ".grp";
+    
+    std::cout << "[LoadGame] Loading Maps: " << sFilename << " & " << dFilename << std::endl;
+
+    if (!SceneManager::getInstance().LoadMapData(m_savePath + sFilename)) {
+        if (slot == 0) SceneManager::getInstance().LoadMapData(m_savePath + "allsin.grp");
+    }
+    if (!SceneManager::getInstance().LoadEventData(m_savePath + dFilename)) {
+        if (slot == 0) SceneManager::getInstance().LoadEventData(m_savePath + "alldef.grp");
+    }
+    
+    // Force Refresh Layer 3 after everything is loaded
+    if (m_currentSceneId >= 0) {
+        SceneManager::getInstance().RefreshEventLayer(m_currentSceneId);
+    }
+    
+    std::cout << "Game Loaded from Slot " << slot << std::endl;
+>>>>>>> 3216a054ca71398665082c3affd6c570ef248364
+}
+
 void GameManager::InitNewGame() {
     // KYS New Game: Load initial state from ranger.grp
     // User feedback indicates that ranger.grp acts as the "New Game Save".
@@ -371,8 +631,9 @@ void GameManager::InitNewGame() {
     }
     
     // OVERRIDE for New Game: Force start in Scene 0 (Temple)
-    // ranger.grp header usually contains World Map state (-1), which is wrong for New Game start.
-    // The actual start sequence is handled by Event 101 in Scene 0.
+    // 修正：新游戏强制从场景0（圣堂）开始
+    // ranger.grp 的头部可能保存的是大地图状态(-1)，这对新游戏是不正确的。
+    // 实际的开场剧情由场景0的事件101处理。
     m_currentSceneId = 0; 
     
     // Updated based on user feedback: Correct start position in Scene 0 is (38, 38)
@@ -507,13 +768,13 @@ void GameManager::UpdateTitleScreen() {
                     break;
                 case SDLK_RETURN:
                 case SDLK_SPACE:
-                    if (m_titleMenuSelection == 0) {
+                    if (m_titleMenuSelection == 0) {// 新游戏
                         m_currentState = GameState::CharacterCreation;
-                        RandomizeRoleStats(getRole(0));
-                        m_characterCreationNameUtf8 = TextManager::getInstance().nameToUtf8(getRole(0).getName());
-                        if (m_characterCreationNameUtf8.empty()) {
+                        //RandomizeRoleStats(getRole(0));
+                        //m_characterCreationNameUtf8 = TextManager::getInstance().nameToUtf8(getRole(0).getName());
+                        //if (m_characterCreationNameUtf8.empty()) {
                             m_characterCreationNameUtf8 = "金先生";
-                        }
+                       // }
                         getRole(0).setName(TextManager::getInstance().utf8ToGbk(m_characterCreationNameUtf8));
                         SDL_StartTextInput(m_window);
                         m_characterCreationTextInputActive = true;
@@ -593,8 +854,6 @@ void GameManager::UpdateCharacterCreation() {
 }
 
 void GameManager::UpdateRoaming() {
-    EventManager::getInstance().CheckEvent(m_currentSceneId, m_mainMapX, m_mainMapY);
-
     int pendingEvent = EventManager::getInstance().GetPendingEvent();
     if (pendingEvent != -1) {
         EventManager::getInstance().ClearPendingEvent();
@@ -624,7 +883,8 @@ void GameManager::UpdateRoaming() {
                             case 2: frontY--; break; // Left
                             case 3: frontY++; break; // Right
                         }
-                        EventManager::getInstance().CheckEvent(m_currentSceneId, frontX, frontY);
+                        // Manual trigger (isManual = true)
+                        EventManager::getInstance().CheckEvent(m_currentSceneId, frontX, frontY, true);
                     }
                     break;
                     
@@ -635,8 +895,11 @@ void GameManager::UpdateRoaming() {
                     break;
 
                 case SDLK_ESCAPE:
+                    SceneManager::getInstance().DrawScene(m_renderer, m_cameraX, m_cameraY);
+                    RenderScreenTo(m_renderer);
                     m_currentState = GameState::SystemMenu;
                     m_systemMenuSelection = 0;
+                    UIManager::getInstance().ShowMenu();
                     break;
             }
             
@@ -650,6 +913,7 @@ void GameManager::UpdateRoaming() {
                     m_cameraX = m_mainMapX;
                     m_cameraY = m_mainMapY;
                     updateWalkFrame();
+<<<<<<< HEAD
                     EventManager::getInstance().CheckEvent(m_currentSceneId, m_mainMapX, m_mainMapY);
                     
                     // Check if player is at scene exit (only if in a scene, not on world map)
@@ -680,6 +944,10 @@ void GameManager::UpdateRoaming() {
                             }
                         }
                     }
+=======
+                    // Auto trigger (isManual = false)
+                    EventManager::getInstance().CheckEvent(m_currentSceneId, m_mainMapX, m_mainMapY, false);
+>>>>>>> 3216a054ca71398665082c3affd6c570ef248364
                 }
             }
         }

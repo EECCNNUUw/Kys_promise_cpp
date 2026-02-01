@@ -57,7 +57,10 @@ public:
     // Accessors for Scene definitions
     Scene* GetScene(int sceneId);
     
-    // Resource Loading
+    // 刷新事件层 (根据 DData 同步 SData 的 Layer 3)
+    void RefreshEventLayer(int sceneId);
+    
+    // 加载资源 (贴图等)
     bool LoadResources();
     
     // Testing Helper
@@ -72,7 +75,10 @@ public:
     // Helper to draw a sprite from mmap.grp (roles/NPCs)
     void DrawMmapSprite(SDL_Renderer* renderer, int picIndex, int x, int y, int frame = 0);
 
-    // Legacy/Generic sprite draw (decides between smp/mmap)
+    // 绘制精灵 (来自 Scene.Pic, 动态物体)
+    void DrawScenePicSprite(SDL_Renderer* renderer, int picIndex, int x, int y, int frame = 0);
+
+    // 通用精灵绘制 (根据 picIndex 自动判断来源)
     void DrawSprite(SDL_Renderer* renderer, int picIndex, int x, int y, int frame = 0);
 
 private:
@@ -90,9 +96,9 @@ private:
     int m_worldMapWidth = 480;
     int m_worldMapHeight = 480;
     
-    // World Map Resources
-    std::vector<uint8_t> m_wPicData; // wmp
-    std::vector<int32_t> m_wIdxData; // wdx
+    // 战斗地图资源 (WarMap) - wmp/wdx
+    std::vector<uint8_t> m_wmpPicData; // wmp
+    std::vector<int32_t> m_wmpIdxData; // wdx
 
     // Helper to draw World Map
     void DrawWorldMap(SDL_Renderer* renderer, int centerX, int centerY);
@@ -111,13 +117,20 @@ private:
     };
     std::vector<EventData> m_eventData;
     
-    // Tile Graphics (RLE) - smp/sdx
-    std::vector<uint8_t> m_sPicData; // smp
-    std::vector<int32_t> m_sIdxData; // sdx
+    // 场景图块资源 (SceneMap) - smp/sdx
+    std::vector<uint8_t> m_smpPicData; // smp
+    std::vector<int32_t> m_smpIdxData; // sdx
     
-    // Sprite Graphics (RLE) - mmap.grp/mmap.idx
-    std::vector<uint8_t> m_mmapPicData; 
-    std::vector<int32_t> m_mmapIdxData;
+    // 大地图资源 (MaxMap) - mmap.grp/mmap.idx
+    std::vector<uint8_t> m_mmpPicData; // mmp
+    std::vector<int32_t> m_mmpIdxData; // midx
+
+    // 动态场景贴图 (Scene.Pic) - PNG 格式集合
+    struct ScenePic {
+        int x, y, black;
+        SDL_Surface* surface = nullptr;
+    };
+    std::vector<ScenePic> m_scenePics;
 
     // Cloud Data
     struct Cloud {

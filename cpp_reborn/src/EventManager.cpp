@@ -201,15 +201,29 @@ std::string EventManager::GetNameFromData(int nameNum) {
     return name;
 }
 
-void EventManager::CheckEvent(int sceneId, int x, int y) {
+void EventManager::CheckEvent(int sceneId, int x, int y, bool isManual) {
     int16_t eventIndex = SceneManager::getInstance().GetSceneTile(sceneId, 3, x, y);
     
     if (eventIndex >= 0) {
+        int16_t condition = SceneManager::getInstance().GetEventData(sceneId, eventIndex, 0);
         int16_t scriptId = SceneManager::getInstance().GetEventData(sceneId, eventIndex, 4);
         
-        if (scriptId > 0) {
+        // KYS Condition Logic:
+        // Condition 0: Auto-trigger when stepping on tile
+        // Condition 1: Trigger when pressing Space/Enter
+        // Condition -1: Disabled
+        
+        bool shouldTrigger = false;
+        if (condition == 0 && !isManual) {
+            shouldTrigger = true;
+        } else if (condition == 1 && isManual) {
+            shouldTrigger = true;
+        }
+        
+        if (shouldTrigger && scriptId > 0) {
             m_currentSceneId = sceneId;
             m_currentEventId = eventIndex;
+            std::cout << "[CheckEvent] Triggering Event " << eventIndex << " (Script " << scriptId << ") Condition=" << condition << " Manual=" << isManual << std::endl;
             ExecuteEvent(scriptId);
         }
     }
@@ -263,7 +277,9 @@ void EventManager::ExecuteEvent(int eventScriptId) {
                   << " End: " << scriptEnd << " Size: " << m_eventScripts.size() << std::endl;
         return;
     }
-    
+    // 在执行前锁死当前场景和事件 ID
+    m_executingSceneId = m_currentSceneId;
+    m_executingEventId = m_currentEventId;
     int pc = scriptStart; 
     
     std::cout << "Event " << eventScriptId << " Start. PC: " << pc << " End: " << scriptEnd << std::endl;
@@ -314,8 +330,40 @@ void EventManager::ExecuteEvent(int eventScriptId) {
                 break;
             }
             case 3: {
+                // Instruct 3: 修改事件属性 (ModifyEvent)
+                // Need to read args explicitly to debug
+                int snum = ReadScriptArg(pc);
+                int enum_ = ReadScriptArg(pc);
+                int m = ReadScriptArg(pc);
+                int v = ReadScriptArg(pc);
+                int arg4 = ReadScriptArg(pc);
+                int arg5 = ReadScriptArg(pc);
+                int arg6 = ReadScriptArg(pc);
+                int arg7 = ReadScriptArg(pc);
+                int arg8 = ReadScriptArg(pc);
+                int arg9 = ReadScriptArg(pc);
+                int arg10 = ReadScriptArg(pc);
+                int arg11 = ReadScriptArg(pc);
+                int arg12 = ReadScriptArg(pc);
+                
+                // Debug: Check ModEvent args
+                // std::cout << "Opcode 3 Args: S=" << snum << " E=" << enum_ << " M=" << m << " V=" << v 
+                //           << " ... 11=" << arg11 << " 12=" << arg12 << std::endl;
+
                 std::vector<int16_t> args;
-                for(int k=0; k<13; ++k) args.push_back(ReadScriptArg(pc));
+                args.push_back(snum);
+                args.push_back(enum_);
+                args.push_back(m);
+                args.push_back(v);
+                args.push_back(arg4);
+                args.push_back(arg5);
+                args.push_back(arg6);
+                args.push_back(arg7);
+                args.push_back(arg8);
+                args.push_back(arg9);
+                args.push_back(arg10);
+                args.push_back(arg11);
+                args.push_back(arg12);
                 Instruct_ModifyEvent(args);
                 break;
             }
@@ -556,6 +604,8 @@ void EventManager::ExecuteEvent(int eventScriptId) {
                 break;
         }
     }
+    m_executingSceneId = -1;
+    m_executingEventId = -1;
 }
 
     // Implementations for new opcodes
@@ -618,7 +668,9 @@ void EventManager::Instruct_NewTalk0(int headNum, int talkNum, int nameNum, int 
     std::string heroNick = GameManager::getInstance().getRole(0).getNick();
 
     // Ensure heroName has a default if empty
-    if (heroName.empty() || LooksLikeUninitializedName(heroName)) heroName = TextManager::getInstance().utf8ToGbk("金先生");
+    if (heroName.empty() || LooksLikeUninitializedName(heroName)) 
+        
+        heroName = TextManager::getInstance().gbkToUtf8("金先生");
     std::string heroSurname = ExtractSurnameBytesGbk(heroName);
     std::string heroGiven = (heroName.size() > heroSurname.size()) ? heroName.substr(heroSurname.size()) : "";
 
@@ -765,10 +817,10 @@ void EventManager::Instruct_Dialogue(int talkId, int headId, int mode) {
             if (!part.empty()) {
                 std::string heroName = GameManager::getInstance().getRole(0).getName();
                 std::string heroNick = GameManager::getInstance().getRole(0).getNick();
-                if (heroName.empty() || LooksLikeUninitializedName(heroName)) heroName = TextManager::getInstance().utf8ToGbk("金先生");
+                if (heroName.empty() || LooksLikeUninitializedName(heroName))
+                    
+                    heroName = TextManager::getInstance().utf8ToGbk("金先生");
 
-                // We reuse the logic from NewTalk0 via helper or just reimplement
-                // But for now, let's keep it simple as it was
                 size_t pos;
                 while ((pos = part.find("@0")) != std::string::npos) {
                     part.replace(pos, 2, heroName);
@@ -841,8 +893,8 @@ void EventManager::Instruct_ModifyEvent(const std::vector<int16_t>& args) {
     int sceneId = args[0];
     int eventId = args[1];
     
-    if (sceneId == -2) sceneId = SceneManager::getInstance().GetCurrentSceneId();
-    // if (eventId == -2) eventId = m_currentEventId;
+    if (sceneId == -2) sceneId = m_executingSceneId; // 修正：使用执行时的场景 ID
+    if (eventId == -2) eventId = m_executingEventId; // 修正：处理当前事件 ID
     
     SceneManager& sm = SceneManager::getInstance();
 
@@ -852,7 +904,7 @@ void EventManager::Instruct_ModifyEvent(const std::vector<int16_t>& args) {
 
     // Pascal Logic:
     // list[0]..list[12]
-    // DData Index 9 is Y, Index 10 is X.
+    // Reverting: DData Index 9 is Y, Index 10 is X.
     // If list[11] == -2, use current Y (Index 9)
     // If list[12] == -2, use current X (Index 10)
     
@@ -903,13 +955,13 @@ void EventManager::Instruct_ModifyEvent(const std::vector<int16_t>& args) {
     // RELAXED CHECK: If args[0] is -2, it means current scene.
     // If args[0] is explicitly set, check if it matches current scene.
     int currentSceneId = GameManager::getInstance().getCurrentSceneId();
-    bool isCurrentScene = (sceneId == -2) || (sceneId == currentSceneId);
+    bool isCurrentScene = (sceneId == -2) || (sceneId == -1) || (sceneId == currentSceneId); // Fixed: -1 also means current scene in KYS scripts
     
     std::cout << "ModEvent Check: Scene=" << sceneId << " (Cur=" << currentSceneId << ") Event=" << eventId << std::endl;
 
     if (isCurrentScene) {
-        // Re-fetch sceneId if it was -2
-        if (sceneId == -2) sceneId = currentSceneId;
+        // Re-fetch sceneId if it was -2 or -1
+        if (sceneId == -2 || sceneId == -1) sceneId = currentSceneId;
 
         int newCondition = sm.GetEventData(sceneId, eventId, 0);
         int newScriptId = sm.GetEventData(sceneId, eventId, 4);
@@ -1093,12 +1145,14 @@ void EventManager::Instruct_Redraw() {
 }
 
 void EventManager::Instruct_UpdateEvent(int sceneId, int eventId, int index, int value) {
-    if (sceneId == -2) sceneId = SceneManager::getInstance().GetCurrentSceneId();
+   if (sceneId == -2) sceneId = m_executingSceneId; // 使用锁死的上下文
+    if (eventId == -2) eventId = m_executingEventId; // 必须处理 eventId 为 -2 的情况
     SceneManager::getInstance().SetEventData(sceneId, eventId, index, value);
 }
 
 void EventManager::Instruct_26(int sceneId, int eventId, int add1, int add2, int add3) {
-    if (sceneId == -2) sceneId = SceneManager::getInstance().GetCurrentSceneId();
+    if (sceneId == -2) sceneId = m_executingSceneId;
+    if (eventId == -2) eventId = m_executingEventId;
     
     int16_t val2 = SceneManager::getInstance().GetEventData(sceneId, eventId, 2);
     int16_t val3 = SceneManager::getInstance().GetEventData(sceneId, eventId, 3);
@@ -1110,7 +1164,7 @@ void EventManager::Instruct_26(int sceneId, int eventId, int add1, int add2, int
 }
 
 void EventManager::Instruct_38(int sceneId, int layer, int oldPic, int newPic) {
-    if (sceneId == -2) sceneId = SceneManager::getInstance().GetCurrentSceneId();
+    if (sceneId == -2) sceneId = m_executingSceneId;
     
     // Iterate over all tiles in layer and replace oldPic with newPic
     // Pascal: Sdata[snum, layernum, i1, i2]
@@ -1128,7 +1182,8 @@ void EventManager::Instruct_38(int sceneId, int layer, int oldPic, int newPic) {
 void EventManager::Instruct_27(int eventId, int beginPic, int endPic) {
     // Animation: Updates DData[e, 5] (Pic) from beginPic to endPic
     // In KYS, this is blocking animation.
-    int sceneId = SceneManager::getInstance().GetCurrentSceneId();
+    int sceneId = m_executingSceneId;
+    if (eventId == -2) eventId = m_executingEventId;
     
     // Store original pic? Pascal logic:
     // oldpic := DData[CurScene, enum, 5];
@@ -1157,7 +1212,8 @@ void EventManager::Instruct_23(int eventId, int action, int step, int speed) {
     // Modifies DData[CurScene, eventId, 5] (Pic)
     // Sequence: CurrentPic + action, CurrentPic + 2*action, ...
     
-    int sceneId = SceneManager::getInstance().GetCurrentSceneId();
+    int sceneId = m_executingSceneId;
+    if (eventId == -2) eventId = m_executingEventId;
     
     // Safety Check
     if (eventId < 0) {
@@ -1193,7 +1249,11 @@ void EventManager::Instruct_23(int eventId, int action, int step, int speed) {
 
 void EventManager::Instruct_44(int eventId1, int beginPic1, int endPic1, int eventId2, int beginPic2, int endPic2) {
     // Dual Animation
-    int sceneId = SceneManager::getInstance().GetCurrentSceneId();
+    int sceneId = m_executingSceneId;
+    if (eventId1 == -2) eventId1 = m_executingEventId;
+    // eventId2 can also be -2, although rare for dual animation
+    if (eventId2 == -2) eventId2 = m_executingEventId;
+
     int len1 = abs(endPic1 - beginPic1);
     int len2 = abs(endPic2 - beginPic2);
     int len = std::max(len1, len2);
@@ -1262,7 +1322,7 @@ void EventManager::Instruct_JmpScene(int sceneId, int x, int y) {
     // Pascal JmpScene calls CheckEvent3 at the end.
     SceneManager::getInstance().DrawScene(GameManager::getInstance().getRenderer(), finalX, finalY); // Force draw
     GameManager::getInstance().UpdateRoaming(); // Force update roaming logic
-    CheckEvent(sceneId, finalX, finalY);
+    CheckEvent(sceneId, finalX, finalY, false);
 }
 
 void EventManager::Instruct_Movement(int eventId, int x, int y) {
@@ -1278,7 +1338,9 @@ void EventManager::Instruct_Movement(int eventId, int x, int y) {
     // In instruct_27: UpdateScene(DData[..., 10], DData[..., 9], ...)
     // So 10 is X, 9 is Y?
     
-    int sceneId = SceneManager::getInstance().GetCurrentSceneId();
+    int sceneId = m_executingSceneId;
+    if (eventId == -2) eventId = m_executingEventId;
+
     int oldX = SceneManager::getInstance().GetEventData(sceneId, eventId, 10);
     int oldY = SceneManager::getInstance().GetEventData(sceneId, eventId, 9);
     

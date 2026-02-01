@@ -19,7 +19,8 @@ public:
 
     // Event Handling
     // Check if there is an event at (x, y) in sceneId
-    void CheckEvent(int sceneId, int x, int y);
+    // isManual: true if triggered by Space/Enter, false if triggered by stepping on it
+    void CheckEvent(int sceneId, int x, int y, bool isManual = false);
 
     // Check for Auto-Run events (Condition == 0) in the scene
     void CheckAutoEvents(int sceneId);
@@ -37,7 +38,9 @@ public:
 
 private:
     int m_pendingScriptId = -1;
-
+ // 新增：锁死当前执行脚本的场景和事件上下文
+    int m_executingSceneId = -1;
+    int m_executingEventId = -1;
     EventManager();
     ~EventManager() = default;
     EventManager(const EventManager&) = delete;
