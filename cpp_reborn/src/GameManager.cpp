@@ -406,7 +406,8 @@ void GameManager::SaveGame(int slot) {
     // 3. Write Scenes
     int sceneBytesToWrite = MagicOffset - SceneOffset;
     int sceneBytesWritten = 0;
-    for (const auto& scene : m_scenes) {
+    const auto& scenes = SceneManager::getInstance().getScenes();
+    for (const auto& scene : scenes) {
         if (sceneBytesWritten + SCENE_DATA_SIZE * 2 <= sceneBytesToWrite) {
             grpFile.write((char*)scene.getRawData(), SCENE_DATA_SIZE * 2);
             sceneBytesWritten += SCENE_DATA_SIZE * 2;
@@ -604,7 +605,6 @@ void GameManager::LoadGame(int slot) {
     }
     
     std::cout << "Game Loaded from Slot " << slot << std::endl;
->>>>>>> 3216a054ca71398665082c3affd6c570ef248364
 }
 
 void GameManager::InitNewGame() {

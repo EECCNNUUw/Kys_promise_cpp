@@ -56,6 +56,7 @@ public:
 
     // Accessors for Scene definitions
     Scene* GetScene(int sceneId);
+    const std::vector<Scene>& getScenes() const { return m_scenes; }
     
     // 刷新事件层 (根据 DData 同步 SData 的 Layer 3)
     void RefreshEventLayer(int sceneId);

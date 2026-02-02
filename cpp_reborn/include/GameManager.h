@@ -149,6 +149,11 @@ private:
     int m_cameraX, m_cameraY;
     int m_mainMapFace = 0;
     int m_walkFrame = 0;
+    int16_t m_inShip = 0;
+    int16_t m_shipX = 0, m_shipY = 0, m_shipFace = 0;
+    int16_t m_subMapFace = 0;
+    int16_t m_time = 0, m_timeEvent = 0, m_randomEvent = 0;
+    int16_t m_gameTime = 0;
     bool m_playedTitleAnim = false;
     
     // System Menu State
