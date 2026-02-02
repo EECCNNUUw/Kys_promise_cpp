@@ -41,27 +41,52 @@ bool SceneManager::Init() {
 }
 
 bool SceneManager::LoadWorldMap() {
-    auto data = FileLoader::loadFile("EARTH.002");
-    if (data.empty()) {
-        // Try fallback names
-        data = FileLoader::loadFile("resource/EARTH.002");
+    auto loadLayer = [](const std::string& filename) -> std::vector<int16_t> {
+        auto data = FileLoader::loadFile(filename);
         if (data.empty()) {
-             std::cerr << "Failed to load EARTH.002" << std::endl;
-             return false;
+            auto alt = FileLoader::loadFile("resource/" + filename);
+            if (alt.empty()) {
+                return {};
+            }
+            data.swap(alt);
         }
+        if (data.size() != 480 * 480 * 2) {
+            std::cerr << "[LoadWorldMap] Warning: " << filename
+                      << " size mismatch, expect " << (480 * 480 * 2)
+                      << " bytes, got " << data.size() << std::endl;
+        }
+        std::vector<int16_t> layer(data.size() / 2);
+        memcpy(layer.data(), data.data(), data.size());
+        return layer;
+    };
+
+    m_worldEarth    = loadLayer("EARTH.002");
+    m_worldSurface  = loadLayer("surface.002");
+    m_worldBuilding = loadLayer("building.002");
+    m_worldBuildX   = loadLayer("buildx.002");
+    m_worldBuildY   = loadLayer("buildy.002");
+
+    if (m_worldEarth.empty()) {
+        std::cerr << "[LoadWorldMap] Failed to load EARTH.002" << std::endl;
+        return false;
     }
-    
-    // Size check
-    // 480 * 480 * 2 (int16) = 460800 bytes per layer.
-    // Usually 1 layer? Or 2?
-    // KYS World Map is typically 1 layer of ground.
-    // Buildings are separate? No, World Map buildings are often part of the map or events.
-    // Let's assume 1 layer for now.
-    
-    m_worldMapData.resize(data.size() / 2);
-    memcpy(m_worldMapData.data(), data.data(), data.size());
-    std::cout << "Loaded World Map. Size: " << m_worldMapData.size() << " tiles." << std::endl;
-    
+
+    if (m_worldSurface.empty() || m_worldBuilding.empty() ||
+        m_worldBuildX.empty() || m_worldBuildY.empty()) {
+        std::cerr << "[LoadWorldMap] Warning: some world layers missing. "
+                  << "Surface=" << m_worldSurface.size()
+                  << " Building=" << m_worldBuilding.size()
+                  << " BuildX=" << m_worldBuildX.size()
+                  << " BuildY=" << m_worldBuildY.size() << std::endl;
+    } else {
+        std::cout << "[LoadWorldMap] World layers loaded. "
+                  << "Earth=" << m_worldEarth.size()
+                  << " Surface=" << m_worldSurface.size()
+                  << " Building=" << m_worldBuilding.size()
+                  << " BuildX=" << m_worldBuildX.size()
+                  << " BuildY=" << m_worldBuildY.size() << std::endl;
+    }
+
     return true;
 }
 
@@ -218,11 +243,6 @@ bool SceneManager::LoadEventData(const std::string& path) {
     }
     
     std::cout << "Loaded " << count << " scenes event data from " << path << std::endl;
-    
-    if (m_currentSceneId >= 0) {
-        RefreshEventLayer(m_currentSceneId);
-    }
-    
     return true;
 }
 
@@ -253,11 +273,6 @@ bool SceneManager::LoadMapData(const std::string& path) {
     
     m_mapData.resize(data.size() / 2);
     memcpy(m_mapData.data(), data.data(), data.size());
-    
-    if (m_currentSceneId >= 0) {
-        RefreshEventLayer(m_currentSceneId);
-    }
-    
     return true;
 }
 
@@ -272,13 +287,11 @@ bool SceneManager::SaveMapData(const std::string& path) {
 void SceneManager::SetScenes(const std::vector<Scene>& scenes) {
     m_scenes = scenes;
     std::cout << "SceneManager: Set " << m_scenes.size() << " scenes." << std::endl;
+    ResetEntrance();
 }
 
 void SceneManager::SetCurrentScene(int sceneId) {
     m_currentSceneId = sceneId;
-    if (sceneId >= 0) {
-        RefreshEventLayer(sceneId);
-    }
 }
 
 Scene* SceneManager::GetScene(int sceneId) {
@@ -316,6 +329,64 @@ void SceneManager::SetSceneTile(int sceneId, int layer, int x, int y, int16_t va
     if (index >= m_mapData.size()) return;
     
     m_mapData[index] = value;
+}
+
+int16_t SceneManager::GetWorldEarth(int x, int y) const {
+    if (x < 0 || x >= m_worldMapWidth || y < 0 || y >= m_worldMapHeight) return 0;
+    size_t idx = static_cast<size_t>(y) * m_worldMapWidth + x;
+    if (idx >= m_worldEarth.size()) return 0;
+    return m_worldEarth[idx];
+}
+
+int16_t SceneManager::GetWorldSurface(int x, int y) const {
+    if (x < 0 || x >= m_worldMapWidth || y < 0 || y >= m_worldMapHeight) return 0;
+    size_t idx = static_cast<size_t>(y) * m_worldMapWidth + x;
+    if (idx >= m_worldSurface.size()) return 0;
+    return m_worldSurface[idx];
+}
+
+int16_t SceneManager::GetWorldBuildX(int x, int y) const {
+    if (x < 0 || x >= m_worldMapWidth || y < 0 || y >= m_worldMapHeight) return 0;
+    size_t idx = static_cast<size_t>(y) * m_worldMapWidth + x;
+    if (idx >= m_worldBuildX.size()) return 0;
+    return m_worldBuildX[idx];
+}
+
+int16_t SceneManager::GetWorldBuildY(int x, int y) const {
+    if (x < 0 || x >= m_worldMapWidth || y < 0 || y >= m_worldMapHeight) return 0;
+    size_t idx = static_cast<size_t>(y) * m_worldMapWidth + x;
+    if (idx >= m_worldBuildY.size()) return 0;
+    return m_worldBuildY[idx];
+}
+
+void SceneManager::ResetEntrance() {
+    m_worldEntrance.assign(m_worldMapWidth * m_worldMapHeight, -1);
+    for (int i = 0; i < static_cast<int>(m_scenes.size()); ++i) {
+        const Scene& scene = m_scenes[i];
+        int x1 = scene.getMainEntranceX1();
+        int y1 = scene.getMainEntranceY1();
+        if (x1 >= 0 && x1 < m_worldMapWidth && y1 >= 0 && y1 < m_worldMapHeight) {
+            size_t idx = static_cast<size_t>(y1) * m_worldMapWidth + x1;
+            if (idx < m_worldEntrance.size()) {
+                m_worldEntrance[idx] = static_cast<int16_t>(i);
+            }
+        }
+        int x2 = scene.getMainEntranceX2();
+        int y2 = scene.getMainEntranceY2();
+        if (x2 >= 0 && x2 < m_worldMapWidth && y2 >= 0 && y2 < m_worldMapHeight) {
+            size_t idx = static_cast<size_t>(y2) * m_worldMapWidth + x2;
+            if (idx < m_worldEntrance.size()) {
+                m_worldEntrance[idx] = static_cast<int16_t>(i);
+            }
+        }
+    }
+}
+
+int16_t SceneManager::GetEntrance(int x, int y) const {
+    if (x < 0 || x >= m_worldMapWidth || y < 0 || y >= m_worldMapHeight) return -1;
+    size_t idx = static_cast<size_t>(y) * m_worldMapWidth + x;
+    if (idx >= m_worldEntrance.size()) return -1;
+    return m_worldEntrance[idx];
 }
 
 int16_t SceneManager::GetEventData(int sceneId, int eventId, int index) const {
@@ -438,7 +509,7 @@ void SceneManager::RefreshEventLayer(int sceneId) {
         int16_t x = GetEventData(sceneId, e, 10);
         int16_t y = GetEventData(sceneId, e, 9);
         
-        if (x >= 0 && x < SCENE_MAP_SIZE && y >= 0 && y < SCENE_MAP_SIZE) {
+        if (x > 0 && x < SCENE_MAP_SIZE && y >= 0 && y < SCENE_MAP_SIZE) {
             SetSceneTile(sceneId, 3, x, y, (int16_t)e);
             count++;
         }
@@ -476,62 +547,140 @@ void SceneManager::DrawClouds(SDL_Renderer* renderer, int centerX, int centerY) 
 }
 
 void SceneManager::DrawWorldMap(SDL_Renderer* renderer, int centerX, int centerY) {
-    if (m_mmpIdxData.empty() || m_mmpPicData.empty() || m_worldMapData.empty()) {
+    if (m_mmpIdxData.empty() || m_mmpPicData.empty() || m_worldEarth.empty()) {
         static bool loggedEmpty = false;
         if (!loggedEmpty) {
-            std::cerr << "[DrawWorldMap] MaxMap Resources empty! Idx: " << m_mmpIdxData.size() << " Pic: " << m_mmpPicData.size() << " Map: " << m_worldMapData.size() << std::endl;
+            std::cerr << "[DrawWorldMap] MaxMap or World resources empty! "
+                      << "Idx: " << m_mmpIdxData.size()
+                      << " Pic: " << m_mmpPicData.size()
+                      << " Earth: " << m_worldEarth.size() << std::endl;
             loggedEmpty = true;
         }
         return;
     }
 
-    int px, py;
-    GameManager::getInstance().getMainMapPosition(px, py);
-    
-    // Debug: Log center tile
-    static int lastCenterX = -1, lastCenterY = -1;
-    if (centerX != lastCenterX || centerY != lastCenterY) {
-         int tileIndex = centerY * 480 + centerX;
-         if (tileIndex >= 0 && tileIndex < m_worldMapData.size()) {
-             std::cout << "[DrawWorldMap] Center (" << centerX << "," << centerY << ") Tile: " << m_worldMapData[tileIndex] << std::endl;
-         }
-         lastCenterX = centerX;
-         lastCenterY = centerY;
+    // Draw Map
+    int range = 20;
+
+    struct BuildingPos {
+        int mapX;
+        int mapY;
+        int16_t pic;
+    };
+    struct CenterPos {
+        int cx2;
+        int cy2;
+    };
+
+    BuildingPos buildingList[1200];
+    CenterPos centerList[1200];
+    int buildingCount = 0;
+
+    for (int sum = -29; sum <= 41; ++sum) {
+        for (int i = -16; i <= 16; ++i) {
+            int i1 = centerX + i + (sum / 2);
+            int i2 = centerY - i + (sum - sum / 2);
+
+            if (i1 < 0 || i1 >= m_worldMapWidth || i2 < 0 || i2 >= m_worldMapHeight) {
+                continue;
+            }
+
+            int idx = i2 * m_worldMapWidth + i1;
+            if (idx < 0 || idx >= (int)m_worldBuilding.size()) continue;
+
+            int16_t tempPic = 0;
+            if (!m_worldBuilding.empty()) {
+                tempPic = m_worldBuilding[idx];
+            }
+
+            int px, py;
+            GetPositionOnScreen(i1, i2, centerX, centerY, px, py);
+
+            if (tempPic > 0) {
+                int picIndex = (tempPic / 2) - 1;
+                if (picIndex >= 0 && picIndex < (int)m_mmpIdxData.size() && buildingCount < 1200) {
+                    int offset = m_mmpIdxData[picIndex];
+                    if (offset > 0 && offset < (int)m_mmpPicData.size()) {
+                        int16_t width = 36;
+                        buildingList[buildingCount].mapX = i1;
+                        buildingList[buildingCount].mapY = i2;
+                        buildingList[buildingCount].pic = tempPic;
+                        centerList[buildingCount].cx2 = i1 * 2 - (width + 35) / 36 + 1;
+                        centerList[buildingCount].cy2 = i2 * 2 - (width + 35) / 36 + 1;
+                        buildingCount++;
+                    }
+                }
+            }
+        }
     }
 
-    // Draw Map
-    // Visible range
-    int range = 20; // 20 tiles radius
-    
-    for (int i1 = centerX - range; i1 <= centerX + range; ++i1) {
-        for (int i2 = centerY - range; i2 <= centerY + range; ++i2) {
-            // Wrap coordinates? World Map wraps in KYS.
-            // 480x480
-            int mapX = (i1 + 480) % 480;
-            int mapY = (i2 + 480) % 480;
-            
-            int tileIndex = mapY * 480 + mapX; // Transposed? Or X*480+Y?
-            // KYS usually: Y * Width + X ? Or X * Height + Y?
-            // Let's try standard Y * Width + X first.
-            
-            if (tileIndex < 0 || tileIndex >= m_worldMapData.size()) continue;
-            
-            int16_t tile = m_worldMapData[tileIndex];
-            
-            int x, y;
-            GetPositionOnScreen(i1, i2, centerX, centerY, x, y);
-            
-            // Culling
-            if (x < -100 || x > 740 || y < -100 || y > 580) continue; 
-            
-            // Draw Tile using mmp (MaxMap)
-            if (tile > 0) {
-                // tile / 2 ?
-                int picIndex = (tile / 2);
-                if (picIndex < m_mmpIdxData.size()) {
+    for (int i1 = 0; i1 < buildingCount - 1; ++i1) {
+        for (int i2 = i1 + 1; i2 < buildingCount; ++i2) {
+            int s1 = centerList[i1].cx2 + centerList[i1].cy2;
+            int s2 = centerList[i2].cx2 + centerList[i2].cy2;
+            if (s1 > s2) {
+                BuildingPos bp = buildingList[i1];
+                buildingList[i1] = buildingList[i2];
+                buildingList[i2] = bp;
+                CenterPos cp = centerList[i1];
+                centerList[i1] = centerList[i2];
+                centerList[i2] = cp;
+            }
+        }
+    }
+
+    for (int idx = buildingCount - 1; idx >= 0; --idx) {
+        int x = buildingList[idx].mapX;
+        int y = buildingList[idx].mapY;
+        int16_t picVal = buildingList[idx].pic;
+        int sx, sy;
+        GetPositionOnScreen(x, y, centerX, centerY, sx, sy);
+        int picIndex = (picVal / 2) - 1;
+        if (picIndex >= 0 && picIndex < (int)m_mmpIdxData.size()) {
+            int offset = m_mmpIdxData[picIndex];
+            if (offset > 0 && offset < (int)m_mmpPicData.size()) {
+                GraphicsUtils::DrawRLE8(GameManager::getInstance().getScreenSurface(), sx, sy,
+                                        &m_mmpPicData[offset], m_mmpPicData.size() - offset);
+            }
+        }
+    }
+
+    for (int sum = 41; sum >= -29; --sum) {
+        for (int i = 16; i >= -16; --i) {
+            int i1 = centerX + i + (sum / 2);
+            int i2 = centerY - i + (sum - sum / 2);
+
+            if (i1 < 0 || i1 >= m_worldMapWidth || i2 < 0 || i2 >= m_worldMapHeight) continue;
+            if (!(sum >= -27 && sum <= 28 && i >= -11 && i <= 11)) continue;
+
+            int idx = i2 * m_worldMapWidth + i1;
+            if (idx < 0 || idx >= (int)m_worldEarth.size()) continue;
+
+            int sx, sy;
+            GetPositionOnScreen(i1, i2, centerX, centerY, sx, sy);
+
+            if (!m_worldSurface.empty()) {
+                int16_t sTile = m_worldSurface[idx];
+                if (sTile > 0) {
+                    int picIndex = (sTile / 2) - 1;
+                    if (picIndex >= 0 && picIndex < (int)m_mmpIdxData.size()) {
+                        int offset = m_mmpIdxData[picIndex];
+                        if (offset > 0 && offset < (int)m_mmpPicData.size()) {
+                            GraphicsUtils::DrawRLE8(GameManager::getInstance().getScreenSurface(), sx, sy,
+                                                    &m_mmpPicData[offset], m_mmpPicData.size() - offset);
+                        }
+                    }
+                }
+            }
+
+            int16_t eTile = m_worldEarth[idx];
+            if (eTile > 0) {
+                int picIndex = (eTile / 2) - 1;
+                if (picIndex >= 0 && picIndex < (int)m_mmpIdxData.size()) {
                     int offset = m_mmpIdxData[picIndex];
-                    if (offset > 0 && offset < m_mmpPicData.size()) {
-                        GraphicsUtils::DrawRLE8(GameManager::getInstance().getScreenSurface(), x, y, &m_mmpPicData[offset], m_mmpPicData.size() - offset);
+                    if (offset > 0 && offset < (int)m_mmpPicData.size()) {
+                        GraphicsUtils::DrawRLE8(GameManager::getInstance().getScreenSurface(), sx, sy,
+                                                &m_mmpPicData[offset], m_mmpPicData.size() - offset);
                     }
                 }
             }
@@ -541,19 +690,18 @@ void SceneManager::DrawWorldMap(SDL_Renderer* renderer, int centerX, int centerY
     // Draw Player
     int screenX, screenY;
     GetPositionOnScreen(centerX, centerY, centerX, centerY, screenX, screenY);
-    
+
     int face = GameManager::getInstance().getMainMapFace();
     int spriteFace = 0;
     switch(face) {
-         case 0: spriteFace = 3; break; // Down
-         case 1: spriteFace = 0; break; // Up
-         case 2: spriteFace = 2; break; // Left
-         case 3: spriteFace = 1; break; // Right
+         case 0: spriteFace = 3; break;
+         case 1: spriteFace = 0; break;
+         case 2: spriteFace = 2; break;
+         case 3: spriteFace = 1; break;
     }
     int frame = GameManager::getInstance().getWalkFrame();
     int playerPic = 2501 + spriteFace * 7 + frame;
-    
-    // Draw Player using mmp (MaxMap) on World Map
+
     DrawMmapSprite(renderer, playerPic, screenX, screenY, 0);
     
     // Draw Clouds
@@ -620,7 +768,7 @@ void SceneManager::DrawScene(SDL_Renderer* renderer, int centerX, int centerY) {
     // In this case, we hide the default player sprite to avoid duplication/ghosting.
     bool hidePlayer = false;
     if (m_currentSceneId >= 0 && m_currentSceneId < m_eventData.size()) {
-        if (m_eventData[m_currentSceneId].data[0][5] > 0) { // Event 0, Index 5 (Pic)
+        if (m_eventData[m_currentSceneId].data[0][7] != 0 || m_eventData[m_currentSceneId].data[0][5] > 0) {
             hidePlayer = true;
         }
     }
@@ -719,23 +867,18 @@ void SceneManager::DrawScene(SDL_Renderer* renderer, int centerX, int centerY) {
                 // tile3 is eventIndex. Get EventData to find pic.
                 // KYS Event Data: Index 5 is Pic
                 int16_t eventPic = GetEventData(m_currentSceneId, tile3, 5);
+                int16_t defaultPic = GetEventData(m_currentSceneId, tile3, 7);
+                if (defaultPic != 0 && eventPic != defaultPic) {
+                    SetEventData(m_currentSceneId, tile3, 5, defaultPic);
+                    eventPic = defaultPic;
+                }
                 
                 if (eventPic != 0) { // Pascal logic: if <> 0 then draw
-                    // Check if standing on building (Layer 1)
-                    int drawY = y;
-                    if (tile1 > 0) {
-                        drawY -= height1;
-                    }
-                    
+                    int drawY = y - height1;
                     if (eventPic > 0) {
-                        // User Logic: 8268 / 2 = 4134. Direct division, no -1.
                         DrawSmpSprite(renderer, (eventPic / 2) - 1, x, drawY, 0);
-                    } else if (eventPic < 0) {
-                        int absPic = -eventPic;
-                        // User Logic: Negative IDs also map to SMP. 
-                        // Assuming direct division for consistency with positive IDs.
-                        int smpIndex = (absPic / 2) - 1;
-                        DrawSmpSprite(renderer, smpIndex, x, drawY, 0);
+                    } else {
+                        DrawMmapSprite(renderer, (-eventPic / 2) - 1, x, drawY, 0);
                     }
                 }
             }
@@ -743,10 +886,7 @@ void SceneManager::DrawScene(SDL_Renderer* renderer, int centerX, int centerY) {
             // Sprites (Player & dynamic sprites from pre-calculated map)
             if (spriteMap[i1][i2] != -1) {
                 // Adjust for height too for Player
-                int drawY = y;
-                if (tile1 > 0) {
-                    drawY -= height1;
-                }
+                int drawY = y - height1;
                 DrawSprite(renderer, spriteMap[i1][i2], x, drawY, 0);
             }
         }

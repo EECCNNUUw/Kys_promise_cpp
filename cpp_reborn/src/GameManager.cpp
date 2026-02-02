@@ -720,13 +720,14 @@ void GameManager::UpdateRoaming() {
                         int frontX = m_mainMapX;
                         int frontY = m_mainMapY;
                         switch(m_mainMapFace) {
-                            case 0: frontX++; break; // Down
-                            case 1: frontX--; break; // Up
-                            case 2: frontY--; break; // Left
-                            case 3: frontY++; break; // Right
+                            case 0: frontX++; break;
+                            case 1: frontX--; break;
+                            case 2: frontY--; break;
+                            case 3: frontY++; break;
                         }
-                        // Manual trigger (isManual = true)
-                        EventManager::getInstance().CheckEvent(m_currentSceneId, frontX, frontY, true);
+                        if (m_currentSceneId >= 0) {
+                            EventManager::getInstance().CheckEvent(m_currentSceneId, frontX, frontY, true);
+                        }
                     }
                     break;
                     
@@ -737,24 +738,37 @@ void GameManager::UpdateRoaming() {
                     break;
                 
                 case SDLK_ESCAPE:
-                    SceneManager::getInstance().DrawScene(m_renderer, m_cameraX, m_cameraY);
-                    RenderScreenTo(m_renderer);
-                    UIManager::getInstance().ShowMenu();
+                    if (m_currentSceneId >= 0) {
+                        SceneManager::getInstance().DrawScene(m_renderer, m_cameraX, m_cameraY);
+                        RenderScreenTo(m_renderer);
+                        UIManager::getInstance().ShowMenu();
+                    }
                     break;
             }
             
             if (dx != 0 || dy != 0) {
                 int nextX = m_mainMapX + dx;
                 int nextY = m_mainMapY + dy;
-                
-                if (SceneManager::getInstance().CanWalk(nextX, nextY)) {
-                    m_mainMapX = nextX;
-                    m_mainMapY = nextY;
-                    m_cameraX = m_mainMapX;
-                    m_cameraY = m_mainMapY;
-                    updateWalkFrame();
-                    // Auto trigger (isManual = false)
-                    EventManager::getInstance().CheckEvent(m_currentSceneId, m_mainMapX, m_mainMapY, false);
+
+                if (m_currentSceneId >= 0) {
+                    if (SceneManager::getInstance().CanWalk(nextX, nextY)) {
+                        m_mainMapX = nextX;
+                        m_mainMapY = nextY;
+                        m_cameraX = m_mainMapX;
+                        m_cameraY = m_mainMapY;
+                        updateWalkFrame();
+                        EventManager::getInstance().CheckEvent(m_currentSceneId, m_mainMapX, m_mainMapY, false);
+                    }
+                } else {
+                    // 大地图移动与入口检测
+                    if (CanWalkWorld(nextX, nextY)) {
+                        m_mainMapX = nextX;
+                        m_mainMapY = nextY;
+                        m_cameraX = m_mainMapX;
+                        m_cameraY = m_mainMapY;
+                        updateWalkFrame();
+                        CheckWorldEntrance();
+                    }
                 }
             }
         }
@@ -766,6 +780,109 @@ void GameManager::UpdateRoaming() {
         RenderScreenTo(m_renderer);
     }
     SDL_RenderPresent(m_renderer);
+}
+
+bool GameManager::CanWalkWorld(int x, int y) {
+    if (x < 0 || x >= 480 || y < 0 || y >= 480) return false;
+
+    SceneManager& sm = SceneManager::getInstance();
+    int16_t buildx = sm.GetWorldBuildX(x, y);
+    int16_t surface = sm.GetWorldSurface(x, y);
+    int16_t earth = sm.GetWorldEarth(x, y);
+
+    bool canwalk = (buildx == 0);
+
+    if (x <= 0 || x >= 479 || y <= 0 || y >= 479 ||
+        (surface >= 1692 && surface <= 1700)) {
+        canwalk = false;
+    }
+
+    if (earth == 838 || (earth >= 612 && earth <= 670)) {
+        canwalk = false;
+    }
+
+    if ((earth >= 358 && earth <= 362) ||
+        (earth >= 506 && earth <= 670) ||
+        (earth >= 1016 && earth <= 1022)) {
+        if (m_inShip == 1) {
+            if (earth == 838 || (earth >= 612 && earth <= 670)) {
+                canwalk = false;
+            } else if (surface >= 1746 && surface <= 1788) {
+                canwalk = false;
+            } else {
+                canwalk = true;
+            }
+        } else if (x == m_shipY && y == m_shipX) {
+            canwalk = true;
+            m_inShip = 1;
+        } else {
+            canwalk = false;
+        }
+    } else {
+        if (m_inShip == 1) {
+            m_shipY = static_cast<int16_t>(m_mainMapX);
+            m_shipX = static_cast<int16_t>(m_mainMapY);
+            m_shipFace = static_cast<int16_t>(m_mainMapFace);
+        }
+        m_inShip = 0;
+    }
+
+    int surfaceHalf = surface / 2;
+    if ((surfaceHalf >= 863 && surfaceHalf <= 872) ||
+        (surfaceHalf >= 852 && surfaceHalf <= 854) ||
+        (surfaceHalf >= 858 && surfaceHalf <= 860)) {
+        canwalk = true;
+    }
+
+    return canwalk;
+}
+
+bool GameManager::CheckWorldEntrance() {
+    int x = m_mainMapX;
+    int y = m_mainMapY;
+
+    switch (m_mainMapFace) {
+        case 0: x += 1; break;
+        case 1: x -= 1; break;
+        case 2: y -= 1; break;
+        case 3: y += 1; break;
+    }
+
+    int16_t snum = SceneManager::getInstance().GetEntrance(x, y);
+    if (snum < 0) return false;
+
+    Scene& scene = getScene(snum);
+    bool canEntrance = false;
+
+    int16_t enCond = scene.getEnCondition();
+    if (enCond == 0) {
+        canEntrance = true;
+    } else if (enCond == 2) {
+        for (int roleId : m_teamList) {
+            if (roleId < 0) continue;
+            Role& role = getRole(roleId);
+            if (role.getSpeed() >= 70) {
+                canEntrance = true;
+                break;
+            }
+        }
+    }
+
+    if (!canEntrance) return false;
+
+    UIManager::getInstance().FadeScreen(false);
+
+    int16_t entranceX = scene.getEntranceX();
+    int16_t entranceY = scene.getEntranceY();
+
+    enterScene(snum);
+    m_subMapFace = static_cast<int16_t>(m_mainMapFace);
+    m_mainMapFace = 3 - m_mainMapFace;
+    resetWalkFrame();
+
+    setMainMapPosition(entranceX, entranceY);
+
+    return true;
 }
 
 void GameManager::UpdateSystemMenu() {
@@ -1007,4 +1124,3 @@ bool GameManager::GetGongtiState(int roleIdx, int state) { return false; } // TO
 void GameManager::JoinParty(int roleId) { /* TODO */ }
 void GameManager::LeaveParty(int roleId) { /* TODO */ }
 void GameManager::Rest() { /* TODO */ }
-

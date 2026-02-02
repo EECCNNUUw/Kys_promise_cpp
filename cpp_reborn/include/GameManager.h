@@ -202,4 +202,8 @@ private:
     
 public:
     void UpdateRoaming(); // Make public for EventManager to call
+private:
+    // 大地图行走与入口检测
+    bool CanWalkWorld(int x, int y);
+    bool CheckWorldEntrance();
 };

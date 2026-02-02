@@ -278,8 +278,14 @@ void EventManager::ExecuteEvent(int eventScriptId) {
         return;
     }
     // 在执行前锁死当前场景和事件 ID
-    m_executingSceneId = m_currentSceneId;
-    m_executingEventId = m_currentEventId;
+    // 注意：某些脚本（例如开场 Event 101）可能直接被调用，此时 m_currentSceneId/m_currentEventId 还未设置。
+    int sceneContext = m_currentSceneId;
+    if (sceneContext < 0) {
+        sceneContext = GameManager::getInstance().getCurrentSceneId();
+    }
+    int eventContext = m_currentEventId;
+    m_executingSceneId = sceneContext;
+    m_executingEventId = eventContext;
     int pc = scriptStart; 
     
     std::cout << "Event " << eventScriptId << " Start. PC: " << pc << " End: " << scriptEnd << std::endl;

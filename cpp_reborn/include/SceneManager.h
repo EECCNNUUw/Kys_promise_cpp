@@ -93,15 +93,31 @@ public:
     // 通用精灵绘制 (根据 picIndex 自动判断来源)
     void DrawSprite(SDL_Renderer* renderer, int picIndex, int x, int y, int frame = 0);
 
+    // 大地图辅助查询
+    int16_t GetWorldEarth(int x, int y) const;
+    int16_t GetWorldSurface(int x, int y) const;
+    int16_t GetWorldBuildX(int x, int y) const;
+    int16_t GetWorldBuildY(int x, int y) const;
+
+    // 场景入口映射 (大地图 480x480 -> 场景号)，对应 Pascal 的 Entrance 数组
+    void ResetEntrance();
+    int16_t GetEntrance(int x, int y) const;
+
 private:
     SceneManager();
     ~SceneManager() = default;
     SceneManager(const SceneManager&) = delete;
     SceneManager& operator=(const SceneManager&) = delete;
 
-    // 大地图数据 (World Map)
-    // 对应 EARTH.002
-    std::vector<int16_t> m_worldMapData;
+    // 大地图数据 (World Map) - 对应 Pascal 中的
+    // earth, surface, building, buildx, buildy 五个数组
+    // 坐标范围 0..479 x 0..479, 存储方式: index = y * 480 + x
+    std::vector<int16_t> m_worldEarth;    // EARTH.002
+    std::vector<int16_t> m_worldSurface;  // surface.002
+    std::vector<int16_t> m_worldBuilding; // building.002
+    std::vector<int16_t> m_worldBuildX;   // buildx.002
+    std::vector<int16_t> m_worldBuildY;   // buildy.002
+    std::vector<int16_t> m_worldEntrance; // Entrance: 世界坐标到场景编号映射
     int m_worldMapWidth = 480;
     int m_worldMapHeight = 480;
     
