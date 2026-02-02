@@ -290,9 +290,6 @@ void EventManager::ExecuteEvent(int eventScriptId) {
     
     std::cout << "Event " << eventScriptId << " Start. PC: " << pc << " End: " << scriptEnd << std::endl;
 
-    // 事件虚拟机循环
-    // 对应 Pascal 中的 while loop
-    // 依次读取 Opcode 并执行相应的 Instruct_* 函数
     while (pc < scriptEnd) {
         int16_t opcode = ReadScriptArg(pc);
         if (opcode < 0) {
@@ -307,8 +304,6 @@ void EventManager::ExecuteEvent(int eventScriptId) {
 
         switch (opcode) {
             case 0: 
-                // Instruct 0: 结束/重绘 (Redraw)
-                // Pascal 中通常对应 instruct_0，但也作为脚本结束标志
                 // Instruct 0 is typically Redraw.
                 // However, if we are at the end of the script (or next opcode is -1/invalid),
                 // we should stop to avoid reading garbage.
@@ -328,7 +323,6 @@ void EventManager::ExecuteEvent(int eventScriptId) {
                 }
                 break;
             case 1: {
-                // Instruct 1: 对话 (Dialogue)
                 int talkId = ReadScriptArg(pc);
                 int headId = ReadScriptArg(pc);
                 int mode = ReadScriptArg(pc);
@@ -336,7 +330,6 @@ void EventManager::ExecuteEvent(int eventScriptId) {
                 break;
             }
             case 2: {
-                // Instruct 2: 获得/失去物品 (AddItem)
                 int itemId = ReadScriptArg(pc);
                 int amount = ReadScriptArg(pc);
                 Instruct_AddItem(itemId, amount);
@@ -381,7 +374,6 @@ void EventManager::ExecuteEvent(int eventScriptId) {
                 break;
             }
             case 4: { 
-                // Instruct 4: 检查物品并跳转
                 int itemNum = ReadScriptArg(pc);
                 int jump1 = ReadScriptArg(pc);
                 int jump2 = ReadScriptArg(pc);
@@ -392,7 +384,6 @@ void EventManager::ExecuteEvent(int eventScriptId) {
                 break;
             }
             case 5: {
-                // Instruct 5: 询问是否战斗
                 int jump1 = ReadScriptArg(pc);
                 int jump2 = ReadScriptArg(pc);
                 int choice = UIManager::getInstance().ShowChoice("是否與之戰鬥？"); 
@@ -401,7 +392,6 @@ void EventManager::ExecuteEvent(int eventScriptId) {
                 break;
             }
             case 6: {
-                // Instruct 6: 触发战斗 (Battle)
                 int battleId = ReadScriptArg(pc);
                 int jump1 = ReadScriptArg(pc);
                 int jump2 = ReadScriptArg(pc);
@@ -410,38 +400,32 @@ void EventManager::ExecuteEvent(int eventScriptId) {
                 pc += result;
                 break;
             }
-            case 8: Instruct_PlayMusic(ReadScriptArg(pc)); break; // Instruct 8: 播放音乐
-            case 10: Instruct_JoinParty(ReadScriptArg(pc)); break; // Instruct 10: 加入队伍
+            case 8: Instruct_PlayMusic(ReadScriptArg(pc)); break;
+            case 10: Instruct_JoinParty(ReadScriptArg(pc)); break;
             case 11: {
-                // Instruct 11: 增加属性 (AddAttribute)
                 int roleId = ReadScriptArg(pc);
                 int attrId = ReadScriptArg(pc);
                 int value = ReadScriptArg(pc);
                 Instruct_AddAttribute(roleId, attrId, value);
                 break;
             }
-            case 12: Instruct_Rest(); break; // Instruct 12: 休息
-            case 13: Instruct_FadeIn(); break; // Instruct 13: 淡入
-            case 14: Instruct_FadeOut(); break; // Instruct 14: 淡出
+            case 12: Instruct_Rest(); break;
+            case 13: Instruct_FadeIn(); break;
+            case 14: Instruct_FadeOut(); break;
             case 16: {
-                 // Instruct 16: 闪烁 (Flash)
                  int time = ReadScriptArg(pc);
                  Instruct_Flash(0xFFFFFF, time * 20); 
                  break;
             }
-            case 17: Instruct_Delay(ReadScriptArg(pc)); break; // Instruct 17: 延时
+            case 17: Instruct_Delay(ReadScriptArg(pc)); break;
             case 19: { // Instruct_19(x, y) - Teleport
-                // Instruct 19: 场景内瞬间移动 (Teleport)
-                // 同时移动主角和镜头
                 int x = ReadScriptArg(pc);
                 int y = ReadScriptArg(pc);
                 Instruct_19(x, y);
                 break;
             }
-            case 21: Instruct_LeaveParty(ReadScriptArg(pc)); break; // Instruct 21: 离队
+            case 21: Instruct_LeaveParty(ReadScriptArg(pc)); break;
             case 23: { // Instruct_23(enum, action, step, speed)
-                // Instruct 23: 角色动作 (Action)
-                // 也可以用于“施毒”效果，取决于上下文，但在KYS Promise中主要用于动画
                 int enum_ = ReadScriptArg(pc);
                 int action = ReadScriptArg(pc);
                 int step = ReadScriptArg(pc);
@@ -450,8 +434,6 @@ void EventManager::ExecuteEvent(int eventScriptId) {
                 break;
             }
             case 25: {
-                // Instruct 25: 移动镜头 (Pan Camera)
-                // 不移动主角
                 int x1 = ReadScriptArg(pc);
                 int y1 = ReadScriptArg(pc);
                 int x2 = ReadScriptArg(pc);
@@ -460,8 +442,6 @@ void EventManager::ExecuteEvent(int eventScriptId) {
                 break;
             }
             case 26: { // Instruct_26(snum, enum, add1, add2, add3)
-                // Instruct 26: 修改事件DData (Modify Event DData)
-                // 允许跨场景修改事件
                 int snum = ReadScriptArg(pc);
                 int enum_ = ReadScriptArg(pc);
                 int add1 = ReadScriptArg(pc);
@@ -471,8 +451,6 @@ void EventManager::ExecuteEvent(int eventScriptId) {
                 break;
             }
             case 27: { // Instruct_27(enum, beginpic, endpic)
-                // Instruct 27: 播放动画 (Animation)
-                // 修改事件的贴图编号，形成动画效果
                 int enum_ = ReadScriptArg(pc);
                 int beginPic = ReadScriptArg(pc);
                 int endPic = ReadScriptArg(pc);
@@ -490,8 +468,6 @@ void EventManager::ExecuteEvent(int eventScriptId) {
                 break;
             }
             case 30: { // Instruct_30(x1, y1, x2, y2) - Move Protagonist
-                // Instruct 30: 主角行走 (Move Protagonist)
-                // 阻塞式移动，直到到达目的地
                 int x1 = ReadScriptArg(pc);
                 int y1 = ReadScriptArg(pc);
                 int x2 = ReadScriptArg(pc);
@@ -504,7 +480,6 @@ void EventManager::ExecuteEvent(int eventScriptId) {
                  break;
             }
             case 32: { // 2 args
-                 // Instruct 32: 增加物品 (AddItem - silent?)
                  int itemId = ReadScriptArg(pc);
                  int amount = ReadScriptArg(pc);
                  GameManager::getInstance().AddItem(itemId, amount);
@@ -523,7 +498,6 @@ void EventManager::ExecuteEvent(int eventScriptId) {
                  break;
             }
             case 36: { // 3 args, returns jump
-                 // Instruct 36: 检查道德/属性 (Check Moral/Attribute)
                  int sexual = ReadScriptArg(pc);
                  int jump1 = ReadScriptArg(pc);
                  int jump2 = ReadScriptArg(pc);
@@ -549,8 +523,6 @@ void EventManager::ExecuteEvent(int eventScriptId) {
             }
             case 37: ReadScriptArg(pc); break;
             case 38: { // Instruct_38(snum, layernum, oldpic, newpic)
-                 // Instruct 38: 全局替换贴图 (Global Replace Pic)
-                 // 将某场景某层的特定贴图全部替换为新贴图
                  int snum = ReadScriptArg(pc);
                  int layernum = ReadScriptArg(pc);
                  int oldpic = ReadScriptArg(pc);
@@ -559,7 +531,6 @@ void EventManager::ExecuteEvent(int eventScriptId) {
                  break;
             }
             case 39: {
-                // Instruct 39: 场景切换 (Change Scene)
                 // instruct_39(snum) -> Only 1 arg in Pascal!
                 // Wait, my previous implementation read 4 args?
                 // Pascal: instruct_39(e[i+1]); i:=i+2;
@@ -568,8 +539,8 @@ void EventManager::ExecuteEvent(int eventScriptId) {
                 Instruct_SetScene(sceneId, -1, -1, -1);
                 break;
             }
+
             case 40: {
-                // Instruct 40: 设定朝向 (Set Facing)
                 int dir = ReadScriptArg(pc);
                 Instruct_40(dir);
                 break;
@@ -1090,6 +1061,21 @@ void EventManager::Instruct_LeaveParty(int roleId) {
 }
 
 void EventManager::Instruct_SetScene(int sceneId, int x, int y, int dir) {
+    // Support jumping to World Map (sceneId = -1)
+    if (sceneId == -1) {
+        // Jump to World Map
+        GameManager::getInstance().enterScene(-1);
+        // Set player position to default or saved position
+        // For now, use center of world map
+        GameManager::getInstance().setMainMapPosition(240, 240);
+        if (dir >= 0) {
+            GameManager::getInstance().setMainMapFace(dir);
+        }
+        Instruct_Redraw();
+        return;
+    }
+    
+    // Normal scene change
     GameManager::getInstance().enterScene(sceneId);
     if (x > 0 || y > 0) { 
         GameManager::getInstance().setMainMapPosition(x, y);
@@ -1111,7 +1097,7 @@ void EventManager::Instruct_AddAttribute(int roleId, int attrId, int value) {
         case 4: role.setAttack(role.getAttack() + value); break;
         case 5: role.setSpeed(role.getSpeed() + value); break;
         case 6: role.setDefence(role.getDefence() + value); break;
-        case 7: role.setMedicine(role.getMedicine() + value); break;
+        case 7: role.setMedcine(role.getMedcine() + value); break;
         case 8: role.setUsePoi(role.getUsePoi() + value); break;
         case 9: role.setMedPoi(role.getMedPoi() + value); break;
         case 10: role.setDefPoi(role.getDefPoi() + value); break;

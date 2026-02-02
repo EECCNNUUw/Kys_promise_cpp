@@ -1,6 +1,5 @@
 ﻿#include "UIManager.h"
 #include "GameManager.h"
-#include "Role.h"
 #include "PicLoader.h"
 #include "TextManager.h"
 #include "GraphicsUtils.h"
@@ -342,12 +341,11 @@ void UIManager::ShowStatus(int roleId) {
         int id = team[i];
         Role& r = GameManager::getInstance().getRole(id);
         uint32_t color = (id == roleId) ? 0xFFFFFFFF : 0xFFFF00FF;
-        std::string name = TextManager::getInstance().nameToUtf8(r.getName());
-        DrawShadowTextUtf8(name, 20, 20 + i * 22, color, 0x000000FF);
+        DrawShadowTextUtf8(r.getName(), 20, 20 + i * 22, color, 0x000000FF);
     }
 
     DrawHead(role.getHeadNum(), 137, 88);
-    DrawShadowTextUtf8(TextManager::getInstance().nameToUtf8(role.getName()), 115, 93, 0xFFFFFFFF, 0x000000FF);
+    DrawShadowTextUtf8(role.getName(), 115, 93, 0xFFFFFFFF, 0x000000FF);
     
     // TODO: Complete Status fields
     DrawShadowTextUtf8("生命", 125, 125, 0xFFFFFFFF, 0x000000FF);
@@ -420,11 +418,11 @@ void UIManager::ShowMagic(int roleId, int selectedIndex) {
         int id = team[i];
         Role& r = GameManager::getInstance().getRole(id);
         uint32_t color = (id == roleId) ? 0xFFFFFFFF : 0xFFFF00FF;
-        DrawShadowTextUtf8(TextManager::getInstance().nameToUtf8(r.getName()), 20, 20 + i * 22, color, 0x000000FF);
+        DrawShadowTextUtf8(r.getName(), 20, 20 + i * 22, color, 0x000000FF);
     }
 
     DrawHead(role.getHeadNum(), 137, 88);
-    DrawShadowTextUtf8(TextManager::getInstance().nameToUtf8(role.getName()), 115, 93, 0xFFFFFFFF, 0x000000FF);
+    DrawShadowTextUtf8(role.getName(), 115, 93, 0xFFFFFFFF, 0x000000FF);
 
     int x = 90;
     int y = 0;
@@ -450,7 +448,7 @@ void UIManager::ShowMagic(int roleId, int selectedIndex) {
     DrawShadowTextUtf8(" 修煉物品", x + 110, y + 216, 0xFFD700FF, 0x000000FF);
     if (role.getPracticeBook() >= 0) {
         Item& book = GameManager::getInstance().getItem(role.getPracticeBook());
-        DrawShadowTextUtf8(TextManager::getInstance().nameToUtf8(book.getName()), x + 110, y + 237, 0xFFFFFFFF, 0x000000FF);
+        DrawShadowTextUtf8(book.getName(), x + 110, y + 237, 0xFFFFFFFF, 0x000000FF);
         
         // Draw Item Pic
         PicImage pic = PicLoader::loadPic("resource/Items.Pic", role.getPracticeBook());
@@ -480,10 +478,10 @@ void UIManager::ShowMagic(int roleId, int selectedIndex) {
     // Magic List
     DrawShadowTextUtf8(" ————所會武功————", x + 247, y + 102, 0xFFD700FF, 0x000000FF);
     for (int i = 0; i < 10; ++i) {
-        int magicId = role.getMagicID(i);
+        int magicId = role.getMagic(i);
         if (magicId > 0) {
             Magic& m = GameManager::getInstance().getMagic(magicId);
-            DrawShadowTextUtf8(TextManager::getInstance().nameToUtf8(m.getName()), x + 248 + 118 * (i % 2), y + (i / 2) * 22 + 124, 0xFFFFFFFF, 0x000000FF);
+            DrawShadowTextUtf8(m.getName(), x + 248 + 118 * (i % 2), y + (i / 2) * 22 + 124, 0xFFFFFFFF, 0x000000FF);
         }
     }
 }
@@ -646,7 +644,7 @@ void UIManager::ShowTeammate(int tMenu, int rMenu, int position) {
     for (size_t i = 0; i < team.size() && i < 6; ++i) {
         Role& r = GameManager::getInstance().getRole(team[i]);
         uint32_t color = (position == 0 && (int)i == tMenu - 1) ? 0xFFFFFFFF : 0xAAAAAAFF;
-        DrawShadowTextUtf8(TextManager::getInstance().nameToUtf8(r.getName()), x1 + 20, y1 + 30 + i * 25, color, 0x000000FF);
+        DrawShadowTextUtf8(r.getName(), x1 + 20, y1 + 30 + i * 25, color, 0x000000FF);
     }
 }
 

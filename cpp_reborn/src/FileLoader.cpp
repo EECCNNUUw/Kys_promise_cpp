@@ -77,14 +77,7 @@ std::string FileLoader::getResourcePath(const std::string& filename) {
 }
 
 std::vector<uint8_t> FileLoader::loadFile(const std::string& filename) {
-    std::string path = filename;
-    // Check if file exists directly first (e.g. save files)
-    if (std::filesystem::exists(path) && std::filesystem::is_regular_file(path)) {
-        // use path as is
-    } else {
-        path = getResourcePath(filename);
-    }
-
+    std::string path = getResourcePath(filename);
     std::ifstream file(path, std::ios::binary | std::ios::ate);
     if (!file) {
         std::cerr << "Failed to open file: " << path << std::endl;

@@ -3,70 +3,58 @@
 #include <string>
 #include <SDL3/SDL.h>
 #include "Scene.h"
-#include "GameTypes.h" 
+#include "GameTypes.h" // Assuming this exists or I should create it for common types
 
-// 常量定义
-constexpr int MAX_SCENES = 100; // 最大场景数
-constexpr int SCENE_MAP_SIZE = 64; // 场景地图尺寸 (64x64)
-constexpr int SCENE_LAYERS = 6; // 场景层数 (地面, 建筑, 物品, 事件, 遮挡, 飞行)
+// Constants
+constexpr int MAX_SCENES = 100; // Adjust as needed
+constexpr int SCENE_MAP_SIZE = 64;
+constexpr int SCENE_LAYERS = 6;
 
-// 场景管理器 - 对应 Pascal 原版 kys_main.pas 中的场景管理逻辑 (SData, DData) 及渲染
 class SceneManager {
 public:
     static SceneManager& getInstance();
 
     bool Init();
+    bool LoadEventData(const std::string& path); // Loads Event Data (DData) from alldef.grp
+    bool LoadMapData(const std::string& path); // Loads Map data (SData) from allsin.grp
     
-    // 加载事件数据 (DData) - 对应文件 alldef.grp
-    // Pascal: Read(f, DData)
-    bool LoadEventData(const std::string& path); 
-    
-    // 加载地图数据 (SData) - 对应文件 allsin.grp
-    // Pascal: Read(f, SData)
-    bool LoadMapData(const std::string& path); 
-    
-    // 保存数据
+    // Save Data
     bool SaveEventData(const std::string& path);
     bool SaveMapData(const std::string& path);
 
-    // 设置场景列表 (从 ranger.grp 或存档加载)
+    // Set Scenes (loaded from ranger.grp/save file)
     void SetScenes(const std::vector<Scene>& scenes);
     
-    // 核心绘制函数
-    // centerX, centerY: 摄像机中心对应的Tile坐标 (通常是主角位置)
-    // 对应 Pascal 中的 DrawMap/DrawScene 逻辑
+    // Core drawing function
+    // centerX, centerY: Tile coordinates of the camera center (player position)
     void DrawScene(SDL_Renderer* renderer, int centerX, int centerY);
     
-    // 辅助函数
+    // Helpers
     void SetCurrentScene(int sceneId);
     int GetCurrentSceneId() const { return m_currentSceneId; }
     
-    // 移动与碰撞检测
-    // 对应 Pascal 中的 CanWalk / Walk 逻辑
+    // Movement & Collision
     bool CanWalk(int x, int y);
-    
-    // 坐标转换: 地图坐标 -> 屏幕坐标
     void GetPositionOnScreen(int mapX, int mapY, int centerX, int centerY, int& outX, int& outY);
     
-    // 动画与特效更新 (云层, 水面等)
-    void Update(uint32_t ticks); 
+    // Animation & Effects
+    void Update(uint32_t ticks); // Update animations (clouds, water, etc.)
     void DrawClouds(SDL_Renderer* renderer, int centerX, int centerY);
     
-    // 访问 SData (场景地图数据)
-    // Pascal: SData[SceneId, Layer, X, Y]
+    // Accessors for SData equivalent
     int16_t GetSceneTile(int sceneId, int layer, int x, int y) const;
     void SetSceneTile(int sceneId, int layer, int x, int y, int16_t value);
     
-    // 更新地图上的事件位置 (Layer 3)
+    // Update Event Position in Map (Layer 3)
     void UpdateEventPosition(int sceneId, int eventId, int oldX, int oldY, int newX, int newY);
 
-    // 访问 DData (场景事件定义)
+    // Accessors for DData (Event Definitions)
     // Pascal: DData[SceneId, EventId, Index]
     // EventId: 0..199, Index: 0..10
     int16_t GetEventData(int sceneId, int eventId, int index) const;
     void SetEventData(int sceneId, int eventId, int index, int16_t value);
 
-    // 获取场景定义对象
+    // Accessors for Scene definitions
     Scene* GetScene(int sceneId);
     
     // 刷新事件层 (根据 DData 同步 SData 的 Layer 3)
@@ -75,16 +63,16 @@ public:
     // 加载资源 (贴图等)
     bool LoadResources();
     
-    // 测试辅助
+    // Testing Helper
     void CreateMockScene(int id);
 
-    // 绘制单个图块 (来自 smp)
+    // Helper to draw a single tile (from smp)
     void DrawTile(SDL_Renderer* renderer, int picIndex, int x, int y, int offX, int offY);
     
-    // 绘制精灵 (来自 smp, 静态物体)
+    // Helper to draw a sprite from smp (static objects)
     void DrawSmpSprite(SDL_Renderer* renderer, int picIndex, int x, int y, int frame = 0);
 
-    // 绘制精灵 (来自 mmap.grp, 角色/NPC)
+    // Helper to draw a sprite from mmap.grp (roles/NPCs)
     void DrawMmapSprite(SDL_Renderer* renderer, int picIndex, int x, int y, int frame = 0);
 
     // 绘制精灵 (来自 Scene.Pic, 动态物体)
@@ -125,18 +113,17 @@ private:
     std::vector<uint8_t> m_wmpPicData; // wmp
     std::vector<int32_t> m_wmpIdxData; // wdx
 
-    // 绘制大地图
+    // Helper to draw World Map
     void DrawWorldMap(SDL_Renderer* renderer, int centerX, int centerY);
     bool LoadWorldMap();
 
-    // 场景定义列表
+    // Scene Definitions
     std::vector<Scene> m_scenes;
     
-    // 地图数据 SData: [SceneId][Layer][Y][X]
-    // 扁平化存储以优化性能
+    // Map Data: [SceneId][Layer][Y][X]
     std::vector<int16_t> m_mapData;
 
-    // 事件数据 DData: [SceneId][EventId][Index]
+    // Event Data: [SceneId][EventId][Index]
     // EventId max 200, Index max 11
     struct EventData {
         int16_t data[200][11];
@@ -158,7 +145,7 @@ private:
     };
     std::vector<ScenePic> m_scenePics;
 
-    // 云层数据
+    // Cloud Data
     struct Cloud {
         int x, y;
         int speedX, speedY;
@@ -172,7 +159,7 @@ private:
     
     int m_currentSceneId;
     
-    // 计时器状态
+    // Timer state
     uint32_t m_lastWaterUpdate;
     uint32_t m_lastCloudUpdate;
 };

@@ -1,4 +1,3 @@
-#define NOMINMAX
 #include "GameManager.h"
 #include "SceneManager.h"
 #include "UIManager.h"
@@ -149,13 +148,209 @@ bool GameManager::Init() {
 }
 
 void GameManager::loadData(const std::string& savePrefix) {
-    LoadGame(0);
+    // KYS loads initial data from "save/ranger.grp" (or similar) when num=0
+    // But Pascal code shows:
+    // if num = 0 then filename := 'ranger';
+    // idx := fileopen(AppPath + 'save/ranger.idx', fmopenread);
+    // grp := fileopen(AppPath + 'save/' + filename + '.grp', fmopenread);
+    //
+    // So for a new game, we should load from "save/ranger.grp".
+    // Note: The file might be named "Ranger.grp" (case sensitive on Linux, but likely "ranger.grp" or "Ranger.grp" on Windows)
+    
+    std::string rolePath = savePrefix + "ranger.grp"; // Try lowercase first as per Pascal
+    
+    // Check if ranger.grp exists, if not try Ranger.grp
+    // Actually FileLoader::loadFile might handle some path logic, but let's be explicit if possible.
+    // However, the Pascal code also loads from "save/R1.grp" for slot 1.
+    // The initial data seems to be in "ranger.grp".
+    
+    // Let's use FileLoader to load the whole file first, then parse it.
+    // Unlike individual .grp files for Roles/Items (which don't seem to exist separately in this version),
+    // KYS stores EVERYTHING in one big save file (ranger.grp / R1.grp).
+    // Structure:
+    // Header (InShip, Where, Mx, My... ~100 bytes?)
+    // TeamList
+    // Items
+    // Roles
+    // Items (Wait, RItem is separate from RItemList?)
+    // Scenes
+    // Magics
+    // Shops
+    
+    // We need to match this structure to load data correctly!
+    // Simply loading "role.grp" was wrong because that file doesn't exist.
+    // We must load "ranger.grp" and seek to the correct offsets.
+    // Offsets are stored in "ranger.idx".
+    
+    std::string idxPath = savePrefix + "ranger.idx";
+    
+    // Direct load (bypass FileLoader which enforces resource path)
+    std::ifstream idxFile(idxPath, std::ios::binary | std::ios::ate);
+    if (!idxFile) {
+         std::cerr << "Failed to open " << idxPath << std::endl;
+         return;
+    }
+    std::streamsize idxSize = idxFile.tellg();
+    idxFile.seekg(0, std::ios::beg);
+    std::vector<uint8_t> idxData(idxSize);
+    idxFile.read((char*)idxData.data(), idxSize);
+    
+    if (idxData.size() < 24) { // At least 6 integers * 4 bytes
+        std::cerr << "Failed to load ranger.idx or invalid size" << std::endl;
+        return;
+    }
+    
+    const int32_t* idxPtr = reinterpret_cast<const int32_t*>(idxData.data());
+    int RoleOffset = idxPtr[0];
+    int ItemOffset = idxPtr[1];
+    int SceneOffset = idxPtr[2];
+    int MagicOffset = idxPtr[3];
+    int WeiShopOffset = idxPtr[4];
+    int TotalLen = idxPtr[5];
+    
+    std::cout << "Ranger IDX Offsets: Role=" << RoleOffset 
+              << ", Item=" << ItemOffset 
+              << ", Scene=" << SceneOffset 
+              << ", Magic=" << MagicOffset << std::endl;
+              
+    std::ifstream grpFile(rolePath, std::ios::binary | std::ios::ate);
+    if (!grpFile) {
+        // Try capitalized "Ranger.grp"
+        rolePath = savePrefix + "Ranger.grp";
+        grpFile.open(rolePath, std::ios::binary | std::ios::ate);
+    }
+    
+    if (!grpFile) {
+        std::cerr << "Failed to load ranger.grp" << std::endl;
+        return;
+    }
+    
+    std::streamsize grpSize = grpFile.tellg();
+    grpFile.seekg(0, std::ios::beg);
+    std::vector<uint8_t> saveBytes(grpSize);
+    grpFile.read((char*)saveBytes.data(), grpSize);
+    
+    const uint8_t* dataPtr = saveBytes.data();
+    
+    // 0. Load Header (Global State)
+    if (RoleOffset > 0) {
+        // Assume Header is at the beginning
+        // KYS Save Header structure (Partial, based on Pascal code):
+        // Offset 0: InShip (2)
+        // Offset 2: InSubMap (2) -> Current Scene ID
+        // Offset 4: MainMapX (2)
+        // Offset 6: MainMapY (2)
+        // Offset 8: MainMapFace (2)
+        
+        if (RoleOffset >= 22) {
+             m_currentSceneId = *(int16_t*)(dataPtr + 2);
+             m_mainMapX = *(int16_t*)(dataPtr + 4);
+             m_mainMapY = *(int16_t*)(dataPtr + 6);
+             m_mainMapFace = *(int16_t*)(dataPtr + 8);
+             
+             // Sync SceneManager
+             SceneManager::getInstance().SetCurrentScene(m_currentSceneId);
+             
+             // Check for invalid scene ID (0 is sometimes valid, but usually main menu or test)
+             // If Scene ID is 0, it might be uninitialized or wrong.
+             // But KYS Scene 0 is a valid scene (usually).
+             
+             // Fallback: If Scene ID is 0 and X/Y are 0, it's likely a bad header read.
+             if (m_currentSceneId == 0 && m_mainMapX == 0 && m_mainMapY == 0) {
+                 std::cerr << "WARNING: Loaded suspicious initial state (Scene 0, 0,0). Ranger.grp might be empty/invalid." << std::endl;
+                 // Force fallback to known start if user is stuck?
+                 // But user said "New Game enters Mongolian Tent" before.
+                 // Maybe we should trust it unless it's strictly 0,0,0.
+             }
+             
+             std::cout << "[loadData] Header Loaded: Scene=" << m_currentSceneId 
+                       << " Pos=(" << m_mainMapX << "," << m_mainMapY << ")" 
+                       << " Face=" << m_mainMapFace << std::endl;
+                       
+             // Load TeamList
+             // Assuming TeamList starts at offset 22 (0x16)
+             // KYS TeamList size: 6? 
+             // Let's verify size.
+             // If we assume TeamList is array[0..5] of integer (16-bit) -> 12 bytes.
+             int16_t* teamSrc = (int16_t*)(dataPtr + 22);
+             m_teamList.assign(MAX_TEAM_SIZE, -1); // Reset
+             for(int i=0; i<MAX_TEAM_SIZE; ++i) {
+                 if (22 + i*2 < RoleOffset) {
+                     m_teamList[i] = teamSrc[i];
+                 }
+             }
+             std::cout << "[loadData] TeamList: " << m_teamList[0] << ", " << m_teamList[1] << "..." << std::endl;
+        }
+    }
+    
+    // 1. Load Roles
+    // Size = ItemOffset - RoleOffset
+    if (ItemOffset > RoleOffset && ItemOffset <= saveBytes.size()) {
+        int roleDataSize = ItemOffset - RoleOffset;
+        const int bytesPerRole = static_cast<int>(ROLE_DATA_SIZE * sizeof(int16));
+        int numRoles = (bytesPerRole > 0) ? (roleDataSize / bytesPerRole) : 0;
+        m_roles.resize(numRoles);
+        
+        const int16_t* roleSrc = reinterpret_cast<const int16_t*>(dataPtr + RoleOffset);
+        for (int i = 0; i < numRoles; ++i) {
+            m_roles[i].loadFromBuffer(roleSrc + static_cast<size_t>(i) * ROLE_DATA_SIZE, ROLE_DATA_SIZE);
+        }
+        std::cout << "Loaded " << numRoles << " roles from ranger.grp" << std::endl;
+    }
+    
+    // 2. Load Items
+    // Size = SceneOffset - ItemOffset
+    if (SceneOffset > ItemOffset && SceneOffset <= saveBytes.size()) {
+        int itemDataSize = SceneOffset - ItemOffset;
+        const int bytesPerItem = static_cast<int>(ITEM_DATA_SIZE * sizeof(int16));
+        int numItems = (bytesPerItem > 0) ? (itemDataSize / bytesPerItem) : 0;
+        m_items.resize(numItems);
+        
+        const int16_t* itemSrc = reinterpret_cast<const int16_t*>(dataPtr + ItemOffset);
+        for (int i = 0; i < numItems; ++i) {
+            m_items[i].loadFromBuffer(itemSrc + static_cast<size_t>(i) * ITEM_DATA_SIZE, ITEM_DATA_SIZE);
+        }
+        std::cout << "Loaded " << numItems << " items from ranger.grp" << std::endl;
+    }
+    
+    // 3. Load Magics
+    // Size = WeiShopOffset - MagicOffset
+    if (WeiShopOffset > MagicOffset && WeiShopOffset <= saveBytes.size()) {
+        int magicDataSize = WeiShopOffset - MagicOffset;
+        const int bytesPerMagic = static_cast<int>(MAGIC_DATA_SIZE * sizeof(int16));
+        int numMagics = (bytesPerMagic > 0) ? (magicDataSize / bytesPerMagic) : 0;
+        m_magics.resize(numMagics);
+        
+        const int16_t* magicSrc = reinterpret_cast<const int16_t*>(dataPtr + MagicOffset);
+        for (int i = 0; i < numMagics; ++i) {
+            m_magics[i].loadFromBuffer(magicSrc + static_cast<size_t>(i) * MAGIC_DATA_SIZE, MAGIC_DATA_SIZE);
+        }
+        std::cout << "Loaded " << numMagics << " magics from ranger.grp" << std::endl;
+    }
+    
+    // 4. Load Scenes
+    // Size = MagicOffset - SceneOffset
+    // NOTE: In Pascal: RScene: array of TScene;
+    // TScene size is 26 * 2 = 52 bytes.
+    if (MagicOffset > SceneOffset && MagicOffset <= saveBytes.size()) {
+         int sceneDataSize = MagicOffset - SceneOffset;
+         const int bytesPerScene = static_cast<int>(SCENE_DATA_SIZE * sizeof(int16));
+         int numScenes = (bytesPerScene > 0) ? (sceneDataSize / bytesPerScene) : 0;
+         std::vector<Scene> scenes(numScenes);
+         
+         const int16_t* sceneSrc = reinterpret_cast<const int16_t*>(dataPtr + SceneOffset);
+         for (int i = 0; i < numScenes; ++i) {
+             scenes[i].loadFromBuffer(sceneSrc + static_cast<size_t>(i) * SCENE_DATA_SIZE, SCENE_DATA_SIZE);
+         }
+         SceneManager::getInstance().SetScenes(scenes);
+         std::cout << "Loaded " << numScenes << " scenes from ranger.grp. Data Size: " << sceneDataSize << " bytes." << std::endl;
+    }
 }
 
 void GameManager::SaveGame(int slot) {
     std::string filename = (slot == 0) ? "ranger" : "R" + std::to_string(slot);
     std::string grpPath = m_savePath + filename + ".grp";
-    std::string idxPath = m_savePath + "ranger.idx"; 
+    std::string idxPath = m_savePath + "ranger.idx";
 
     std::ifstream idxFile(idxPath, std::ios::binary);
     if (!idxFile) {
@@ -178,43 +373,7 @@ void GameManager::SaveGame(int slot) {
         return;
     }
 
-    auto write16 = [&](int16_t val) {
-        grpFile.write((char*)&val, 2);
-    };
-
-    write16(m_inShip);
-    if (m_currentSceneId == 0) write16(-1);
-    else write16((int16_t)m_currentSceneId);
-
-    write16((int16_t)m_mainMapY);
-    write16((int16_t)m_mainMapX);
-    write16((int16_t)m_cameraY);
-    write16((int16_t)m_cameraX);
-    write16((int16_t)m_mainMapFace);
-    write16(m_shipX);
-    write16(m_shipY);
-    write16(m_time);
-    write16(m_timeEvent);
-    write16(m_randomEvent);
-    write16(m_subMapFace);
-    write16(m_shipFace);
-    write16(m_gameTime);
-
-    for (int i = 0; i < MAX_TEAM_SIZE; ++i) {
-        int val = (i < m_teamList.size()) ? m_teamList[i] : -1;
-        write16((int16_t)val);
-    }
-
-    for (int i = 0; i < MAX_ITEM_AMOUNT; ++i) {
-        if (i < m_inventory.size()) {
-            write16(m_inventory[i].id);
-            write16(m_inventory[i].amount);
-        } else {
-            write16(0);
-            write16(0);
-        }
-    }
-
+    // 1. Write Roles
     int roleBytesToWrite = ItemOffset - RoleOffset;
     int roleBytesWritten = 0;
     for (const auto& role : m_roles) {
@@ -229,6 +388,7 @@ void GameManager::SaveGame(int slot) {
         roleBytesWritten++;
     }
 
+    // 2. Write Items
     int itemBytesToWrite = SceneOffset - ItemOffset;
     int itemBytesWritten = 0;
     for (const auto& item : m_items) {
@@ -243,16 +403,14 @@ void GameManager::SaveGame(int slot) {
         itemBytesWritten++;
     }
 
+    // 3. Write Scenes
     int sceneBytesToWrite = MagicOffset - SceneOffset;
     int sceneBytesWritten = 0;
-    for (int i = 0; i < 200; ++i) { // Assume max 200 scenes to iterate
-         Scene* s = SceneManager::getInstance().GetScene(i);
-         if (s) {
-             if (sceneBytesWritten + SCENE_DATA_SIZE * 2 <= sceneBytesToWrite) {
-                 grpFile.write((char*)s->getRawData(), SCENE_DATA_SIZE * 2);
-                 sceneBytesWritten += SCENE_DATA_SIZE * 2;
-             }
-         }
+    for (const auto& scene : m_scenes) {
+        if (sceneBytesWritten + SCENE_DATA_SIZE * 2 <= sceneBytesToWrite) {
+            grpFile.write((char*)scene.getRawData(), SCENE_DATA_SIZE * 2);
+            sceneBytesWritten += SCENE_DATA_SIZE * 2;
+        } else break;
     }
     while (sceneBytesWritten < sceneBytesToWrite) {
         char zero = 0;
@@ -260,6 +418,7 @@ void GameManager::SaveGame(int slot) {
         sceneBytesWritten++;
     }
 
+    // 4. Write Magics
     int magicBytesToWrite = WeiShopOffset - MagicOffset;
     int magicBytesWritten = 0;
     for (const auto& magic : m_magics) {
@@ -274,6 +433,7 @@ void GameManager::SaveGame(int slot) {
         magicBytesWritten++;
     }
 
+    // 5. Write Shops (WeiShop)
     int shopBytesToWrite = TotalLen - WeiShopOffset;
     std::vector<char> zeros(shopBytesToWrite, 0);
     grpFile.write(zeros.data(), shopBytesToWrite);
@@ -444,14 +604,13 @@ void GameManager::LoadGame(int slot) {
     }
     
     std::cout << "Game Loaded from Slot " << slot << std::endl;
+>>>>>>> 3216a054ca71398665082c3affd6c570ef248364
 }
 
 void GameManager::InitNewGame() {
     // KYS New Game: Load initial state from ranger.grp
     // User feedback indicates that ranger.grp acts as the "New Game Save".
     
-    // 初始化新游戏
-    // 对应 Pascal 的 NewGame 流程
     std::string loadPath = m_savePath;
     if (loadPath.empty()) {
         loadPath = "save/"; // Fallback
@@ -496,12 +655,11 @@ void GameManager::InitNewGame() {
     // Initial Event Check to trigger opening cutscene (Auto-Run)
     // For New Game, we explicitly trigger Event 101 (Opening)
     // This is critical because ranger.grp might place us on World Map (-1) without active events.
-    // 触发开场事件 (Event 101)
     std::cout << "[InitNewGame] Triggering Opening Event 101..." << std::endl;
     EventManager::getInstance().ExecuteEvent(101);
     
     // Also check for auto-events in the current scene (just in case)
-    // EventManager::getInstance().CheckAutoEvents(m_currentSceneId);
+   // EventManager::getInstance().CheckAutoEvents(m_currentSceneId);
     
     // Debug: Print initial position
     std::cout << "[InitNewGame] Scene: " << m_currentSceneId << " Pos: (" << m_mainMapX << ", " << m_mainMapY << ")" << std::endl;
@@ -526,7 +684,7 @@ void GameManager::RandomizeRoleStats(Role& role) {
     role.setAttack(dis(gen));
     role.setDefence(dis(gen));
     role.setSpeed(dis(gen));
-    role.setMedicine(dis(gen));
+    role.setMedcine(dis(gen));
     role.setFist(dis(gen));
 }
 
@@ -736,7 +894,7 @@ void GameManager::UpdateRoaming() {
                         UIManager::getInstance().ShowStatus(m_teamList[0]);
                     }
                     break;
-                
+
                 case SDLK_ESCAPE:
                     if (m_currentSceneId >= 0) {
                         SceneManager::getInstance().DrawScene(m_renderer, m_cameraX, m_cameraY);
@@ -886,57 +1044,8 @@ bool GameManager::CheckWorldEntrance() {
 }
 
 void GameManager::UpdateSystemMenu() {
-    SDL_Event e;
-    while (SDL_PollEvent(&e) != 0) {
-        if (e.type == SDL_EVENT_QUIT) {
-            m_isRunning = false;
-        } else if (e.type == SDL_EVENT_KEY_DOWN) {
-            switch (e.key.key) {
-                case SDLK_UP:
-                case SDLK_KP_8:
-                    if (m_systemMenuSelection == 1 || m_systemMenuSelection == 2 || m_systemMenuSelection == 3) m_systemMenuSelection--;
-                    else if (m_systemMenuSelection == 4) m_systemMenuSelection++;
-                    else if (m_systemMenuSelection == 5) m_systemMenuSelection = 0;
-                    break;
-                    
-                case SDLK_DOWN:
-                case SDLK_KP_2:
-                    if (m_systemMenuSelection == 0 || m_systemMenuSelection == 1 || m_systemMenuSelection == 2) m_systemMenuSelection++;
-                    else if (m_systemMenuSelection == 5 || m_systemMenuSelection == 4) m_systemMenuSelection--;
-                    break;
-                    
-                case SDLK_RIGHT:
-                case SDLK_KP_6:
-                    if (m_systemMenuSelection == 0) m_systemMenuSelection++;
-                    else if (m_systemMenuSelection == 3 || m_systemMenuSelection == 4) m_systemMenuSelection--;
-                    else if (m_systemMenuSelection == 5) m_systemMenuSelection = 0;
-                    break;
-                    
-                case SDLK_LEFT:
-                case SDLK_KP_4:
-                    if (m_systemMenuSelection == 0) m_systemMenuSelection = 5;
-                    else if (m_systemMenuSelection == 3 || m_systemMenuSelection == 2) m_systemMenuSelection++;
-                    else if (m_systemMenuSelection == 5 || m_systemMenuSelection == 1) m_systemMenuSelection--;
-                    break;
-
-                case SDLK_RETURN:
-                case SDLK_SPACE:
-                    if (m_systemMenuSelection == 5) { // Item
-                         m_currentState = GameState::InventoryMenu;
-                    } else if (m_systemMenuSelection == 2) { // System
-                         // TODO: Implement System Options
-                    }
-                    break;
-                    
-                case SDLK_ESCAPE:
-                    m_currentState = GameState::Roaming;
-                    break;
-            }
-        }
-    }
-    
-    UIManager::getInstance().RenderMenuSystem(m_systemMenuSelection);
-    SDL_RenderPresent(m_renderer);
+    UIManager::getInstance().ShowMenu();
+    m_currentState = GameState::Roaming;
 }
 
 void GameManager::UpdateInventoryMenu() {
@@ -1093,7 +1202,7 @@ void GameManager::EatOneItem(int roleNum, int itemId, int where) {
             role.setAttack(std::min(100, role.getAttack() + item.getAddAttack()));
             role.setDefence(std::min(100, role.getDefence() + item.getAddDefence()));
             
-            role.setMedicine(std::min(100, role.getMedicine() + item.getAddMedcine()));
+            role.setMedcine(std::min(100, role.getMedcine() + item.getAddMedcine()));
             role.setMedPoi(std::min(100, role.getMedPoi() + item.getAddMedPoi()));
             role.setUsePoi(std::min(100, role.getUsePoi() + item.getAddUsePoi()));
             role.setDefPoi(std::min(100, role.getDefPoi() + item.getAddDefPoi()));
@@ -1108,7 +1217,7 @@ void GameManager::EatOneItem(int roleNum, int itemId, int where) {
 }
 
 // Stubs for Getters needed by header
-int GameManager::GetRoleMedcine(int roleNum, bool checkEquip) { return getRole(roleNum).getMedicine(); }
+int GameManager::GetRoleMedcine(int roleNum, bool checkEquip) { return getRole(roleNum).getMedcine(); }
 int GameManager::GetRoleMedPoi(int roleNum, bool checkEquip) { return getRole(roleNum).getMedPoi(); }
 int GameManager::GetRoleUsePoi(int roleNum, bool checkEquip) { return getRole(roleNum).getUsePoi(); }
 int GameManager::GetRoleDefPoi(int roleNum, bool checkEquip) { return getRole(roleNum).getDefPoi(); }

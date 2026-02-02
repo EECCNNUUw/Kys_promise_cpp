@@ -18,7 +18,7 @@ constexpr int MAX_HP = 999;
 constexpr int MAX_MP = 999;
 constexpr int LIFE_HURT = 10;
 
-constexpr int MAX_ITEM_AMOUNT = 400;
+constexpr int MAX_ITEM_AMOUNT = 300;
 constexpr int MAX_TEAM_SIZE = 6;
 
 struct Position {
