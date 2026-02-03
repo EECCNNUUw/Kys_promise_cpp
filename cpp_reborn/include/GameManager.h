@@ -14,8 +14,26 @@ class GameManager {
     // Range: -32768 to 32767 (mapped to 0..65535)
     std::vector<int16_t> m_x50;
 
+    // MMap Data (480x480)
+    std::vector<int16_t> m_earth;
+    std::vector<int16_t> m_surface;
+    std::vector<int16_t> m_building;
+    std::vector<int16_t> m_buildX;
+    std::vector<int16_t> m_buildY;
+    std::vector<int16_t> m_entrance;
+
 public:
     static GameManager& getInstance();
+
+    // MMap Accessors
+    const std::vector<int16_t>& getEarth() const { return m_earth; }
+    const std::vector<int16_t>& getSurface() const { return m_surface; }
+    const std::vector<int16_t>& getBuilding() const { return m_building; }
+    const std::vector<int16_t>& getBuildX() const { return m_buildX; }
+    const std::vector<int16_t>& getBuildY() const { return m_buildY; }
+    const std::vector<int16_t>& getEntrance() const { return m_entrance; }
+
+    void reSetEntrance();
 
     int16_t getX50(int index) const {
         if (index < -32768 || index > 32767) return 0;

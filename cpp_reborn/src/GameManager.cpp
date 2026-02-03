@@ -97,6 +97,26 @@ bool GameManager::Init() {
         return false;
     }
 
+    // Load MMap Data
+    auto loadMMapLayer = [&](const std::string& filename, std::vector<int16_t>& target) {
+        std::vector<uint8_t> data = FileLoader::loadFile(filename);
+        if (data.size() == 480 * 480 * 2) {
+            target.resize(480 * 480);
+            memcpy(target.data(), data.data(), data.size());
+        } else {
+            std::cerr << "Failed to load MMap layer: " << filename << " Size: " << data.size() << std::endl;
+            // Fallback to empty
+            target.resize(480 * 480, 0);
+        }
+    };
+
+    loadMMapLayer("resource/earth.002", m_earth);
+    loadMMapLayer("resource/surface.002", m_surface);
+    loadMMapLayer("resource/building.002", m_building);
+    loadMMapLayer("resource/buildx.002", m_buildX);
+    loadMMapLayer("resource/buildy.002", m_buildY);
+    m_entrance.resize(480 * 480, -1);
+
     // Find Save Directory
     std::string savePrefix = "../save/";
     if (access((savePrefix + "ranger.grp").c_str(), 0) != 0) {
