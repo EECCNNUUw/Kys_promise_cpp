@@ -640,6 +640,23 @@ void GameManager::InitNewGame() {
     m_mainMapX = 38;
     m_mainMapY = 38;
     
+    // Set default world map position for when player exits the initial scene
+    // This position should be near the entrance of Scene 0 (Temple) on the world map.
+    // Based on typical KYS map, Temple is around (228, 228) or similar.
+    // However, if we don't know, we can look it up from Scene 0 data.
+    if (SceneManager::getInstance().GetSceneCount() > 0) {
+        Scene* scene0 = SceneManager::getInstance().GetScene(0);
+        if (scene0) {
+            m_savedWorldX = scene0->getMainEntranceX1();
+            m_savedWorldY = scene0->getMainEntranceY1();
+        }
+    }
+    // Fallback if 0
+    if (m_savedWorldX == 0 && m_savedWorldY == 0) {
+        m_savedWorldX = 194; // Approximate
+        m_savedWorldY = 267;
+    }
+    
     SceneManager::getInstance().SetCurrentScene(m_currentSceneId);
     
     // Sync Camera to Player
@@ -916,6 +933,37 @@ void GameManager::UpdateRoaming() {
                         m_cameraY = m_mainMapY;
                         updateWalkFrame();
                         EventManager::getInstance().CheckEvent(m_currentSceneId, m_mainMapX, m_mainMapY, false);
+
+                        // Check Scene Exit
+                        // Pascal: if (((sx = RScene[CurScene].ExitX[0]) and (sy = RScene[CurScene].ExitY[0])) ...
+                        Scene* scene = SceneManager::getInstance().GetScene(m_currentSceneId);
+                        if (scene) {
+                            bool atExit = false;
+                            for (int i = 0; i < 3; ++i) {
+                                int exitX = scene->getExitX(i);
+                                int exitY = scene->getExitY(i);
+                                if (exitX > 0 && exitY > 0 && m_mainMapX == exitX && m_mainMapY == exitY) {
+                                    atExit = true;
+                                    break;
+                                }
+                            }
+                            
+                            if (atExit) {
+                                UIManager::getInstance().FadeScreen(false);
+                                
+                                m_currentSceneId = -1; // Switch to World Map
+                                SceneManager::getInstance().SetCurrentScene(-1);
+                                SceneManager::getInstance().ResetEntrance();
+                                
+                                // Restore World Map Position
+                                m_mainMapX = m_savedWorldX;
+                                m_mainMapY = m_savedWorldY;
+                                m_cameraX = m_mainMapX;
+                                m_cameraY = m_mainMapY;
+                                
+                                UIManager::getInstance().FadeScreen(true);
+                            }
+                        }
                     }
                 } else {
                     // 大地图移动与入口检测
@@ -1029,6 +1077,10 @@ bool GameManager::CheckWorldEntrance() {
     if (!canEntrance) return false;
 
     UIManager::getInstance().FadeScreen(false);
+
+    // Save world coordinates before entering scene
+    m_savedWorldX = m_mainMapX;
+    m_savedWorldY = m_mainMapY;
 
     int16_t entranceX = scene.getEntranceX();
     int16_t entranceY = scene.getEntranceY();

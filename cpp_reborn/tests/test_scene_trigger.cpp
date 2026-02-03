@@ -11,14 +11,31 @@ int main() {
     // We skip full GameManager::Init because it creates Window/Renderer which might fail in some envs
     // But we need FileLoader and SceneManager initialized.
     
-    // Manually load data
-    std::cout << "Loading data from ../save/" << std::endl;
+    // 1. Load Data via GameManager (loads ranger.grp/idx and alldef.grp)
+    std::cout << "Loading Game Data via GameManager..." << std::endl;
+    GameManager::getInstance().loadData("../UPedit/save/");
     
-    if (!SceneManager::getInstance().LoadEventData("../save/alldef.grp")) {
-         std::cerr << "Failed to load alldef.grp. Test might fail." << std::endl;
+    // Check if Scene 0 is loaded
+    Scene* s0 = SceneManager::getInstance().GetScene(0);
+    if (s0) {
+        std::cout << "Scene 0 Loaded successfully." << std::endl;
+        std::cout << "Scene 0 Exits:" << std::endl;
+        for(int i=0; i<3; ++i) {
+             std::cout << "  Exit " << i << ": (" << s0->getExitX(i) << ", " << s0->getExitY(i) << ")" << std::endl;
+        }
+    } else {
+        std::cerr << "Scene 0 NOT loaded. loadData might have failed." << std::endl;
+        // Fallback manual load if needed (omitted for now)
     }
-    if (!SceneManager::getInstance().LoadMapData("../save/allsin.grp")) {
-         std::cerr << "Failed to load allsin.grp. Test might fail." << std::endl;
+
+    // Load SData manually (loadData doesn't load SData for all scenes, usually on demand or SceneManager::LoadMapData)
+    // Actually GameManager calls LoadMapData? No, SceneManager::DrawScene loads it?
+    // Let's load it manually for the test.
+    if (!SceneManager::getInstance().LoadMapData("../UPedit/save/allsin.grp")) {
+          std::cerr << "Failed to load allsin.grp. Try alternative path..." << std::endl;
+          if (!SceneManager::getInstance().LoadMapData("resource/allsin.grp")) {
+              std::cerr << "Failed to load allsin.grp (fallback). Test might fail." << std::endl;
+          }
     }
 
     int testSceneId = 0;

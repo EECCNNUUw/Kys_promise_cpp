@@ -146,6 +146,7 @@ private:
     bool m_isRunning;
     int m_currentSceneId;
     int m_mainMapX, m_mainMapY;
+    int m_savedWorldX = 0, m_savedWorldY = 0; // Backup for world coordinates when entering a scene
     int m_cameraX, m_cameraY;
     int m_mainMapFace = 0;
     int m_walkFrame = 0;

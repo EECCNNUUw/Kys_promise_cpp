@@ -562,6 +562,59 @@ void SceneManager::DrawWorldMap(SDL_Renderer* renderer, int centerX, int centerY
     // Draw Map
     int range = 20;
 
+    // Draw Map Layers
+    // Order: Earth -> Surface -> Building -> Player -> Clouds
+    // Note: Earth/Surface should be drawn Back-to-Front (Small sum to Large sum) just like Buildings
+    // to ensure proper occlusion if Surface contains standing objects.
+
+    // 1. Draw Earth and Surface
+    for (int sum = -29; sum <= 41; ++sum) {
+        for (int i = -16; i <= 16; ++i) {
+            int i1 = centerX + i + (sum / 2);
+            int i2 = centerY - i + (sum - sum / 2);
+
+            if (i1 < 0 || i1 >= m_worldMapWidth || i2 < 0 || i2 >= m_worldMapHeight) continue;
+            // Visible range check (roughly match building loop range for consistency)
+            // if (!(sum >= -29 && sum <= 41 && i >= -16 && i <= 16)) continue; 
+
+            int idx = i2 * m_worldMapWidth + i1;
+            // Check bounds just in case
+            if (idx < 0 || idx >= (int)m_worldEarth.size()) continue;
+
+            int sx, sy;
+            GetPositionOnScreen(i1, i2, centerX, centerY, sx, sy);
+
+            // Draw Earth (Ground)
+            int16_t eTile = m_worldEarth[idx];
+            if (eTile > 0) {
+                int picIndex = (eTile / 2) - 1;
+                if (picIndex >= 0 && picIndex < (int)m_mmpIdxData.size()) {
+                    int offset = m_mmpIdxData[picIndex];
+                    if (offset > 0 && offset < (int)m_mmpPicData.size()) {
+                        GraphicsUtils::DrawRLE8(GameManager::getInstance().getScreenSurface(), sx, sy,
+                                                &m_mmpPicData[offset], m_mmpPicData.size() - offset);
+                    }
+                }
+            }
+
+            // Draw Surface (Decor/Roads/Trees)
+            if (!m_worldSurface.empty()) {
+                int16_t sTile = m_worldSurface[idx];
+                if (sTile > 0) {
+                    int picIndex = (sTile / 2) - 1;
+                    if (picIndex >= 0 && picIndex < (int)m_mmpIdxData.size()) {
+                        int offset = m_mmpIdxData[picIndex];
+                        if (offset > 0 && offset < (int)m_mmpPicData.size()) {
+                            GraphicsUtils::DrawRLE8(GameManager::getInstance().getScreenSurface(), sx, sy,
+                                                    &m_mmpPicData[offset], m_mmpPicData.size() - offset);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // 2. Draw Buildings (Sorted)
     struct BuildingPos {
         int mapX;
         int mapY;
@@ -645,47 +698,6 @@ void SceneManager::DrawWorldMap(SDL_Renderer* renderer, int centerX, int centerY
         }
     }
 
-    for (int sum = 41; sum >= -29; --sum) {
-        for (int i = 16; i >= -16; --i) {
-            int i1 = centerX + i + (sum / 2);
-            int i2 = centerY - i + (sum - sum / 2);
-
-            if (i1 < 0 || i1 >= m_worldMapWidth || i2 < 0 || i2 >= m_worldMapHeight) continue;
-            if (!(sum >= -27 && sum <= 28 && i >= -11 && i <= 11)) continue;
-
-            int idx = i2 * m_worldMapWidth + i1;
-            if (idx < 0 || idx >= (int)m_worldEarth.size()) continue;
-
-            int sx, sy;
-            GetPositionOnScreen(i1, i2, centerX, centerY, sx, sy);
-
-            if (!m_worldSurface.empty()) {
-                int16_t sTile = m_worldSurface[idx];
-                if (sTile > 0) {
-                    int picIndex = (sTile / 2) - 1;
-                    if (picIndex >= 0 && picIndex < (int)m_mmpIdxData.size()) {
-                        int offset = m_mmpIdxData[picIndex];
-                        if (offset > 0 && offset < (int)m_mmpPicData.size()) {
-                            GraphicsUtils::DrawRLE8(GameManager::getInstance().getScreenSurface(), sx, sy,
-                                                    &m_mmpPicData[offset], m_mmpPicData.size() - offset);
-                        }
-                    }
-                }
-            }
-
-            int16_t eTile = m_worldEarth[idx];
-            if (eTile > 0) {
-                int picIndex = (eTile / 2) - 1;
-                if (picIndex >= 0 && picIndex < (int)m_mmpIdxData.size()) {
-                    int offset = m_mmpIdxData[picIndex];
-                    if (offset > 0 && offset < (int)m_mmpPicData.size()) {
-                        GraphicsUtils::DrawRLE8(GameManager::getInstance().getScreenSurface(), sx, sy,
-                                                &m_mmpPicData[offset], m_mmpPicData.size() - offset);
-                    }
-                }
-            }
-        }
-    }
     
     // Draw Player
     int screenX, screenY;
