@@ -34,7 +34,10 @@ kys-promise-androidstudio/build
 *.apk
 
 # C++ Build and IDE
+build/
 cpp_reborn/build/
+cpp_reborn/tests/
+tests/
 .vs/
 .vscode/
 *.user
