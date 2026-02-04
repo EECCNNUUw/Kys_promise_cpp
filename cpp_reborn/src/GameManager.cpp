@@ -485,14 +485,14 @@ void GameManager::reSetEntrance() {
         int mx1 = scene.getMainEntranceX1();
         int my1 = scene.getMainEntranceY1();
         if (mx1 >= 0 && mx1 < 480 && my1 >= 0 && my1 < 480) {
-            m_entrance[my1 * 480 + mx1] = (int16_t)i;
+            m_entrance[mx1 * 480 + my1] = (int16_t)i;
         }
         
         // Check MainEntrance 2
         int mx2 = scene.getMainEntranceX2();
         int my2 = scene.getMainEntranceY2();
         if (mx2 >= 0 && mx2 < 480 && my2 >= 0 && my2 < 480) {
-            m_entrance[my2 * 480 + mx2] = (int16_t)i;
+            m_entrance[mx2 * 480 + my2] = (int16_t)i;
         }
     }
     std::cout << "[GameManager] Entrance map reset." << std::endl;

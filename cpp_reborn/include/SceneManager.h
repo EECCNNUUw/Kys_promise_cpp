@@ -101,7 +101,7 @@ private:
 
     // 大地图数据 (World Map) - 对应 Pascal 中的
     // earth, surface, building, buildx, buildy 五个数组
-    // 坐标范围 0..479 x 0..479, 存储方式: index = y * 480 + x
+    // 坐标范围 0..479 x 0..479, 存储方式: index = x * 480 + y
     std::vector<int16_t> m_worldEarth;    // EARTH.002
     std::vector<int16_t> m_worldSurface;  // surface.002
     std::vector<int16_t> m_worldBuilding; // building.002

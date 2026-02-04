@@ -333,28 +333,28 @@ void SceneManager::SetSceneTile(int sceneId, int layer, int x, int y, int16_t va
 
 int16_t SceneManager::GetWorldEarth(int x, int y) const {
     if (x < 0 || x >= m_worldMapWidth || y < 0 || y >= m_worldMapHeight) return 0;
-    size_t idx = static_cast<size_t>(y) * m_worldMapWidth + x;
+    size_t idx = static_cast<size_t>(x) * m_worldMapWidth + y;
     if (idx >= m_worldEarth.size()) return 0;
     return m_worldEarth[idx];
 }
 
 int16_t SceneManager::GetWorldSurface(int x, int y) const {
     if (x < 0 || x >= m_worldMapWidth || y < 0 || y >= m_worldMapHeight) return 0;
-    size_t idx = static_cast<size_t>(y) * m_worldMapWidth + x;
+    size_t idx = static_cast<size_t>(x) * m_worldMapWidth + y;
     if (idx >= m_worldSurface.size()) return 0;
     return m_worldSurface[idx];
 }
 
 int16_t SceneManager::GetWorldBuildX(int x, int y) const {
     if (x < 0 || x >= m_worldMapWidth || y < 0 || y >= m_worldMapHeight) return 0;
-    size_t idx = static_cast<size_t>(y) * m_worldMapWidth + x;
+    size_t idx = static_cast<size_t>(x) * m_worldMapWidth + y;
     if (idx >= m_worldBuildX.size()) return 0;
     return m_worldBuildX[idx];
 }
 
 int16_t SceneManager::GetWorldBuildY(int x, int y) const {
     if (x < 0 || x >= m_worldMapWidth || y < 0 || y >= m_worldMapHeight) return 0;
-    size_t idx = static_cast<size_t>(y) * m_worldMapWidth + x;
+    size_t idx = static_cast<size_t>(x) * m_worldMapWidth + y;
     if (idx >= m_worldBuildY.size()) return 0;
     return m_worldBuildY[idx];
 }
@@ -366,7 +366,7 @@ void SceneManager::ResetEntrance() {
         int x1 = scene.getMainEntranceX1();
         int y1 = scene.getMainEntranceY1();
         if (x1 >= 0 && x1 < m_worldMapWidth && y1 >= 0 && y1 < m_worldMapHeight) {
-            size_t idx = static_cast<size_t>(y1) * m_worldMapWidth + x1;
+            size_t idx = static_cast<size_t>(x1) * m_worldMapWidth + y1;
             if (idx < m_worldEntrance.size()) {
                 m_worldEntrance[idx] = static_cast<int16_t>(i);
             }
@@ -374,7 +374,7 @@ void SceneManager::ResetEntrance() {
         int x2 = scene.getMainEntranceX2();
         int y2 = scene.getMainEntranceY2();
         if (x2 >= 0 && x2 < m_worldMapWidth && y2 >= 0 && y2 < m_worldMapHeight) {
-            size_t idx = static_cast<size_t>(y2) * m_worldMapWidth + x2;
+            size_t idx = static_cast<size_t>(x2) * m_worldMapWidth + y2;
             if (idx < m_worldEntrance.size()) {
                 m_worldEntrance[idx] = static_cast<int16_t>(i);
             }
@@ -384,7 +384,7 @@ void SceneManager::ResetEntrance() {
 
 int16_t SceneManager::GetEntrance(int x, int y) const {
     if (x < 0 || x >= m_worldMapWidth || y < 0 || y >= m_worldMapHeight) return -1;
-    size_t idx = static_cast<size_t>(y) * m_worldMapWidth + x;
+    size_t idx = static_cast<size_t>(x) * m_worldMapWidth + y;
     if (idx >= m_worldEntrance.size()) return -1;
     return m_worldEntrance[idx];
 }
@@ -577,7 +577,7 @@ void SceneManager::DrawWorldMap(SDL_Renderer* renderer, int centerX, int centerY
             // Visible range check (roughly match building loop range for consistency)
             // if (!(sum >= -29 && sum <= 41 && i >= -16 && i <= 16)) continue; 
 
-            int idx = i2 * m_worldMapWidth + i1;
+            int idx = i1 * m_worldMapWidth + i2;
             // Check bounds just in case
             if (idx < 0 || idx >= (int)m_worldEarth.size()) continue;
 
@@ -586,14 +586,20 @@ void SceneManager::DrawWorldMap(SDL_Renderer* renderer, int centerX, int centerY
 
             // Draw Earth (Ground)
             int16_t eTile = m_worldEarth[idx];
-            if (eTile > 0) {
-                int picIndex = (eTile / 2) - 1;
-                if (picIndex >= 0 && picIndex < (int)m_mmpIdxData.size()) {
-                    int offset = m_mmpIdxData[picIndex];
-                    if (offset > 0 && offset < (int)m_mmpPicData.size()) {
-                        GraphicsUtils::DrawRLE8(GameManager::getInstance().getScreenSurface(), sx, sy,
-                                                &m_mmpPicData[offset], m_mmpPicData.size() - offset);
+            {
+                int picNum = eTile / 2;
+                int offset = 0;
+                if (picNum > 0) {
+                    int idxIndex = picNum - 1;
+                    if (idxIndex >= 0 && idxIndex < (int)m_mmpIdxData.size()) {
+                        offset = m_mmpIdxData[idxIndex];
+                    } else {
+                        offset = -1;
                     }
+                }
+                if (offset >= 0 && offset < (int)m_mmpPicData.size()) {
+                    GraphicsUtils::DrawRLE8(GameManager::getInstance().getScreenSurface(), sx, sy,
+                                            &m_mmpPicData[offset], m_mmpPicData.size() - offset);
                 }
             }
 
@@ -601,10 +607,11 @@ void SceneManager::DrawWorldMap(SDL_Renderer* renderer, int centerX, int centerY
             if (!m_worldSurface.empty()) {
                 int16_t sTile = m_worldSurface[idx];
                 if (sTile > 0) {
-                    int picIndex = (sTile / 2) - 1;
-                    if (picIndex >= 0 && picIndex < (int)m_mmpIdxData.size()) {
-                        int offset = m_mmpIdxData[picIndex];
-                        if (offset > 0 && offset < (int)m_mmpPicData.size()) {
+                    int picNum = sTile / 2;
+                    int idxIndex = picNum - 1;
+                    if (idxIndex >= 0 && idxIndex < (int)m_mmpIdxData.size()) {
+                        int offset = m_mmpIdxData[idxIndex];
+                        if (offset >= 0 && offset < (int)m_mmpPicData.size()) {
                             GraphicsUtils::DrawRLE8(GameManager::getInstance().getScreenSurface(), sx, sy,
                                                     &m_mmpPicData[offset], m_mmpPicData.size() - offset);
                         }
@@ -619,6 +626,7 @@ void SceneManager::DrawWorldMap(SDL_Renderer* renderer, int centerX, int centerY
         int mapX;
         int mapY;
         int16_t pic;
+        int16_t width;
     };
     struct CenterPos {
         int cx2;
@@ -638,7 +646,7 @@ void SceneManager::DrawWorldMap(SDL_Renderer* renderer, int centerX, int centerY
                 continue;
             }
 
-            int idx = i2 * m_worldMapWidth + i1;
+            int idx = i1 * m_worldMapWidth + i2;
             if (idx < 0 || idx >= (int)m_worldBuilding.size()) continue;
 
             int16_t tempPic = 0;
@@ -661,14 +669,19 @@ void SceneManager::DrawWorldMap(SDL_Renderer* renderer, int centerX, int centerY
             GetPositionOnScreen(i1, i2, centerX, centerY, px, py);
 
             if (tempPic > 0) {
-                int picIndex = (tempPic / 2) - 1;
-                if (picIndex >= 0 && picIndex < (int)m_mmpIdxData.size() && buildingCount < 1200) {
-                    int offset = m_mmpIdxData[picIndex];
-                    if (offset > 0 && offset < (int)m_mmpPicData.size()) {
+                int picNum = tempPic / 2;
+                int idxIndex = picNum - 1;
+                if (idxIndex >= 0 && idxIndex < (int)m_mmpIdxData.size() && buildingCount < 1200) {
+                    int offset = m_mmpIdxData[idxIndex];
+                    if (offset >= 0 && offset < (int)m_mmpPicData.size()) {
                         int16_t width = 36;
+                        if (offset + 2 <= (int)m_mmpPicData.size()) {
+                            width = static_cast<int16_t>(m_mmpPicData[offset] | (m_mmpPicData[offset + 1] << 8));
+                        }
                         buildingList[buildingCount].mapX = i1;
                         buildingList[buildingCount].mapY = i2;
                         buildingList[buildingCount].pic = tempPic;
+                        buildingList[buildingCount].width = width;
                         centerList[buildingCount].cx2 = i1 * 2 - (width + 35) / 36 + 1;
                         centerList[buildingCount].cy2 = i2 * 2 - (width + 35) / 36 + 1;
                         buildingCount++;
@@ -693,16 +706,17 @@ void SceneManager::DrawWorldMap(SDL_Renderer* renderer, int centerX, int centerY
         }
     }
 
-    for (int idx = buildingCount - 1; idx >= 0; --idx) {
+    for (int idx = 0; idx < buildingCount; ++idx) {
         int x = buildingList[idx].mapX;
         int y = buildingList[idx].mapY;
         int16_t picVal = buildingList[idx].pic;
         int sx, sy;
         GetPositionOnScreen(x, y, centerX, centerY, sx, sy);
-        int picIndex = (picVal / 2) - 1;
-        if (picIndex >= 0 && picIndex < (int)m_mmpIdxData.size()) {
-            int offset = m_mmpIdxData[picIndex];
-            if (offset > 0 && offset < (int)m_mmpPicData.size()) {
+        int picNum = picVal / 2;
+        int idxIndex = picNum - 1;
+        if (idxIndex >= 0 && idxIndex < (int)m_mmpIdxData.size()) {
+            int offset = m_mmpIdxData[idxIndex];
+            if (offset >= 0 && offset < (int)m_mmpPicData.size()) {
                 GraphicsUtils::DrawRLE8(GameManager::getInstance().getScreenSurface(), sx, sy,
                                         &m_mmpPicData[offset], m_mmpPicData.size() - offset);
             }
