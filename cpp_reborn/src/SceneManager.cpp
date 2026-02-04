@@ -645,6 +645,17 @@ void SceneManager::DrawWorldMap(SDL_Renderer* renderer, int centerX, int centerY
             if (!m_worldBuilding.empty()) {
                 tempPic = m_worldBuilding[idx];
             }
+            
+            // Check Referenced Building Layer (BuildX)
+            if (tempPic == 0 && !m_worldBuildX.empty()) {
+                int16_t sceneId = m_worldBuildX[idx];
+                if (sceneId > 0 && sceneId < (int)m_scenes.size()) {
+                    int16_t mapNum = m_scenes[sceneId].getMapNum();
+                    if (mapNum > 0) {
+                        tempPic = mapNum * 2; 
+                    }
+                }
+            }
 
             int px, py;
             GetPositionOnScreen(i1, i2, centerX, centerY, px, py);
@@ -714,7 +725,7 @@ void SceneManager::DrawWorldMap(SDL_Renderer* renderer, int centerX, int centerY
     int frame = GameManager::getInstance().getWalkFrame();
     int playerPic = 2501 + spriteFace * 7 + frame;
 
-    DrawMmapSprite(renderer, playerPic, screenX, screenY, 0);
+    DrawSmpSprite(renderer, playerPic, screenX, screenY, 0);
     
     // Draw Clouds
     DrawClouds(renderer, centerX, centerY);
@@ -755,37 +766,128 @@ void SceneManager::DrawScene(SDL_Renderer* renderer, int centerX, int centerY) {
     for(int i=0; i<SCENE_MAP_SIZE; ++i)
         for(int j=0; j<SCENE_MAP_SIZE; ++j)
             spriteMap[i][j] = -1;
-            
-    // Fill with active events - COMMENTED OUT as it conflicts with Layer 3 logic and uses potentially wrong index (3 vs 5)
-    /*
-    if (m_currentSceneId >= 0 && m_currentSceneId < m_eventData.size()) {
-        const auto& events = m_eventData[m_currentSceneId].data;
-        for (int e = 0; e < 200; ++e) {
-            // Index 0: Active/Type? Usually > 0 means active.
-            if (events[e][0] != 0) {
-                int ex = events[e][1];
-                int ey = events[e][2];
-                int pic = events[e][3];
-                
-                if (ex >= 0 && ex < SCENE_MAP_SIZE && ey >= 0 && ey < SCENE_MAP_SIZE) {
-                    spriteMap[ex][ey] = pic;
-                }
-            }
-        }
-    }
-    */
-    
-    // Add Player Sprite to Map
-    // Logic: If Event 0 is active (has a sprite), it represents the player in cutscenes.
-    // In this case, we hide the default player sprite to avoid duplication/ghosting.
     bool hidePlayer = false;
-    if (m_currentSceneId >= 0 && m_currentSceneId < m_eventData.size()) {
-        if (m_eventData[m_currentSceneId].data[0][7] != 0 || m_eventData[m_currentSceneId].data[0][5] > 0) {
-            hidePlayer = true;
+            
+    // Fill with active events
+    if (m_currentSceneId >= 0 && m_currentSceneId < (int)m_eventData.size()) {
+        const auto& events = m_eventData[m_currentSceneId].data;
+        // In Pascal, Scene.Data (SData) Layer 3 contains the Event Index.
+        // We should iterate the visible area (or the whole map if small) and check Layer 3.
+        
+        // Optimize: Iterate only visible range? Or just rely on GetSceneTile in the draw loop?
+        // Actually, the draw loop below iterates tiles. We should handle it THERE.
+        // But we need to handle "Hide Player" logic.
+        
+        // Logic: Check if Event 0 (Protagonist) is active and has a sprite.
+        // DData[0][5] is Pic.
+        if (events[0][5] != 0) {
+             hidePlayer = true;
         }
     }
 
     int px, py;
+    GetPositionOnScreen(centerX, centerY, centerX, centerY, px, py);
+    
+    // Draw tiles
+    // Pascal draws layer 0, 1, 2, then Events (Layer 3 refs), then Roles.
+    // Actually DrawRoleOnScene draws everything in a specific order per tile.
+    
+    // Iterate Screen (or Map Range)
+    // Pascal iterates 64x64 (Full Map) in DrawRoleOnScene?
+    // No, it iterates visible range implicitly or explicit full loop?
+    // Pascal: for i1 := 0 to 63 do for i2 := 0 to 63 do
+    // It iterates the WHOLE 64x64 map! (Small enough).
+    
+    for (int i = 0; i < SCENE_MAP_SIZE; ++i) { // X (or Y? Pascal: i1)
+        for (int j = 0; j < SCENE_MAP_SIZE; ++j) { // Y (or X? Pascal: i2)
+            // i, j are Map Coordinates
+            int sx, sy;
+            GetPositionOnScreen(i, j, centerX, centerY, sx, sy);
+            
+            // Check if visible (roughly)
+            if (sx < -100 || sx > 640 + 100 || sy < -100 || sy > 480 + 100) continue;
+
+            // Layer 0 (Ground)
+            int16_t t0 = GetSceneTile(m_currentSceneId, 0, i, j);
+            // Pascal: if SData > 0 then DrawSPic... else if < 0 DrawSNewPic...
+            // For now assume > 0 (Standard)
+            if (t0 != 0) {
+                 if (t0 > 0) DrawSmpSprite(renderer, t0 / 2 - 1, sx, sy);
+                 else DrawScenePicSprite(renderer, -t0 / 2 - 1, sx, sy);
+            }
+
+            // Layer 1 (Surface/Object)
+            int16_t t1 = GetSceneTile(m_currentSceneId, 1, i, j);
+            int16_t h1 = GetSceneTile(m_currentSceneId, 4, i, j); // Height
+            if (t1 != 0) {
+                 if (t1 > 0) DrawSmpSprite(renderer, t1 / 2 - 1, sx, sy - h1);
+                 else DrawScenePicSprite(renderer, -t1 / 2 - 1, sx, sy - h1);
+            }
+            
+            // Layer 2 (Above)
+            int16_t t2 = GetSceneTile(m_currentSceneId, 2, i, j);
+            int16_t h2 = GetSceneTile(m_currentSceneId, 5, i, j); // Height 2? Or same height?
+            // Pascal uses SData[..., 5, ...] for Layer 2 height offset
+            if (t2 != 0) {
+                 if (t2 > 0) DrawSmpSprite(renderer, t2 / 2 - 1, sx, sy - h2);
+                 else DrawScenePicSprite(renderer, -t2 / 2 - 1, sx, sy - h2);
+            }
+            
+            // Layer 3 (Events)
+            // SData[..., 3, i, j] contains Event Index
+            int16_t eventIdx = GetSceneTile(m_currentSceneId, 3, i, j);
+            if (eventIdx >= 0) {
+                // Look up DData
+                int16_t pic = GetEventData(m_currentSceneId, eventIdx, 5);
+                if (pic != 0) {
+                     int16_t h = GetSceneTile(m_currentSceneId, 4, i, j); // Events usually stand on ground/object height
+                     if (pic > 0) {
+                         DrawSmpSprite(renderer, pic / 2 - 1, sx, sy - h);
+                     } else {
+                         DrawScenePicSprite(renderer, -pic / 2 - 1, sx, sy - h);
+                     }
+                }
+            }
+            
+            // Draw Player (if at this tile)
+            if (!hidePlayer && i == centerX && j == centerY) {
+                int face = GameManager::getInstance().getMainMapFace();
+                int step = GameManager::getInstance().getWalkFrame();
+                // Face: 0,1,2,3 -> Pascal mapping might differ
+                // Pascal: 2501 + SFace * 7 + SStep
+                // SFace: 0,1,2,3?
+                int playerPic = 2501 + face * 7 + step;
+                int16_t h = GetSceneTile(m_currentSceneId, 4, i, j);
+                DrawSmpSprite(renderer, playerPic, sx, sy - h); // 2501 is index? No, 2501 is PicNum.
+                // Wait, DrawSmpSprite takes INDEX.
+                // Pascal: DrawSPic(2501...).
+                // If 2501 is PicNum, and user said "index = pic/2 - 1".
+                // Does 2501 follow this? 2501 is odd. 2501 div 2 = 1250.
+                // So index = 1249?
+                // Or is 2501 ALREADY an index for DrawSPic?
+                // Pascal DrawMMap: temp := 2501...; temp := temp * 2;
+                // So 2501 IS the value before doubling.
+                // So effectively, PicNum = 2501 * 2 = 5002.
+                // DData stores 5002.
+                // So DData/2 = 2501.
+                // So if DrawSmpSprite takes "Index", is it 2501?
+                // My LoadResources log: "Player Offset (2501): ..."
+                // This implies 2501 is a direct index into the offset array (sdx).
+                // So for Player, we use 2501 directly.
+                // BUT for DData, DData stores Pic*2.
+                // So we do (DDataVal / 2) - 1.
+                // Example: DData has 5002. 5002/2 = 2501. 2501 - 1 = 2500.
+                // Wait, if 2501 is the player sprite, and I pass 2500, I get the wrong one?
+                // User said: "pic/2-1".
+                // If 2501 is the correct index, then (5002 / 2) - 1 = 2500.
+                // Maybe Player starts at 2500?
+                // Let's assume the user rule "pic/2-1" applies to DData values.
+                // For the Player calculation `2501 + ...`, this is already an "Index" (or PicNum).
+                // If I use `DrawSmpSprite(2501...)` it assumes 2501 is the index.
+                // Let's check `DrawSmpSprite` implementation.
+            }
+        }
+    }
     GameManager::getInstance().getMainMapPosition(px, py);
     if (!hidePlayer && px >= 0 && px < SCENE_MAP_SIZE && py >= 0 && py < SCENE_MAP_SIZE) {
         // Player sprite index

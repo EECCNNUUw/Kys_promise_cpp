@@ -160,6 +160,9 @@ bool GameManager::Init() {
 
     loadData(savePrefix);
 
+    // Initialize Entrance Map for World Map -> Scene transitions
+    reSetEntrance();
+
     m_currentState = GameState::TitleScreen;
     m_systemMenuSelection = 0;
 
@@ -468,6 +471,31 @@ void GameManager::SaveGame(int slot) {
     SceneManager::getInstance().SaveEventData(m_savePath + dFilename);
     
     std::cout << "Game Saved to Slot " << slot << std::endl;
+}
+
+void GameManager::reSetEntrance() {
+    // Reset entrance array
+    std::fill(m_entrance.begin(), m_entrance.end(), -1);
+    
+    const auto& scenes = SceneManager::getInstance().getScenes();
+    for (size_t i = 0; i < scenes.size(); ++i) {
+        const auto& scene = scenes[i];
+        
+        // Check MainEntrance 1
+        int mx1 = scene.getMainEntranceX1();
+        int my1 = scene.getMainEntranceY1();
+        if (mx1 >= 0 && mx1 < 480 && my1 >= 0 && my1 < 480) {
+            m_entrance[my1 * 480 + mx1] = (int16_t)i;
+        }
+        
+        // Check MainEntrance 2
+        int mx2 = scene.getMainEntranceX2();
+        int my2 = scene.getMainEntranceY2();
+        if (mx2 >= 0 && mx2 < 480 && my2 >= 0 && my2 < 480) {
+            m_entrance[my2 * 480 + mx2] = (int16_t)i;
+        }
+    }
+    std::cout << "[GameManager] Entrance map reset." << std::endl;
 }
 
 void GameManager::LoadGame(int slot) {
@@ -1064,6 +1092,8 @@ bool GameManager::CanWalkWorld(int x, int y) {
 }
 
 bool GameManager::CheckWorldEntrance() {
+    if (m_currentSceneId != -1) return false;
+    
     int x = m_mainMapX;
     int y = m_mainMapY;
 
