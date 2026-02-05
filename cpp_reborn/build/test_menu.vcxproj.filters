@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="D:\program\misc\kys-promise-main\cpp_reborn\tests\test_menu.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\program\misc\kys-promise-main\cpp_reborn\src\SceneManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\program\misc\kys-promise-main\cpp_reborn\src\FileLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\program\misc\kys-promise-main\cpp_reborn\src\GraphicsUtils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\program\misc\kys-promise-main\cpp_reborn\src\GameManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\program\misc\kys-promise-main\cpp_reborn\src\TextManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\program\misc\kys-promise-main\cpp_reborn\src\PicLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\program\misc\kys-promise-main\cpp_reborn\src\BattleManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\program\misc\kys-promise-main\cpp_reborn\src\BattleRole.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\program\misc\kys-promise-main\cpp_reborn\src\EventManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\program\misc\kys-promise-main\cpp_reborn\src\UIManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\program\misc\kys-promise-main\cpp_reborn\src\SoundManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\program\misc\kys-promise-main\cpp_reborn\src\WarData.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="D:\program\misc\kys-promise-main\cpp_reborn\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{0B745068-BC22-3B7C-8F29-E0E63977C3F6}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

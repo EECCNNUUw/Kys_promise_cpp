@@ -1,0 +1,111 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="D:\program\misc\kys-promise-main\cpp_reborn\src\BattleManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\program\misc\kys-promise-main\cpp_reborn\src\BattleRole.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\program\misc\kys-promise-main\cpp_reborn\src\EventManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\program\misc\kys-promise-main\cpp_reborn\src\FileLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\program\misc\kys-promise-main\cpp_reborn\src\GameManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\program\misc\kys-promise-main\cpp_reborn\src\GraphicsUtils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\program\misc\kys-promise-main\cpp_reborn\src\PicLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\program\misc\kys-promise-main\cpp_reborn\src\SceneManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\program\misc\kys-promise-main\cpp_reborn\src\SoundManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\program\misc\kys-promise-main\cpp_reborn\src\TextManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\program\misc\kys-promise-main\cpp_reborn\src\UIManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\program\misc\kys-promise-main\cpp_reborn\src\WarData.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\program\misc\kys-promise-main\cpp_reborn\src\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="D:\program\misc\kys-promise-main\cpp_reborn\include\BattleManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\program\misc\kys-promise-main\cpp_reborn\include\BattleRole.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\program\misc\kys-promise-main\cpp_reborn\include\EventManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\program\misc\kys-promise-main\cpp_reborn\include\FileLoader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\program\misc\kys-promise-main\cpp_reborn\include\GameManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\program\misc\kys-promise-main\cpp_reborn\include\GameObject.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\program\misc\kys-promise-main\cpp_reborn\include\GameTypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\program\misc\kys-promise-main\cpp_reborn\include\GraphicsUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\program\misc\kys-promise-main\cpp_reborn\include\Item.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\program\misc\kys-promise-main\cpp_reborn\include\Magic.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\program\misc\kys-promise-main\cpp_reborn\include\PicLoader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\program\misc\kys-promise-main\cpp_reborn\include\Role.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\program\misc\kys-promise-main\cpp_reborn\include\Scene.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\program\misc\kys-promise-main\cpp_reborn\include\SceneManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\program\misc\kys-promise-main\cpp_reborn\include\SoundManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\program\misc\kys-promise-main\cpp_reborn\include\TextManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\program\misc\kys-promise-main\cpp_reborn\include\UIManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\program\misc\kys-promise-main\cpp_reborn\include\WarData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="D:\program\misc\kys-promise-main\cpp_reborn\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{0C177A4C-870E-333A-AFE6-9CB2B9561C8E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{0B745068-BC22-3B7C-8F29-E0E63977C3F6}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

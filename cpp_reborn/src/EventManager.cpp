@@ -209,14 +209,11 @@ void EventManager::CheckEvent(int sceneId, int x, int y, bool isManual) {
         int16_t scriptId = SceneManager::getInstance().GetEventData(sceneId, eventIndex, 4);
         
         // KYS Condition Logic:
-        // Condition 0: Auto-trigger when stepping on tile
-        // Condition 1: Trigger when pressing Space/Enter
-        // Condition -1: Disabled
+        // Condition 0: Active/Enabled
+        // Condition != 0: Inactive/Disabled (usually)
         
         bool shouldTrigger = false;
-        if (condition == 0 && !isManual) {
-            shouldTrigger = true;
-        } else if (condition == 1 && isManual) {
+        if (condition == 0) {
             shouldTrigger = true;
         }
         

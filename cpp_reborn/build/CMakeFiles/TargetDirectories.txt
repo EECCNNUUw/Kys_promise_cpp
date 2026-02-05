@@ -1,0 +1,13 @@
+D:/program/misc/kys-promise-main/cpp_reborn/build/CMakeFiles/kys_cpp.dir
+D:/program/misc/kys-promise-main/cpp_reborn/build/CMakeFiles/test_loading.dir
+D:/program/misc/kys-promise-main/cpp_reborn/build/CMakeFiles/test_event.dir
+D:/program/misc/kys-promise-main/cpp_reborn/build/CMakeFiles/test_placeholder.dir
+D:/program/misc/kys-promise-main/cpp_reborn/build/CMakeFiles/test_scene_trigger.dir
+D:/program/misc/kys-promise-main/cpp_reborn/build/CMakeFiles/test_battle.dir
+D:/program/misc/kys-promise-main/cpp_reborn/build/CMakeFiles/test_menu.dir
+D:/program/misc/kys-promise-main/cpp_reborn/build/CMakeFiles/dump_events.dir
+D:/program/misc/kys-promise-main/cpp_reborn/build/CMakeFiles/dump_ddata.dir
+D:/program/misc/kys-promise-main/cpp_reborn/build/CMakeFiles/save_inspector.dir
+D:/program/misc/kys-promise-main/cpp_reborn/build/CMakeFiles/analyze_data.dir
+D:/program/misc/kys-promise-main/cpp_reborn/build/CMakeFiles/ALL_BUILD.dir
+D:/program/misc/kys-promise-main/cpp_reborn/build/CMakeFiles/ZERO_CHECK.dir

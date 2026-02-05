@@ -427,6 +427,15 @@ bool SceneManager::CanWalk(int x, int y) {
     // But usually Layer 1 is collision layer.
     
     if (tile1 != 0) return false;
+
+    // Layer 3 check (Events)
+    int16_t eventId = GetSceneTile(m_currentSceneId, 3, x, y);
+    if (eventId > 0) {
+        int16_t pic = GetEventData(m_currentSceneId, eventId, 5);
+        // If event has a picture, it is blocking (NPC, Chest, Object)
+        // If event is invisible (pic == 0), it is walkable (Trigger area)
+        if (pic != 0) return false;
+    }
     
     // Layer 0 (Ground) checks
     int16_t tile0 = GetSceneTile(m_currentSceneId, 0, x, y);

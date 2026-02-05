@@ -1,0 +1,226 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ResolveNugetPackages>false</ResolveNugetPackages>
+  </PropertyGroup>
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="MinSizeRel|x64">
+      <Configuration>MinSizeRel</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="RelWithDebInfo|x64">
+      <Configuration>RelWithDebInfo</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{966EE540-BB87-31F4-BCCB-457EE97A532C}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <VcpkgApplocalDeps>false</VcpkgApplocalDeps>
+    <WindowsTargetPlatformVersion>10.0.26100.0</WindowsTargetPlatformVersion>
+    <Platform>x64</Platform>
+    <ProjectName>ALL_BUILD</ProjectName>
+    <VCProjectUpgraderObjectName>NoUpgrade</VCProjectUpgraderObjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Midl>
+      <AdditionalIncludeDirectories>D:\program\misc\kys-promise-main\cpp_reborn\include;D:\program\misc\kys-promise-main\cpp_reborn\..\SDL3-3.4.0\include;D:\program\misc\kys-promise-main\cpp_reborn\..\SDL3_ttf-3.1.0\include;D:\program\misc\kys-promise-main\cpp_reborn\..\SDL3_image-3.2.6\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Midl>
+      <AdditionalIncludeDirectories>D:\program\misc\kys-promise-main\cpp_reborn\include;D:\program\misc\kys-promise-main\cpp_reborn\..\SDL3-3.4.0\include;D:\program\misc\kys-promise-main\cpp_reborn\..\SDL3_ttf-3.1.0\include;D:\program\misc\kys-promise-main\cpp_reborn\..\SDL3_image-3.2.6\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">
+    <Midl>
+      <AdditionalIncludeDirectories>D:\program\misc\kys-promise-main\cpp_reborn\include;D:\program\misc\kys-promise-main\cpp_reborn\..\SDL3-3.4.0\include;D:\program\misc\kys-promise-main\cpp_reborn\..\SDL3_ttf-3.1.0\include;D:\program\misc\kys-promise-main\cpp_reborn\..\SDL3_image-3.2.6\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
+    <Midl>
+      <AdditionalIncludeDirectories>D:\program\misc\kys-promise-main\cpp_reborn\include;D:\program\misc\kys-promise-main\cpp_reborn\..\SDL3-3.4.0\include;D:\program\misc\kys-promise-main\cpp_reborn\..\SDL3_ttf-3.1.0\include;D:\program\misc\kys-promise-main\cpp_reborn\..\SDL3_image-3.2.6\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="D:\program\misc\kys-promise-main\cpp_reborn\CMakeLists.txt">
+      <UseUtf8Encoding>Always</UseUtf8Encoding>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Custom Rule D:/program/misc/kys-promise-main/cpp_reborn/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SD:/program/misc/kys-promise-main/cpp_reborn -BD:/program/misc/kys-promise-main/cpp_reborn/build --check-stamp-file D:/program/misc/kys-promise-main/cpp_reborn/build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Program Files\CMake\share\cmake-4.1\Modules\CMakeCXXInformation.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\CMakeGenericSystem.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\CMakeInitializeConfigs.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\CMakeLanguageInformation.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\CMakeRCInformation.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\CMakeSystemSpecificInitialize.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Compiler\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Compiler\MSVC.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\FeatureSummary.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Internal\CMakeCXXLinkerInformation.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Internal\CMakeCommonLinkerInformation.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Linker\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Linker\MSVC.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Platform\Linker\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Platform\Linker\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Platform\Windows-Initialize.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Platform\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Platform\Windows.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Platform\WindowsPaths.cmake;D:\program\misc\kys-promise-main\SDL3-3.4.0\cmake\SDL3Config.cmake;D:\program\misc\kys-promise-main\SDL3-3.4.0\cmake\SDL3ConfigVersion.cmake;D:\program\misc\kys-promise-main\SDL3-3.4.0\cmake\sdlcpu.cmake;D:\program\misc\kys-promise-main\SDL3_image-3.2.6\cmake\SDL3_imageConfig.cmake;D:\program\misc\kys-promise-main\SDL3_image-3.2.6\cmake\SDL3_imageConfigVersion.cmake;D:\program\misc\kys-promise-main\SDL3_image-3.2.6\cmake\sdlcpu.cmake;D:\program\misc\kys-promise-main\SDL3_ttf-3.1.0\cmake\SDL3_ttfConfig.cmake;D:\program\misc\kys-promise-main\SDL3_ttf-3.1.0\cmake\SDL3_ttfConfigVersion.cmake;D:\program\misc\kys-promise-main\SDL3_ttf-3.1.0\cmake\sdlcpu.cmake;D:\program\misc\kys-promise-main\cpp_reborn\build\CMakeFiles\4.1.1\CMakeCXXCompiler.cmake;D:\program\misc\kys-promise-main\cpp_reborn\build\CMakeFiles\4.1.1\CMakeRCCompiler.cmake;D:\program\misc\kys-promise-main\cpp_reborn\build\CMakeFiles\4.1.1\CMakeSystem.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">D:\program\misc\kys-promise-main\cpp_reborn\build\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Building Custom Rule D:/program/misc/kys-promise-main/cpp_reborn/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SD:/program/misc/kys-promise-main/cpp_reborn -BD:/program/misc/kys-promise-main/cpp_reborn/build --check-stamp-file D:/program/misc/kys-promise-main/cpp_reborn/build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Program Files\CMake\share\cmake-4.1\Modules\CMakeCXXInformation.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\CMakeGenericSystem.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\CMakeInitializeConfigs.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\CMakeLanguageInformation.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\CMakeRCInformation.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\CMakeSystemSpecificInitialize.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Compiler\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Compiler\MSVC.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\FeatureSummary.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Internal\CMakeCXXLinkerInformation.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Internal\CMakeCommonLinkerInformation.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Linker\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Linker\MSVC.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Platform\Linker\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Platform\Linker\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Platform\Windows-Initialize.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Platform\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Platform\Windows.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Platform\WindowsPaths.cmake;D:\program\misc\kys-promise-main\SDL3-3.4.0\cmake\SDL3Config.cmake;D:\program\misc\kys-promise-main\SDL3-3.4.0\cmake\SDL3ConfigVersion.cmake;D:\program\misc\kys-promise-main\SDL3-3.4.0\cmake\sdlcpu.cmake;D:\program\misc\kys-promise-main\SDL3_image-3.2.6\cmake\SDL3_imageConfig.cmake;D:\program\misc\kys-promise-main\SDL3_image-3.2.6\cmake\SDL3_imageConfigVersion.cmake;D:\program\misc\kys-promise-main\SDL3_image-3.2.6\cmake\sdlcpu.cmake;D:\program\misc\kys-promise-main\SDL3_ttf-3.1.0\cmake\SDL3_ttfConfig.cmake;D:\program\misc\kys-promise-main\SDL3_ttf-3.1.0\cmake\SDL3_ttfConfigVersion.cmake;D:\program\misc\kys-promise-main\SDL3_ttf-3.1.0\cmake\sdlcpu.cmake;D:\program\misc\kys-promise-main\cpp_reborn\build\CMakeFiles\4.1.1\CMakeCXXCompiler.cmake;D:\program\misc\kys-promise-main\cpp_reborn\build\CMakeFiles\4.1.1\CMakeRCCompiler.cmake;D:\program\misc\kys-promise-main\cpp_reborn\build\CMakeFiles\4.1.1\CMakeSystem.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">D:\program\misc\kys-promise-main\cpp_reborn\build\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Building Custom Rule D:/program/misc/kys-promise-main/cpp_reborn/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SD:/program/misc/kys-promise-main/cpp_reborn -BD:/program/misc/kys-promise-main/cpp_reborn/build --check-stamp-file D:/program/misc/kys-promise-main/cpp_reborn/build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Program Files\CMake\share\cmake-4.1\Modules\CMakeCXXInformation.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\CMakeGenericSystem.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\CMakeInitializeConfigs.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\CMakeLanguageInformation.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\CMakeRCInformation.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\CMakeSystemSpecificInitialize.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Compiler\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Compiler\MSVC.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\FeatureSummary.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Internal\CMakeCXXLinkerInformation.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Internal\CMakeCommonLinkerInformation.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Linker\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Linker\MSVC.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Platform\Linker\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Platform\Linker\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Platform\Windows-Initialize.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Platform\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Platform\Windows.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Platform\WindowsPaths.cmake;D:\program\misc\kys-promise-main\SDL3-3.4.0\cmake\SDL3Config.cmake;D:\program\misc\kys-promise-main\SDL3-3.4.0\cmake\SDL3ConfigVersion.cmake;D:\program\misc\kys-promise-main\SDL3-3.4.0\cmake\sdlcpu.cmake;D:\program\misc\kys-promise-main\SDL3_image-3.2.6\cmake\SDL3_imageConfig.cmake;D:\program\misc\kys-promise-main\SDL3_image-3.2.6\cmake\SDL3_imageConfigVersion.cmake;D:\program\misc\kys-promise-main\SDL3_image-3.2.6\cmake\sdlcpu.cmake;D:\program\misc\kys-promise-main\SDL3_ttf-3.1.0\cmake\SDL3_ttfConfig.cmake;D:\program\misc\kys-promise-main\SDL3_ttf-3.1.0\cmake\SDL3_ttfConfigVersion.cmake;D:\program\misc\kys-promise-main\SDL3_ttf-3.1.0\cmake\sdlcpu.cmake;D:\program\misc\kys-promise-main\cpp_reborn\build\CMakeFiles\4.1.1\CMakeCXXCompiler.cmake;D:\program\misc\kys-promise-main\cpp_reborn\build\CMakeFiles\4.1.1\CMakeRCCompiler.cmake;D:\program\misc\kys-promise-main\cpp_reborn\build\CMakeFiles\4.1.1\CMakeSystem.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">D:\program\misc\kys-promise-main\cpp_reborn\build\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Building Custom Rule D:/program/misc/kys-promise-main/cpp_reborn/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SD:/program/misc/kys-promise-main/cpp_reborn -BD:/program/misc/kys-promise-main/cpp_reborn/build --check-stamp-file D:/program/misc/kys-promise-main/cpp_reborn/build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Program Files\CMake\share\cmake-4.1\Modules\CMakeCXXInformation.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\CMakeGenericSystem.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\CMakeInitializeConfigs.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\CMakeLanguageInformation.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\CMakeRCInformation.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\CMakeSystemSpecificInitialize.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Compiler\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Compiler\MSVC.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\FeatureSummary.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Internal\CMakeCXXLinkerInformation.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Internal\CMakeCommonLinkerInformation.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Linker\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Linker\MSVC.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Platform\Linker\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Platform\Linker\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Platform\Windows-Initialize.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Platform\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Platform\Windows.cmake;C:\Program Files\CMake\share\cmake-4.1\Modules\Platform\WindowsPaths.cmake;D:\program\misc\kys-promise-main\SDL3-3.4.0\cmake\SDL3Config.cmake;D:\program\misc\kys-promise-main\SDL3-3.4.0\cmake\SDL3ConfigVersion.cmake;D:\program\misc\kys-promise-main\SDL3-3.4.0\cmake\sdlcpu.cmake;D:\program\misc\kys-promise-main\SDL3_image-3.2.6\cmake\SDL3_imageConfig.cmake;D:\program\misc\kys-promise-main\SDL3_image-3.2.6\cmake\SDL3_imageConfigVersion.cmake;D:\program\misc\kys-promise-main\SDL3_image-3.2.6\cmake\sdlcpu.cmake;D:\program\misc\kys-promise-main\SDL3_ttf-3.1.0\cmake\SDL3_ttfConfig.cmake;D:\program\misc\kys-promise-main\SDL3_ttf-3.1.0\cmake\SDL3_ttfConfigVersion.cmake;D:\program\misc\kys-promise-main\SDL3_ttf-3.1.0\cmake\sdlcpu.cmake;D:\program\misc\kys-promise-main\cpp_reborn\build\CMakeFiles\4.1.1\CMakeCXXCompiler.cmake;D:\program\misc\kys-promise-main\cpp_reborn\build\CMakeFiles\4.1.1\CMakeRCCompiler.cmake;D:\program\misc\kys-promise-main\cpp_reborn\build\CMakeFiles\4.1.1\CMakeSystem.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">D:\program\misc\kys-promise-main\cpp_reborn\build\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="D:\program\misc\kys-promise-main\cpp_reborn\build\ZERO_CHECK.vcxproj">
+      <Project>{5799CB1D-665C-3CF2-B725-E62975E066B9}</Project>
+      <Name>ZERO_CHECK</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="D:\program\misc\kys-promise-main\cpp_reborn\build\analyze_data.vcxproj">
+      <Project>{CA847EAC-5766-331D-A1EA-C7F547E5825D}</Project>
+      <Name>analyze_data</Name>
+    </ProjectReference>
+    <ProjectReference Include="D:\program\misc\kys-promise-main\cpp_reborn\build\dump_ddata.vcxproj">
+      <Project>{65FE4A51-87B5-313D-9B78-D240BF5F27C7}</Project>
+      <Name>dump_ddata</Name>
+    </ProjectReference>
+    <ProjectReference Include="D:\program\misc\kys-promise-main\cpp_reborn\build\dump_events.vcxproj">
+      <Project>{C55F1255-4DC6-305D-B500-0A1EA86329F2}</Project>
+      <Name>dump_events</Name>
+    </ProjectReference>
+    <ProjectReference Include="D:\program\misc\kys-promise-main\cpp_reborn\build\kys_cpp.vcxproj">
+      <Project>{F821ED56-2E7F-3CE7-821B-BA181EFFCF59}</Project>
+      <Name>kys_cpp</Name>
+    </ProjectReference>
+    <ProjectReference Include="D:\program\misc\kys-promise-main\cpp_reborn\build\save_inspector.vcxproj">
+      <Project>{BE45D90F-2C39-3A0C-A077-925CA7BB1BE1}</Project>
+      <Name>save_inspector</Name>
+    </ProjectReference>
+    <ProjectReference Include="D:\program\misc\kys-promise-main\cpp_reborn\build\test_battle.vcxproj">
+      <Project>{DB8AB42D-DCD9-3BF0-82AA-3402F1DC52F0}</Project>
+      <Name>test_battle</Name>
+    </ProjectReference>
+    <ProjectReference Include="D:\program\misc\kys-promise-main\cpp_reborn\build\test_event.vcxproj">
+      <Project>{8CF83B35-978F-3AC3-B06C-74F4F9C84544}</Project>
+      <Name>test_event</Name>
+    </ProjectReference>
+    <ProjectReference Include="D:\program\misc\kys-promise-main\cpp_reborn\build\test_loading.vcxproj">
+      <Project>{DF185C37-10B8-3671-90D7-9C23D46DFA37}</Project>
+      <Name>test_loading</Name>
+    </ProjectReference>
+    <ProjectReference Include="D:\program\misc\kys-promise-main\cpp_reborn\build\test_menu.vcxproj">
+      <Project>{A4358801-3326-3507-83F9-DE36B0D907B1}</Project>
+      <Name>test_menu</Name>
+    </ProjectReference>
+    <ProjectReference Include="D:\program\misc\kys-promise-main\cpp_reborn\build\test_placeholder.vcxproj">
+      <Project>{2C870447-36D2-371A-833A-686A32F185DB}</Project>
+      <Name>test_placeholder</Name>
+    </ProjectReference>
+    <ProjectReference Include="D:\program\misc\kys-promise-main\cpp_reborn\build\test_scene_trigger.vcxproj">
+      <Project>{98F608F8-B352-312D-B5EB-A79C5F01F47C}</Project>
+      <Name>test_scene_trigger</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

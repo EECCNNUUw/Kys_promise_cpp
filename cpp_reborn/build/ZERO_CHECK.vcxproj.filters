@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="D:\program\misc\kys-promise-main\cpp_reborn\build\CMakeFiles\77e6ec5bf162595203d73b0b3b8f88e5\generate.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{D9E9E2AE-1016-3B89-A87D-141C6DEE0B0E}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

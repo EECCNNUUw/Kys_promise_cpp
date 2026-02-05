@@ -1,0 +1,1211 @@
+
+---
+events:
+  -
+    kind: "message-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeDetermineSystem.cmake:212 (message)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      The system is: Windows - 10.0.22631 - AMD64
+  -
+    kind: "find-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeDetermineCompilerId.cmake:462 (find_file)"
+      - "C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeDetermineCompilerId.cmake:500 (CMAKE_DETERMINE_COMPILER_ID_WRITE)"
+      - "C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeDetermineCompilerId.cmake:8 (CMAKE_DETERMINE_COMPILER_ID_BUILD)"
+      - "C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeDetermineCompilerId.cmake:64 (__determine_compiler_id_test)"
+      - "C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeDetermineCXXCompiler.cmake:125 (CMAKE_DETERMINE_COMPILER_ID)"
+      - "CMakeLists.txt:2 (project)"
+    mode: "file"
+    variable: "src_in"
+    description: "Path to a file."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: true
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "CMakeCXXCompilerId.cpp.in"
+    candidate_directories:
+      - "C:/Program Files/CMake/share/cmake-4.1/Modules/"
+    found: "C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeCXXCompilerId.cpp.in"
+    search_context:
+      ENV{PATH}:
+        - "c:\\\\Users\\\\Administrator.DESKTOP-2L6B2TM\\\\.trae\\\\sdks\\\\workspaces\\\\75ae036b\\\\versions\\\\node\\\\current"
+        - "c:\\\\Users\\\\Administrator.DESKTOP-2L6B2TM\\\\.trae\\\\sdks\\\\versions\\\\node\\\\current"
+        - "c:\\Users\\Administrator.DESKTOP-2L6B2TM\\.trae\\sdks\\workspaces\\75ae036b\\versions\\node\\current"
+        - "c:\\Users\\Administrator.DESKTOP-2L6B2TM\\.trae\\sdks\\versions\\node\\current"
+        - "E:\\python\\Scripts\\"
+        - "E:\\python\\"
+        - "C:\\Windows\\system32"
+        - "C:\\Windows"
+        - "C:\\Windows\\System32\\Wbem"
+        - "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\"
+        - "C:\\Windows\\System32\\OpenSSH\\"
+        - "E:\\Windows Kits\\10\\Windows Performance Toolkit\\"
+        - "E:\\itk_snap\\ITK-SNAP 4.4\\bin"
+        - "D:\\workspace\\vcpkg-master"
+        - "C:\\Program Files\\CMake\\bin"
+        - "E:\\Git\\cmd"
+        - "D:\\workspace\\vcpkg-master\\packages\\pkgconf_x64-windows\\tools\\pkgconf"
+        - "E:\\doxygen\\bin"
+        - "E:\\Graphviz\\bin"
+        - "E:\\Strawberry\\c\\bin"
+        - "E:\\Strawberry\\perl\\site\\bin"
+        - "E:\\Strawberry\\perl\\bin"
+        - "C:\\Qt\\6.9.2\\msvc2022_64\\bin"
+        - "c:\\Users\\Administrator.DESKTOP-2L6B2TM\\.trae-cn\\sdks\\workspaces\\42ed4518\\versions\\node\\current"
+        - "c:\\Users\\Administrator.DESKTOP-2L6B2TM\\.trae-cn\\sdks\\versions\\node\\current"
+        - "E:\\python\\Scripts\\"
+        - "E:\\python\\"
+        - "C:\\Windows\\system32"
+        - "C:\\Windows"
+        - "C:\\Windows\\System32\\Wbem"
+        - "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\"
+        - "C:\\Windows\\System32\\OpenSSH\\"
+        - "E:\\Windows Kits\\10\\Windows Performance Toolkit\\"
+        - "E:\\itk_snap\\ITK-SNAP 4.4\\bin"
+        - "D:\\workspace\\vcpkg-master"
+        - "C:\\Program Files\\CMake\\bin"
+        - "E:\\Git\\cmd"
+        - "D:\\workspace\\vcpkg-master\\packages\\pkgconf_x64-windows\\tools\\pkgconf"
+        - "E:\\doxygen\\bin"
+        - "E:\\Graphviz\\bin"
+        - "E:\\Strawberry\\c\\bin"
+        - "E:\\Strawberry\\perl\\site\\bin"
+        - "E:\\Strawberry\\perl\\bin"
+        - "C:\\Qt\\6.9.2\\msvc2022_64\\bin"
+        - "C:\\Users\\Administrator.DESKTOP-2L6B2TM\\AppData\\Local\\Microsoft\\WindowsApps"
+        - "E:\\Microsoft VS Code\\bin"
+        - "c:\\Users\\Administrator.DESKTOP-2L6B2TM\\.trae-cn\\extensions\\ms-python.debugpy-2025.14.0-win32-x64\\bundled\\scripts\\noConfigScripts"
+        - "D:\\\u8d44\u6599\\jp\\ffmpeg-8.0-essentials_build\\bin"
+  -
+    kind: "message-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeDetermineCompilerId.cmake:17 (message)"
+      - "C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeDetermineCompilerId.cmake:64 (__determine_compiler_id_test)"
+      - "C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeDetermineCXXCompiler.cmake:125 (CMAKE_DETERMINE_COMPILER_ID)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
+      Compiler:  
+      Build flags: 
+      Id flags:  
+      
+      The output was:
+      0
+      适用于 .NET Framework MSBuild 版本 17.14.19+164abd434
+      生成启动时间为 2026/1/22 16:00:41。
+      
+      节点 1 上的项目“D:\\program\\misc\\kys-promise-main\\cpp_reborn\\build\\CMakeFiles\\4.1.1\\CompilerIdCXX\\CompilerIdCXX.vcxproj”(默认目标)。
+      PrepareForBuild:
+        正在创建目录“Debug\\”。
+        已启用结构化输出。编译器诊断的格式设置将反映错误层次结构。有关详细信息，请参阅 https://aka.ms/cpp/structured-output。
+        正在创建目录“Debug\\CompilerIdCXX.tlog\\”。
+      InitializeBuildStatus:
+        正在创建“Debug\\CompilerIdCXX.tlog\\unsuccessfulbuild”，因为已指定“AlwaysCreate”。
+        正在对“Debug\\CompilerIdCXX.tlog\\unsuccessfulbuild”执行 Touch 任务。
+      VcpkgTripletSelection:
+        Using triplet "x64-windows" from "D:\\workspace\\vcpkg-master\\installed\\x64-windows\\"
+        Using normalized configuration "Release"
+      ClCompile:
+        E:\\MSVS\\bin\\Microsoft Visual Studio\\Shared\\VC\\Tools\\MSVC\\14.44.35207\\bin\\HostX64\\x64\\CL.exe /c /I"D:\\workspace\\vcpkg-master\\installed\\x64-windows\\include" /nologo /W0 /WX- /diagnostics:column /Od /D _MBCS /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"Debug\\\\" /Fd"Debug\\vc143.pdb" /external:W0 /Gd /TP /FC /errorReport:queue CMakeCXXCompilerId.cpp
+        CMakeCXXCompilerId.cpp
+      Link:
+        E:\\MSVS\\bin\\Microsoft Visual Studio\\Shared\\VC\\Tools\\MSVC\\14.44.35207\\bin\\HostX64\\x64\\link.exe /ERRORREPORT:QUEUE /OUT:".\\CompilerIdCXX.exe" /INCREMENTAL:NO /NOLOGO /LIBPATH:"D:\\workspace\\vcpkg-master\\installed\\x64-windows\\lib" /LIBPATH:"D:\\workspace\\vcpkg-master\\installed\\x64-windows\\lib\\manual-link" kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib "D:\\workspace\\vcpkg-master\\installed\\x64-windows\\lib\\*.lib" /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /PDB:".\\CompilerIdCXX.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:".\\CompilerIdCXX.lib" /MACHINE:X64 Debug\\CMakeCXXCompilerId.obj
+        CompilerIdCXX.vcxproj -> D:\\program\\misc\\kys-promise-main\\cpp_reborn\\build\\CMakeFiles\\4.1.1\\CompilerIdCXX\\CompilerIdCXX.exe
+      AppLocalFromInstalled:
+        pwsh.exe -ExecutionPolicy Bypass -noprofile -File "D:\\workspace\\vcpkg-master\\scripts\\buildsystems\\msbuild\\applocal.ps1" "D:\\program\\misc\\kys-promise-main\\cpp_reborn\\build\\CMakeFiles\\4.1.1\\CompilerIdCXX\\CompilerIdCXX.exe" "D:\\workspace\\vcpkg-master\\installed\\x64-windows\\bin" "Debug\\CompilerIdCXX.tlog\\CompilerIdCXX.write.1u.tlog" "Debug\\vcpkg.applocal.log"
+        'pwsh.exe' 不是内部或外部命令，也不是可运行的程序
+        或批处理文件。
+        命令“pwsh.exe -ExecutionPolicy Bypass -noprofile -File "D:\\workspace\\vcpkg-master\\scripts\\buildsystems\\msbuild\\applocal.ps1" "D:\\program\\misc\\kys-promise-main\\cpp_reborn\\build\\CMakeFiles\\4.1.1\\CompilerIdCXX\\CompilerIdCXX.exe" "D:\\workspace\\vcpkg-master\\installed\\x64-windows\\bin" "Debug\\CompilerIdCXX.tlog\\CompilerIdCXX.write.1u.tlog" "Debug\\vcpkg.applocal.log"”已退出，代码为 9009。
+        "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -ExecutionPolicy Bypass -noprofile -File "D:\\workspace\\vcpkg-master\\scripts\\buildsystems\\msbuild\\applocal.ps1" "D:\\program\\misc\\kys-promise-main\\cpp_reborn\\build\\CMakeFiles\\4.1.1\\CompilerIdCXX\\CompilerIdCXX.exe" "D:\\workspace\\vcpkg-master\\installed\\x64-windows\\bin" "Debug\\CompilerIdCXX.tlog\\CompilerIdCXX.write.1u.tlog" "Debug\\vcpkg.applocal.log"
+      PostBuildEvent:
+        for %%i in (cl.exe) do @echo CMAKE_CXX_COMPILER=%%~$PATH:i
+        :VCEnd
+        CMAKE_CXX_COMPILER=E:\\MSVS\\bin\\Microsoft Visual Studio\\Shared\\VC\\Tools\\MSVC\\14.44.35207\\bin\\Hostx64\\x64\\cl.exe
+      FinalizeBuildStatus:
+        正在删除文件“Debug\\CompilerIdCXX.tlog\\unsuccessfulbuild”。
+        正在对“Debug\\CompilerIdCXX.tlog\\CompilerIdCXX.lastbuildstate”执行 Touch 任务。
+      已完成生成项目“D:\\program\\misc\\kys-promise-main\\cpp_reborn\\build\\CMakeFiles\\4.1.1\\CompilerIdCXX\\CompilerIdCXX.vcxproj”(默认目标)的操作。
+      
+      已成功生成。
+          0 个警告
+          0 个错误
+      
+      已用时间 00:00:02.19
+      
+      
+      Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "CompilerIdCXX.exe"
+      
+      Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "CompilerIdCXX.vcxproj"
+      
+      The CXX compiler identification is MSVC, found in:
+        D:/program/misc/kys-promise-main/cpp_reborn/build/CMakeFiles/4.1.1/CompilerIdCXX/CompilerIdCXX.exe
+      
+  -
+    kind: "find-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeFindBinUtils.cmake:37 (find_program)"
+      - "C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeFindBinUtils.cmake:65 (__resolve_tool_path)"
+      - "C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeFindBinUtils.cmake:103 (__resolve_linker_path)"
+      - "C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
+      - "CMakeLists.txt:2 (project)"
+    mode: "program"
+    variable: "_CMAKE_TOOL_WITH_PATH"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "link"
+    candidate_directories:
+      - "E:/MSVS/bin/Microsoft Visual Studio/Shared/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae/sdks/workspaces/75ae036b/versions/node/current/"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae/sdks/versions/node/current/"
+      - "E:/python/Scripts/"
+      - "E:/python/"
+      - "C:/Windows/System32/"
+      - "C:/Windows/"
+      - "C:/Windows/System32/wbem/"
+      - "C:/Windows/System32/WindowsPowerShell/v1.0/"
+      - "C:/Windows/System32/OpenSSH/"
+      - "E:/Windows Kits/10/Windows Performance Toolkit/"
+      - "E:/itk_snap/ITK-SNAP 4.4/bin/"
+      - "D:/workspace/vcpkg-master/"
+      - "C:/Program Files/CMake/bin/"
+      - "E:/Git/cmd/"
+      - "D:/workspace/vcpkg-master/packages/pkgconf_x64-windows/tools/pkgconf/"
+      - "E:/doxygen/bin/"
+      - "E:/Graphviz/bin/"
+      - "E:/Strawberry/c/bin/"
+      - "E:/Strawberry/perl/site/bin/"
+      - "E:/Strawberry/perl/bin/"
+      - "C:/Qt/6.9.2/msvc2022_64/bin/"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae-cn/sdks/workspaces/42ed4518/versions/node/current/"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae-cn/sdks/versions/node/current/"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/AppData/Local/Microsoft/WindowsApps/"
+      - "E:/Microsoft VS Code/bin/"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae-cn/extensions/ms-python.debugpy-2025.14.0-win32-x64/bundled/scripts/noConfigScripts/"
+      - "D:/\u8d44\u6599/jp/ffmpeg-8.0-essentials_build/bin/"
+    searched_directories:
+      - "E:/MSVS/bin/Microsoft Visual Studio/Shared/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/link.com"
+    found: "E:/MSVS/bin/Microsoft Visual Studio/Shared/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/link.exe"
+    search_context:
+      ENV{PATH}:
+        - "c:\\\\Users\\\\Administrator.DESKTOP-2L6B2TM\\\\.trae\\\\sdks\\\\workspaces\\\\75ae036b\\\\versions\\\\node\\\\current"
+        - "c:\\\\Users\\\\Administrator.DESKTOP-2L6B2TM\\\\.trae\\\\sdks\\\\versions\\\\node\\\\current"
+        - "c:\\Users\\Administrator.DESKTOP-2L6B2TM\\.trae\\sdks\\workspaces\\75ae036b\\versions\\node\\current"
+        - "c:\\Users\\Administrator.DESKTOP-2L6B2TM\\.trae\\sdks\\versions\\node\\current"
+        - "E:\\python\\Scripts\\"
+        - "E:\\python\\"
+        - "C:\\Windows\\system32"
+        - "C:\\Windows"
+        - "C:\\Windows\\System32\\Wbem"
+        - "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\"
+        - "C:\\Windows\\System32\\OpenSSH\\"
+        - "E:\\Windows Kits\\10\\Windows Performance Toolkit\\"
+        - "E:\\itk_snap\\ITK-SNAP 4.4\\bin"
+        - "D:\\workspace\\vcpkg-master"
+        - "C:\\Program Files\\CMake\\bin"
+        - "E:\\Git\\cmd"
+        - "D:\\workspace\\vcpkg-master\\packages\\pkgconf_x64-windows\\tools\\pkgconf"
+        - "E:\\doxygen\\bin"
+        - "E:\\Graphviz\\bin"
+        - "E:\\Strawberry\\c\\bin"
+        - "E:\\Strawberry\\perl\\site\\bin"
+        - "E:\\Strawberry\\perl\\bin"
+        - "C:\\Qt\\6.9.2\\msvc2022_64\\bin"
+        - "c:\\Users\\Administrator.DESKTOP-2L6B2TM\\.trae-cn\\sdks\\workspaces\\42ed4518\\versions\\node\\current"
+        - "c:\\Users\\Administrator.DESKTOP-2L6B2TM\\.trae-cn\\sdks\\versions\\node\\current"
+        - "E:\\python\\Scripts\\"
+        - "E:\\python\\"
+        - "C:\\Windows\\system32"
+        - "C:\\Windows"
+        - "C:\\Windows\\System32\\Wbem"
+        - "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\"
+        - "C:\\Windows\\System32\\OpenSSH\\"
+        - "E:\\Windows Kits\\10\\Windows Performance Toolkit\\"
+        - "E:\\itk_snap\\ITK-SNAP 4.4\\bin"
+        - "D:\\workspace\\vcpkg-master"
+        - "C:\\Program Files\\CMake\\bin"
+        - "E:\\Git\\cmd"
+        - "D:\\workspace\\vcpkg-master\\packages\\pkgconf_x64-windows\\tools\\pkgconf"
+        - "E:\\doxygen\\bin"
+        - "E:\\Graphviz\\bin"
+        - "E:\\Strawberry\\c\\bin"
+        - "E:\\Strawberry\\perl\\site\\bin"
+        - "E:\\Strawberry\\perl\\bin"
+        - "C:\\Qt\\6.9.2\\msvc2022_64\\bin"
+        - "C:\\Users\\Administrator.DESKTOP-2L6B2TM\\AppData\\Local\\Microsoft\\WindowsApps"
+        - "E:\\Microsoft VS Code\\bin"
+        - "c:\\Users\\Administrator.DESKTOP-2L6B2TM\\.trae-cn\\extensions\\ms-python.debugpy-2025.14.0-win32-x64\\bundled\\scripts\\noConfigScripts"
+        - "D:\\\u8d44\u6599\\jp\\ffmpeg-8.0-essentials_build\\bin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeFindBinUtils.cmake:37 (find_program)"
+      - "C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeFindBinUtils.cmake:65 (__resolve_tool_path)"
+      - "C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeFindBinUtils.cmake:104 (__resolve_linker_path)"
+      - "C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
+      - "CMakeLists.txt:2 (project)"
+    mode: "program"
+    variable: "_CMAKE_TOOL_WITH_PATH"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "lld-link"
+    candidate_directories:
+      - "E:/MSVS/bin/Microsoft Visual Studio/Shared/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae/sdks/workspaces/75ae036b/versions/node/current/"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae/sdks/versions/node/current/"
+      - "E:/python/Scripts/"
+      - "E:/python/"
+      - "C:/Windows/System32/"
+      - "C:/Windows/"
+      - "C:/Windows/System32/wbem/"
+      - "C:/Windows/System32/WindowsPowerShell/v1.0/"
+      - "C:/Windows/System32/OpenSSH/"
+      - "E:/Windows Kits/10/Windows Performance Toolkit/"
+      - "E:/itk_snap/ITK-SNAP 4.4/bin/"
+      - "D:/workspace/vcpkg-master/"
+      - "C:/Program Files/CMake/bin/"
+      - "E:/Git/cmd/"
+      - "D:/workspace/vcpkg-master/packages/pkgconf_x64-windows/tools/pkgconf/"
+      - "E:/doxygen/bin/"
+      - "E:/Graphviz/bin/"
+      - "E:/Strawberry/c/bin/"
+      - "E:/Strawberry/perl/site/bin/"
+      - "E:/Strawberry/perl/bin/"
+      - "C:/Qt/6.9.2/msvc2022_64/bin/"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae-cn/sdks/workspaces/42ed4518/versions/node/current/"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae-cn/sdks/versions/node/current/"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/AppData/Local/Microsoft/WindowsApps/"
+      - "E:/Microsoft VS Code/bin/"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae-cn/extensions/ms-python.debugpy-2025.14.0-win32-x64/bundled/scripts/noConfigScripts/"
+      - "D:/\u8d44\u6599/jp/ffmpeg-8.0-essentials_build/bin/"
+    searched_directories:
+      - "E:/MSVS/bin/Microsoft Visual Studio/Shared/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/lld-link.com"
+      - "E:/MSVS/bin/Microsoft Visual Studio/Shared/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/lld-link.exe"
+      - "E:/MSVS/bin/Microsoft Visual Studio/Shared/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/lld-link"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae/sdks/workspaces/75ae036b/versions/node/current/lld-link.com"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae/sdks/workspaces/75ae036b/versions/node/current/lld-link.exe"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae/sdks/workspaces/75ae036b/versions/node/current/lld-link"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae/sdks/versions/node/current/lld-link.com"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae/sdks/versions/node/current/lld-link.exe"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae/sdks/versions/node/current/lld-link"
+      - "E:/python/Scripts/lld-link.com"
+      - "E:/python/Scripts/lld-link.exe"
+      - "E:/python/Scripts/lld-link"
+      - "E:/python/lld-link.com"
+      - "E:/python/lld-link.exe"
+      - "E:/python/lld-link"
+      - "C:/Windows/System32/lld-link.com"
+      - "C:/Windows/System32/lld-link.exe"
+      - "C:/Windows/System32/lld-link"
+      - "C:/Windows/lld-link.com"
+      - "C:/Windows/lld-link.exe"
+      - "C:/Windows/lld-link"
+      - "C:/Windows/System32/wbem/lld-link.com"
+      - "C:/Windows/System32/wbem/lld-link.exe"
+      - "C:/Windows/System32/wbem/lld-link"
+      - "C:/Windows/System32/WindowsPowerShell/v1.0/lld-link.com"
+      - "C:/Windows/System32/WindowsPowerShell/v1.0/lld-link.exe"
+      - "C:/Windows/System32/WindowsPowerShell/v1.0/lld-link"
+      - "C:/Windows/System32/OpenSSH/lld-link.com"
+      - "C:/Windows/System32/OpenSSH/lld-link.exe"
+      - "C:/Windows/System32/OpenSSH/lld-link"
+      - "E:/Windows Kits/10/Windows Performance Toolkit/lld-link.com"
+      - "E:/Windows Kits/10/Windows Performance Toolkit/lld-link.exe"
+      - "E:/Windows Kits/10/Windows Performance Toolkit/lld-link"
+      - "E:/itk_snap/ITK-SNAP 4.4/bin/lld-link.com"
+      - "E:/itk_snap/ITK-SNAP 4.4/bin/lld-link.exe"
+      - "E:/itk_snap/ITK-SNAP 4.4/bin/lld-link"
+      - "D:/workspace/vcpkg-master/lld-link.com"
+      - "D:/workspace/vcpkg-master/lld-link.exe"
+      - "D:/workspace/vcpkg-master/lld-link"
+      - "C:/Program Files/CMake/bin/lld-link.com"
+      - "C:/Program Files/CMake/bin/lld-link.exe"
+      - "C:/Program Files/CMake/bin/lld-link"
+      - "E:/Git/cmd/lld-link.com"
+      - "E:/Git/cmd/lld-link.exe"
+      - "E:/Git/cmd/lld-link"
+      - "D:/workspace/vcpkg-master/packages/pkgconf_x64-windows/tools/pkgconf/lld-link.com"
+      - "D:/workspace/vcpkg-master/packages/pkgconf_x64-windows/tools/pkgconf/lld-link.exe"
+      - "D:/workspace/vcpkg-master/packages/pkgconf_x64-windows/tools/pkgconf/lld-link"
+      - "E:/doxygen/bin/lld-link.com"
+      - "E:/doxygen/bin/lld-link.exe"
+      - "E:/doxygen/bin/lld-link"
+      - "E:/Graphviz/bin/lld-link.com"
+      - "E:/Graphviz/bin/lld-link.exe"
+      - "E:/Graphviz/bin/lld-link"
+      - "E:/Strawberry/c/bin/lld-link.com"
+      - "E:/Strawberry/c/bin/lld-link.exe"
+      - "E:/Strawberry/c/bin/lld-link"
+      - "E:/Strawberry/perl/site/bin/lld-link.com"
+      - "E:/Strawberry/perl/site/bin/lld-link.exe"
+      - "E:/Strawberry/perl/site/bin/lld-link"
+      - "E:/Strawberry/perl/bin/lld-link.com"
+      - "E:/Strawberry/perl/bin/lld-link.exe"
+      - "E:/Strawberry/perl/bin/lld-link"
+      - "C:/Qt/6.9.2/msvc2022_64/bin/lld-link.com"
+      - "C:/Qt/6.9.2/msvc2022_64/bin/lld-link.exe"
+      - "C:/Qt/6.9.2/msvc2022_64/bin/lld-link"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae-cn/sdks/workspaces/42ed4518/versions/node/current/lld-link.com"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae-cn/sdks/workspaces/42ed4518/versions/node/current/lld-link.exe"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae-cn/sdks/workspaces/42ed4518/versions/node/current/lld-link"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae-cn/sdks/versions/node/current/lld-link.com"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae-cn/sdks/versions/node/current/lld-link.exe"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae-cn/sdks/versions/node/current/lld-link"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/AppData/Local/Microsoft/WindowsApps/lld-link.com"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/AppData/Local/Microsoft/WindowsApps/lld-link.exe"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/AppData/Local/Microsoft/WindowsApps/lld-link"
+      - "E:/Microsoft VS Code/bin/lld-link.com"
+      - "E:/Microsoft VS Code/bin/lld-link.exe"
+      - "E:/Microsoft VS Code/bin/lld-link"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae-cn/extensions/ms-python.debugpy-2025.14.0-win32-x64/bundled/scripts/noConfigScripts/lld-link.com"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae-cn/extensions/ms-python.debugpy-2025.14.0-win32-x64/bundled/scripts/noConfigScripts/lld-link.exe"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae-cn/extensions/ms-python.debugpy-2025.14.0-win32-x64/bundled/scripts/noConfigScripts/lld-link"
+      - "D:/\u8d44\u6599/jp/ffmpeg-8.0-essentials_build/bin/lld-link.com"
+      - "D:/\u8d44\u6599/jp/ffmpeg-8.0-essentials_build/bin/lld-link.exe"
+      - "D:/\u8d44\u6599/jp/ffmpeg-8.0-essentials_build/bin/lld-link"
+    found: false
+    search_context:
+      ENV{PATH}:
+        - "c:\\\\Users\\\\Administrator.DESKTOP-2L6B2TM\\\\.trae\\\\sdks\\\\workspaces\\\\75ae036b\\\\versions\\\\node\\\\current"
+        - "c:\\\\Users\\\\Administrator.DESKTOP-2L6B2TM\\\\.trae\\\\sdks\\\\versions\\\\node\\\\current"
+        - "c:\\Users\\Administrator.DESKTOP-2L6B2TM\\.trae\\sdks\\workspaces\\75ae036b\\versions\\node\\current"
+        - "c:\\Users\\Administrator.DESKTOP-2L6B2TM\\.trae\\sdks\\versions\\node\\current"
+        - "E:\\python\\Scripts\\"
+        - "E:\\python\\"
+        - "C:\\Windows\\system32"
+        - "C:\\Windows"
+        - "C:\\Windows\\System32\\Wbem"
+        - "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\"
+        - "C:\\Windows\\System32\\OpenSSH\\"
+        - "E:\\Windows Kits\\10\\Windows Performance Toolkit\\"
+        - "E:\\itk_snap\\ITK-SNAP 4.4\\bin"
+        - "D:\\workspace\\vcpkg-master"
+        - "C:\\Program Files\\CMake\\bin"
+        - "E:\\Git\\cmd"
+        - "D:\\workspace\\vcpkg-master\\packages\\pkgconf_x64-windows\\tools\\pkgconf"
+        - "E:\\doxygen\\bin"
+        - "E:\\Graphviz\\bin"
+        - "E:\\Strawberry\\c\\bin"
+        - "E:\\Strawberry\\perl\\site\\bin"
+        - "E:\\Strawberry\\perl\\bin"
+        - "C:\\Qt\\6.9.2\\msvc2022_64\\bin"
+        - "c:\\Users\\Administrator.DESKTOP-2L6B2TM\\.trae-cn\\sdks\\workspaces\\42ed4518\\versions\\node\\current"
+        - "c:\\Users\\Administrator.DESKTOP-2L6B2TM\\.trae-cn\\sdks\\versions\\node\\current"
+        - "E:\\python\\Scripts\\"
+        - "E:\\python\\"
+        - "C:\\Windows\\system32"
+        - "C:\\Windows"
+        - "C:\\Windows\\System32\\Wbem"
+        - "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\"
+        - "C:\\Windows\\System32\\OpenSSH\\"
+        - "E:\\Windows Kits\\10\\Windows Performance Toolkit\\"
+        - "E:\\itk_snap\\ITK-SNAP 4.4\\bin"
+        - "D:\\workspace\\vcpkg-master"
+        - "C:\\Program Files\\CMake\\bin"
+        - "E:\\Git\\cmd"
+        - "D:\\workspace\\vcpkg-master\\packages\\pkgconf_x64-windows\\tools\\pkgconf"
+        - "E:\\doxygen\\bin"
+        - "E:\\Graphviz\\bin"
+        - "E:\\Strawberry\\c\\bin"
+        - "E:\\Strawberry\\perl\\site\\bin"
+        - "E:\\Strawberry\\perl\\bin"
+        - "C:\\Qt\\6.9.2\\msvc2022_64\\bin"
+        - "C:\\Users\\Administrator.DESKTOP-2L6B2TM\\AppData\\Local\\Microsoft\\WindowsApps"
+        - "E:\\Microsoft VS Code\\bin"
+        - "c:\\Users\\Administrator.DESKTOP-2L6B2TM\\.trae-cn\\extensions\\ms-python.debugpy-2025.14.0-win32-x64\\bundled\\scripts\\noConfigScripts"
+        - "D:\\\u8d44\u6599\\jp\\ffmpeg-8.0-essentials_build\\bin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeFindBinUtils.cmake:238 (find_program)"
+      - "C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
+      - "CMakeLists.txt:2 (project)"
+    mode: "program"
+    variable: "CMAKE_LINKER"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "link"
+    candidate_directories:
+      - "E:/MSVS/bin/Microsoft Visual Studio/Shared/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae/sdks/workspaces/75ae036b/versions/node/current/"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae/sdks/versions/node/current/"
+      - "E:/python/Scripts/"
+      - "E:/python/"
+      - "C:/Windows/System32/"
+      - "C:/Windows/"
+      - "C:/Windows/System32/wbem/"
+      - "C:/Windows/System32/WindowsPowerShell/v1.0/"
+      - "C:/Windows/System32/OpenSSH/"
+      - "E:/Windows Kits/10/Windows Performance Toolkit/"
+      - "E:/itk_snap/ITK-SNAP 4.4/bin/"
+      - "D:/workspace/vcpkg-master/"
+      - "C:/Program Files/CMake/bin/"
+      - "E:/Git/cmd/"
+      - "D:/workspace/vcpkg-master/packages/pkgconf_x64-windows/tools/pkgconf/"
+      - "E:/doxygen/bin/"
+      - "E:/Graphviz/bin/"
+      - "E:/Strawberry/c/bin/"
+      - "E:/Strawberry/perl/site/bin/"
+      - "E:/Strawberry/perl/bin/"
+      - "C:/Qt/6.9.2/msvc2022_64/bin/"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae-cn/sdks/workspaces/42ed4518/versions/node/current/"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae-cn/sdks/versions/node/current/"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/AppData/Local/Microsoft/WindowsApps/"
+      - "E:/Microsoft VS Code/bin/"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae-cn/extensions/ms-python.debugpy-2025.14.0-win32-x64/bundled/scripts/noConfigScripts/"
+      - "D:/\u8d44\u6599/jp/ffmpeg-8.0-essentials_build/bin/"
+    searched_directories:
+      - "E:/MSVS/bin/Microsoft Visual Studio/Shared/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/link.com"
+    found: "E:/MSVS/bin/Microsoft Visual Studio/Shared/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/link.exe"
+    search_context:
+      ENV{PATH}:
+        - "c:\\\\Users\\\\Administrator.DESKTOP-2L6B2TM\\\\.trae\\\\sdks\\\\workspaces\\\\75ae036b\\\\versions\\\\node\\\\current"
+        - "c:\\\\Users\\\\Administrator.DESKTOP-2L6B2TM\\\\.trae\\\\sdks\\\\versions\\\\node\\\\current"
+        - "c:\\Users\\Administrator.DESKTOP-2L6B2TM\\.trae\\sdks\\workspaces\\75ae036b\\versions\\node\\current"
+        - "c:\\Users\\Administrator.DESKTOP-2L6B2TM\\.trae\\sdks\\versions\\node\\current"
+        - "E:\\python\\Scripts\\"
+        - "E:\\python\\"
+        - "C:\\Windows\\system32"
+        - "C:\\Windows"
+        - "C:\\Windows\\System32\\Wbem"
+        - "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\"
+        - "C:\\Windows\\System32\\OpenSSH\\"
+        - "E:\\Windows Kits\\10\\Windows Performance Toolkit\\"
+        - "E:\\itk_snap\\ITK-SNAP 4.4\\bin"
+        - "D:\\workspace\\vcpkg-master"
+        - "C:\\Program Files\\CMake\\bin"
+        - "E:\\Git\\cmd"
+        - "D:\\workspace\\vcpkg-master\\packages\\pkgconf_x64-windows\\tools\\pkgconf"
+        - "E:\\doxygen\\bin"
+        - "E:\\Graphviz\\bin"
+        - "E:\\Strawberry\\c\\bin"
+        - "E:\\Strawberry\\perl\\site\\bin"
+        - "E:\\Strawberry\\perl\\bin"
+        - "C:\\Qt\\6.9.2\\msvc2022_64\\bin"
+        - "c:\\Users\\Administrator.DESKTOP-2L6B2TM\\.trae-cn\\sdks\\workspaces\\42ed4518\\versions\\node\\current"
+        - "c:\\Users\\Administrator.DESKTOP-2L6B2TM\\.trae-cn\\sdks\\versions\\node\\current"
+        - "E:\\python\\Scripts\\"
+        - "E:\\python\\"
+        - "C:\\Windows\\system32"
+        - "C:\\Windows"
+        - "C:\\Windows\\System32\\Wbem"
+        - "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\"
+        - "C:\\Windows\\System32\\OpenSSH\\"
+        - "E:\\Windows Kits\\10\\Windows Performance Toolkit\\"
+        - "E:\\itk_snap\\ITK-SNAP 4.4\\bin"
+        - "D:\\workspace\\vcpkg-master"
+        - "C:\\Program Files\\CMake\\bin"
+        - "E:\\Git\\cmd"
+        - "D:\\workspace\\vcpkg-master\\packages\\pkgconf_x64-windows\\tools\\pkgconf"
+        - "E:\\doxygen\\bin"
+        - "E:\\Graphviz\\bin"
+        - "E:\\Strawberry\\c\\bin"
+        - "E:\\Strawberry\\perl\\site\\bin"
+        - "E:\\Strawberry\\perl\\bin"
+        - "C:\\Qt\\6.9.2\\msvc2022_64\\bin"
+        - "C:\\Users\\Administrator.DESKTOP-2L6B2TM\\AppData\\Local\\Microsoft\\WindowsApps"
+        - "E:\\Microsoft VS Code\\bin"
+        - "c:\\Users\\Administrator.DESKTOP-2L6B2TM\\.trae-cn\\extensions\\ms-python.debugpy-2025.14.0-win32-x64\\bundled\\scripts\\noConfigScripts"
+        - "D:\\\u8d44\u6599\\jp\\ffmpeg-8.0-essentials_build\\bin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeFindBinUtils.cmake:238 (find_program)"
+      - "C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
+      - "CMakeLists.txt:2 (project)"
+    mode: "program"
+    variable: "CMAKE_MT"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "mt"
+    candidate_directories:
+      - "E:/MSVS/bin/Microsoft Visual Studio/Shared/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae/sdks/workspaces/75ae036b/versions/node/current/"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae/sdks/versions/node/current/"
+      - "E:/python/Scripts/"
+      - "E:/python/"
+      - "C:/Windows/System32/"
+      - "C:/Windows/"
+      - "C:/Windows/System32/wbem/"
+      - "C:/Windows/System32/WindowsPowerShell/v1.0/"
+      - "C:/Windows/System32/OpenSSH/"
+      - "E:/Windows Kits/10/Windows Performance Toolkit/"
+      - "E:/itk_snap/ITK-SNAP 4.4/bin/"
+      - "D:/workspace/vcpkg-master/"
+      - "C:/Program Files/CMake/bin/"
+      - "E:/Git/cmd/"
+      - "D:/workspace/vcpkg-master/packages/pkgconf_x64-windows/tools/pkgconf/"
+      - "E:/doxygen/bin/"
+      - "E:/Graphviz/bin/"
+      - "E:/Strawberry/c/bin/"
+      - "E:/Strawberry/perl/site/bin/"
+      - "E:/Strawberry/perl/bin/"
+      - "C:/Qt/6.9.2/msvc2022_64/bin/"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae-cn/sdks/workspaces/42ed4518/versions/node/current/"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae-cn/sdks/versions/node/current/"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/AppData/Local/Microsoft/WindowsApps/"
+      - "E:/Microsoft VS Code/bin/"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae-cn/extensions/ms-python.debugpy-2025.14.0-win32-x64/bundled/scripts/noConfigScripts/"
+      - "D:/\u8d44\u6599/jp/ffmpeg-8.0-essentials_build/bin/"
+    searched_directories:
+      - "E:/MSVS/bin/Microsoft Visual Studio/Shared/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/mt.com"
+      - "E:/MSVS/bin/Microsoft Visual Studio/Shared/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/mt.exe"
+      - "E:/MSVS/bin/Microsoft Visual Studio/Shared/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/mt"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae/sdks/workspaces/75ae036b/versions/node/current/mt.com"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae/sdks/workspaces/75ae036b/versions/node/current/mt.exe"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae/sdks/workspaces/75ae036b/versions/node/current/mt"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae/sdks/versions/node/current/mt.com"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae/sdks/versions/node/current/mt.exe"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae/sdks/versions/node/current/mt"
+      - "E:/python/Scripts/mt.com"
+      - "E:/python/Scripts/mt.exe"
+      - "E:/python/Scripts/mt"
+      - "E:/python/mt.com"
+      - "E:/python/mt.exe"
+      - "E:/python/mt"
+      - "C:/Windows/System32/mt.com"
+      - "C:/Windows/System32/mt.exe"
+      - "C:/Windows/System32/mt"
+      - "C:/Windows/mt.com"
+      - "C:/Windows/mt.exe"
+      - "C:/Windows/mt"
+      - "C:/Windows/System32/wbem/mt.com"
+      - "C:/Windows/System32/wbem/mt.exe"
+      - "C:/Windows/System32/wbem/mt"
+      - "C:/Windows/System32/WindowsPowerShell/v1.0/mt.com"
+      - "C:/Windows/System32/WindowsPowerShell/v1.0/mt.exe"
+      - "C:/Windows/System32/WindowsPowerShell/v1.0/mt"
+      - "C:/Windows/System32/OpenSSH/mt.com"
+      - "C:/Windows/System32/OpenSSH/mt.exe"
+      - "C:/Windows/System32/OpenSSH/mt"
+      - "E:/Windows Kits/10/Windows Performance Toolkit/mt.com"
+      - "E:/Windows Kits/10/Windows Performance Toolkit/mt.exe"
+      - "E:/Windows Kits/10/Windows Performance Toolkit/mt"
+      - "E:/itk_snap/ITK-SNAP 4.4/bin/mt.com"
+      - "E:/itk_snap/ITK-SNAP 4.4/bin/mt.exe"
+      - "E:/itk_snap/ITK-SNAP 4.4/bin/mt"
+      - "D:/workspace/vcpkg-master/mt.com"
+      - "D:/workspace/vcpkg-master/mt.exe"
+      - "D:/workspace/vcpkg-master/mt"
+      - "C:/Program Files/CMake/bin/mt.com"
+      - "C:/Program Files/CMake/bin/mt.exe"
+      - "C:/Program Files/CMake/bin/mt"
+      - "E:/Git/cmd/mt.com"
+      - "E:/Git/cmd/mt.exe"
+      - "E:/Git/cmd/mt"
+      - "D:/workspace/vcpkg-master/packages/pkgconf_x64-windows/tools/pkgconf/mt.com"
+      - "D:/workspace/vcpkg-master/packages/pkgconf_x64-windows/tools/pkgconf/mt.exe"
+      - "D:/workspace/vcpkg-master/packages/pkgconf_x64-windows/tools/pkgconf/mt"
+      - "E:/doxygen/bin/mt.com"
+      - "E:/doxygen/bin/mt.exe"
+      - "E:/doxygen/bin/mt"
+      - "E:/Graphviz/bin/mt.com"
+      - "E:/Graphviz/bin/mt.exe"
+      - "E:/Graphviz/bin/mt"
+      - "E:/Strawberry/c/bin/mt.com"
+      - "E:/Strawberry/c/bin/mt.exe"
+      - "E:/Strawberry/c/bin/mt"
+      - "E:/Strawberry/perl/site/bin/mt.com"
+      - "E:/Strawberry/perl/site/bin/mt.exe"
+      - "E:/Strawberry/perl/site/bin/mt"
+      - "E:/Strawberry/perl/bin/mt.com"
+      - "E:/Strawberry/perl/bin/mt.exe"
+      - "E:/Strawberry/perl/bin/mt"
+      - "C:/Qt/6.9.2/msvc2022_64/bin/mt.com"
+      - "C:/Qt/6.9.2/msvc2022_64/bin/mt.exe"
+      - "C:/Qt/6.9.2/msvc2022_64/bin/mt"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae-cn/sdks/workspaces/42ed4518/versions/node/current/mt.com"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae-cn/sdks/workspaces/42ed4518/versions/node/current/mt.exe"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae-cn/sdks/workspaces/42ed4518/versions/node/current/mt"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae-cn/sdks/versions/node/current/mt.com"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae-cn/sdks/versions/node/current/mt.exe"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae-cn/sdks/versions/node/current/mt"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/AppData/Local/Microsoft/WindowsApps/mt.com"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/AppData/Local/Microsoft/WindowsApps/mt.exe"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/AppData/Local/Microsoft/WindowsApps/mt"
+      - "E:/Microsoft VS Code/bin/mt.com"
+      - "E:/Microsoft VS Code/bin/mt.exe"
+      - "E:/Microsoft VS Code/bin/mt"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae-cn/extensions/ms-python.debugpy-2025.14.0-win32-x64/bundled/scripts/noConfigScripts/mt.com"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae-cn/extensions/ms-python.debugpy-2025.14.0-win32-x64/bundled/scripts/noConfigScripts/mt.exe"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae-cn/extensions/ms-python.debugpy-2025.14.0-win32-x64/bundled/scripts/noConfigScripts/mt"
+      - "D:/\u8d44\u6599/jp/ffmpeg-8.0-essentials_build/bin/mt.com"
+      - "D:/\u8d44\u6599/jp/ffmpeg-8.0-essentials_build/bin/mt.exe"
+      - "D:/\u8d44\u6599/jp/ffmpeg-8.0-essentials_build/bin/mt"
+    found: false
+    search_context:
+      ENV{PATH}:
+        - "c:\\\\Users\\\\Administrator.DESKTOP-2L6B2TM\\\\.trae\\\\sdks\\\\workspaces\\\\75ae036b\\\\versions\\\\node\\\\current"
+        - "c:\\\\Users\\\\Administrator.DESKTOP-2L6B2TM\\\\.trae\\\\sdks\\\\versions\\\\node\\\\current"
+        - "c:\\Users\\Administrator.DESKTOP-2L6B2TM\\.trae\\sdks\\workspaces\\75ae036b\\versions\\node\\current"
+        - "c:\\Users\\Administrator.DESKTOP-2L6B2TM\\.trae\\sdks\\versions\\node\\current"
+        - "E:\\python\\Scripts\\"
+        - "E:\\python\\"
+        - "C:\\Windows\\system32"
+        - "C:\\Windows"
+        - "C:\\Windows\\System32\\Wbem"
+        - "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\"
+        - "C:\\Windows\\System32\\OpenSSH\\"
+        - "E:\\Windows Kits\\10\\Windows Performance Toolkit\\"
+        - "E:\\itk_snap\\ITK-SNAP 4.4\\bin"
+        - "D:\\workspace\\vcpkg-master"
+        - "C:\\Program Files\\CMake\\bin"
+        - "E:\\Git\\cmd"
+        - "D:\\workspace\\vcpkg-master\\packages\\pkgconf_x64-windows\\tools\\pkgconf"
+        - "E:\\doxygen\\bin"
+        - "E:\\Graphviz\\bin"
+        - "E:\\Strawberry\\c\\bin"
+        - "E:\\Strawberry\\perl\\site\\bin"
+        - "E:\\Strawberry\\perl\\bin"
+        - "C:\\Qt\\6.9.2\\msvc2022_64\\bin"
+        - "c:\\Users\\Administrator.DESKTOP-2L6B2TM\\.trae-cn\\sdks\\workspaces\\42ed4518\\versions\\node\\current"
+        - "c:\\Users\\Administrator.DESKTOP-2L6B2TM\\.trae-cn\\sdks\\versions\\node\\current"
+        - "E:\\python\\Scripts\\"
+        - "E:\\python\\"
+        - "C:\\Windows\\system32"
+        - "C:\\Windows"
+        - "C:\\Windows\\System32\\Wbem"
+        - "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\"
+        - "C:\\Windows\\System32\\OpenSSH\\"
+        - "E:\\Windows Kits\\10\\Windows Performance Toolkit\\"
+        - "E:\\itk_snap\\ITK-SNAP 4.4\\bin"
+        - "D:\\workspace\\vcpkg-master"
+        - "C:\\Program Files\\CMake\\bin"
+        - "E:\\Git\\cmd"
+        - "D:\\workspace\\vcpkg-master\\packages\\pkgconf_x64-windows\\tools\\pkgconf"
+        - "E:\\doxygen\\bin"
+        - "E:\\Graphviz\\bin"
+        - "E:\\Strawberry\\c\\bin"
+        - "E:\\Strawberry\\perl\\site\\bin"
+        - "E:\\Strawberry\\perl\\bin"
+        - "C:\\Qt\\6.9.2\\msvc2022_64\\bin"
+        - "C:\\Users\\Administrator.DESKTOP-2L6B2TM\\AppData\\Local\\Microsoft\\WindowsApps"
+        - "E:\\Microsoft VS Code\\bin"
+        - "c:\\Users\\Administrator.DESKTOP-2L6B2TM\\.trae-cn\\extensions\\ms-python.debugpy-2025.14.0-win32-x64\\bundled\\scripts\\noConfigScripts"
+        - "D:\\\u8d44\u6599\\jp\\ffmpeg-8.0-essentials_build\\bin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeFindBinUtils.cmake:238 (find_program)"
+      - "C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
+      - "CMakeLists.txt:2 (project)"
+    mode: "program"
+    variable: "CMAKE_AR"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "lib"
+    candidate_directories:
+      - "E:/MSVS/bin/Microsoft Visual Studio/Shared/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae/sdks/workspaces/75ae036b/versions/node/current/"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae/sdks/versions/node/current/"
+      - "E:/python/Scripts/"
+      - "E:/python/"
+      - "C:/Windows/System32/"
+      - "C:/Windows/"
+      - "C:/Windows/System32/wbem/"
+      - "C:/Windows/System32/WindowsPowerShell/v1.0/"
+      - "C:/Windows/System32/OpenSSH/"
+      - "E:/Windows Kits/10/Windows Performance Toolkit/"
+      - "E:/itk_snap/ITK-SNAP 4.4/bin/"
+      - "D:/workspace/vcpkg-master/"
+      - "C:/Program Files/CMake/bin/"
+      - "E:/Git/cmd/"
+      - "D:/workspace/vcpkg-master/packages/pkgconf_x64-windows/tools/pkgconf/"
+      - "E:/doxygen/bin/"
+      - "E:/Graphviz/bin/"
+      - "E:/Strawberry/c/bin/"
+      - "E:/Strawberry/perl/site/bin/"
+      - "E:/Strawberry/perl/bin/"
+      - "C:/Qt/6.9.2/msvc2022_64/bin/"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae-cn/sdks/workspaces/42ed4518/versions/node/current/"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae-cn/sdks/versions/node/current/"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/AppData/Local/Microsoft/WindowsApps/"
+      - "E:/Microsoft VS Code/bin/"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae-cn/extensions/ms-python.debugpy-2025.14.0-win32-x64/bundled/scripts/noConfigScripts/"
+      - "D:/\u8d44\u6599/jp/ffmpeg-8.0-essentials_build/bin/"
+    searched_directories:
+      - "E:/MSVS/bin/Microsoft Visual Studio/Shared/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/lib.com"
+    found: "E:/MSVS/bin/Microsoft Visual Studio/Shared/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/lib.exe"
+    search_context:
+      ENV{PATH}:
+        - "c:\\\\Users\\\\Administrator.DESKTOP-2L6B2TM\\\\.trae\\\\sdks\\\\workspaces\\\\75ae036b\\\\versions\\\\node\\\\current"
+        - "c:\\\\Users\\\\Administrator.DESKTOP-2L6B2TM\\\\.trae\\\\sdks\\\\versions\\\\node\\\\current"
+        - "c:\\Users\\Administrator.DESKTOP-2L6B2TM\\.trae\\sdks\\workspaces\\75ae036b\\versions\\node\\current"
+        - "c:\\Users\\Administrator.DESKTOP-2L6B2TM\\.trae\\sdks\\versions\\node\\current"
+        - "E:\\python\\Scripts\\"
+        - "E:\\python\\"
+        - "C:\\Windows\\system32"
+        - "C:\\Windows"
+        - "C:\\Windows\\System32\\Wbem"
+        - "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\"
+        - "C:\\Windows\\System32\\OpenSSH\\"
+        - "E:\\Windows Kits\\10\\Windows Performance Toolkit\\"
+        - "E:\\itk_snap\\ITK-SNAP 4.4\\bin"
+        - "D:\\workspace\\vcpkg-master"
+        - "C:\\Program Files\\CMake\\bin"
+        - "E:\\Git\\cmd"
+        - "D:\\workspace\\vcpkg-master\\packages\\pkgconf_x64-windows\\tools\\pkgconf"
+        - "E:\\doxygen\\bin"
+        - "E:\\Graphviz\\bin"
+        - "E:\\Strawberry\\c\\bin"
+        - "E:\\Strawberry\\perl\\site\\bin"
+        - "E:\\Strawberry\\perl\\bin"
+        - "C:\\Qt\\6.9.2\\msvc2022_64\\bin"
+        - "c:\\Users\\Administrator.DESKTOP-2L6B2TM\\.trae-cn\\sdks\\workspaces\\42ed4518\\versions\\node\\current"
+        - "c:\\Users\\Administrator.DESKTOP-2L6B2TM\\.trae-cn\\sdks\\versions\\node\\current"
+        - "E:\\python\\Scripts\\"
+        - "E:\\python\\"
+        - "C:\\Windows\\system32"
+        - "C:\\Windows"
+        - "C:\\Windows\\System32\\Wbem"
+        - "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\"
+        - "C:\\Windows\\System32\\OpenSSH\\"
+        - "E:\\Windows Kits\\10\\Windows Performance Toolkit\\"
+        - "E:\\itk_snap\\ITK-SNAP 4.4\\bin"
+        - "D:\\workspace\\vcpkg-master"
+        - "C:\\Program Files\\CMake\\bin"
+        - "E:\\Git\\cmd"
+        - "D:\\workspace\\vcpkg-master\\packages\\pkgconf_x64-windows\\tools\\pkgconf"
+        - "E:\\doxygen\\bin"
+        - "E:\\Graphviz\\bin"
+        - "E:\\Strawberry\\c\\bin"
+        - "E:\\Strawberry\\perl\\site\\bin"
+        - "E:\\Strawberry\\perl\\bin"
+        - "C:\\Qt\\6.9.2\\msvc2022_64\\bin"
+        - "C:\\Users\\Administrator.DESKTOP-2L6B2TM\\AppData\\Local\\Microsoft\\WindowsApps"
+        - "E:\\Microsoft VS Code\\bin"
+        - "c:\\Users\\Administrator.DESKTOP-2L6B2TM\\.trae-cn\\extensions\\ms-python.debugpy-2025.14.0-win32-x64\\bundled\\scripts\\noConfigScripts"
+        - "D:\\\u8d44\u6599\\jp\\ffmpeg-8.0-essentials_build\\bin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeDetermineRCCompiler.cmake:40 (find_program)"
+      - "C:/Program Files/CMake/share/cmake-4.1/Modules/Platform/Windows-MSVC.cmake:574 (enable_language)"
+      - "C:/Program Files/CMake/share/cmake-4.1/Modules/Platform/Windows-MSVC.cmake:547 (__windows_compiler_msvc_enable_rc)"
+      - "C:/Program Files/CMake/share/cmake-4.1/Modules/Platform/Windows-MSVC-CXX.cmake:6 (__windows_compiler_msvc)"
+      - "C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeCXXInformation.cmake:48 (include)"
+      - "CMakeLists.txt:2 (project)"
+    mode: "program"
+    variable: "CMAKE_RC_COMPILER"
+    description: "RC compiler"
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: true
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "rc"
+    candidate_directories:
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae/sdks/workspaces/75ae036b/versions/node/current/"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae/sdks/versions/node/current/"
+      - "E:/python/Scripts/"
+      - "E:/python/"
+      - "C:/Windows/System32/"
+      - "C:/Windows/"
+      - "C:/Windows/System32/wbem/"
+      - "C:/Windows/System32/WindowsPowerShell/v1.0/"
+      - "C:/Windows/System32/OpenSSH/"
+      - "E:/Windows Kits/10/Windows Performance Toolkit/"
+      - "E:/itk_snap/ITK-SNAP 4.4/bin/"
+      - "D:/workspace/vcpkg-master/"
+      - "C:/Program Files/CMake/bin/"
+      - "E:/Git/cmd/"
+      - "D:/workspace/vcpkg-master/packages/pkgconf_x64-windows/tools/pkgconf/"
+      - "E:/doxygen/bin/"
+      - "E:/Graphviz/bin/"
+      - "E:/Strawberry/c/bin/"
+      - "E:/Strawberry/perl/site/bin/"
+      - "E:/Strawberry/perl/bin/"
+      - "C:/Qt/6.9.2/msvc2022_64/bin/"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae-cn/sdks/workspaces/42ed4518/versions/node/current/"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae-cn/sdks/versions/node/current/"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/AppData/Local/Microsoft/WindowsApps/"
+      - "E:/Microsoft VS Code/bin/"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae-cn/extensions/ms-python.debugpy-2025.14.0-win32-x64/bundled/scripts/noConfigScripts/"
+      - "D:/\u8d44\u6599/jp/ffmpeg-8.0-essentials_build/bin/"
+      - "C:/Program Files/bin/"
+      - "C:/Program Files/sbin/"
+      - "C:/Program Files/"
+      - "C:/Program Files (x86)/bin/"
+      - "C:/Program Files (x86)/sbin/"
+      - "C:/Program Files (x86)/"
+      - "C:/Program Files/CMake/bin/"
+      - "C:/Program Files/CMake/sbin/"
+      - "C:/Program Files/CMake/"
+      - "C:/Program Files/kys_cpp/bin/"
+      - "C:/Program Files/kys_cpp/sbin/"
+      - "C:/Program Files/kys_cpp/"
+    searched_directories:
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae/sdks/workspaces/75ae036b/versions/node/current/rc.com"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae/sdks/workspaces/75ae036b/versions/node/current/rc.exe"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae/sdks/workspaces/75ae036b/versions/node/current/rc"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae/sdks/versions/node/current/rc.com"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae/sdks/versions/node/current/rc.exe"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae/sdks/versions/node/current/rc"
+      - "E:/python/Scripts/rc.com"
+      - "E:/python/Scripts/rc.exe"
+      - "E:/python/Scripts/rc"
+      - "E:/python/rc.com"
+      - "E:/python/rc.exe"
+      - "E:/python/rc"
+      - "C:/Windows/System32/rc.com"
+      - "C:/Windows/System32/rc.exe"
+      - "C:/Windows/System32/rc"
+      - "C:/Windows/rc.com"
+      - "C:/Windows/rc.exe"
+      - "C:/Windows/rc"
+      - "C:/Windows/System32/wbem/rc.com"
+      - "C:/Windows/System32/wbem/rc.exe"
+      - "C:/Windows/System32/wbem/rc"
+      - "C:/Windows/System32/WindowsPowerShell/v1.0/rc.com"
+      - "C:/Windows/System32/WindowsPowerShell/v1.0/rc.exe"
+      - "C:/Windows/System32/WindowsPowerShell/v1.0/rc"
+      - "C:/Windows/System32/OpenSSH/rc.com"
+      - "C:/Windows/System32/OpenSSH/rc.exe"
+      - "C:/Windows/System32/OpenSSH/rc"
+      - "E:/Windows Kits/10/Windows Performance Toolkit/rc.com"
+      - "E:/Windows Kits/10/Windows Performance Toolkit/rc.exe"
+      - "E:/Windows Kits/10/Windows Performance Toolkit/rc"
+      - "E:/itk_snap/ITK-SNAP 4.4/bin/rc.com"
+      - "E:/itk_snap/ITK-SNAP 4.4/bin/rc.exe"
+      - "E:/itk_snap/ITK-SNAP 4.4/bin/rc"
+      - "D:/workspace/vcpkg-master/rc.com"
+      - "D:/workspace/vcpkg-master/rc.exe"
+      - "D:/workspace/vcpkg-master/rc"
+      - "C:/Program Files/CMake/bin/rc.com"
+      - "C:/Program Files/CMake/bin/rc.exe"
+      - "C:/Program Files/CMake/bin/rc"
+      - "E:/Git/cmd/rc.com"
+      - "E:/Git/cmd/rc.exe"
+      - "E:/Git/cmd/rc"
+      - "D:/workspace/vcpkg-master/packages/pkgconf_x64-windows/tools/pkgconf/rc.com"
+      - "D:/workspace/vcpkg-master/packages/pkgconf_x64-windows/tools/pkgconf/rc.exe"
+      - "D:/workspace/vcpkg-master/packages/pkgconf_x64-windows/tools/pkgconf/rc"
+      - "E:/doxygen/bin/rc.com"
+      - "E:/doxygen/bin/rc.exe"
+      - "E:/doxygen/bin/rc"
+      - "E:/Graphviz/bin/rc.com"
+      - "E:/Graphviz/bin/rc.exe"
+      - "E:/Graphviz/bin/rc"
+      - "E:/Strawberry/c/bin/rc.com"
+      - "E:/Strawberry/c/bin/rc.exe"
+      - "E:/Strawberry/c/bin/rc"
+      - "E:/Strawberry/perl/site/bin/rc.com"
+      - "E:/Strawberry/perl/site/bin/rc.exe"
+      - "E:/Strawberry/perl/site/bin/rc"
+      - "E:/Strawberry/perl/bin/rc.com"
+      - "E:/Strawberry/perl/bin/rc.exe"
+      - "E:/Strawberry/perl/bin/rc"
+      - "C:/Qt/6.9.2/msvc2022_64/bin/rc.com"
+      - "C:/Qt/6.9.2/msvc2022_64/bin/rc.exe"
+      - "C:/Qt/6.9.2/msvc2022_64/bin/rc"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae-cn/sdks/workspaces/42ed4518/versions/node/current/rc.com"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae-cn/sdks/workspaces/42ed4518/versions/node/current/rc.exe"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae-cn/sdks/workspaces/42ed4518/versions/node/current/rc"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae-cn/sdks/versions/node/current/rc.com"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae-cn/sdks/versions/node/current/rc.exe"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae-cn/sdks/versions/node/current/rc"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/AppData/Local/Microsoft/WindowsApps/rc.com"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/AppData/Local/Microsoft/WindowsApps/rc.exe"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/AppData/Local/Microsoft/WindowsApps/rc"
+      - "E:/Microsoft VS Code/bin/rc.com"
+      - "E:/Microsoft VS Code/bin/rc.exe"
+      - "E:/Microsoft VS Code/bin/rc"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae-cn/extensions/ms-python.debugpy-2025.14.0-win32-x64/bundled/scripts/noConfigScripts/rc.com"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae-cn/extensions/ms-python.debugpy-2025.14.0-win32-x64/bundled/scripts/noConfigScripts/rc.exe"
+      - "C:/Users/Administrator.DESKTOP-2L6B2TM/.trae-cn/extensions/ms-python.debugpy-2025.14.0-win32-x64/bundled/scripts/noConfigScripts/rc"
+      - "D:/\u8d44\u6599/jp/ffmpeg-8.0-essentials_build/bin/rc.com"
+      - "D:/\u8d44\u6599/jp/ffmpeg-8.0-essentials_build/bin/rc.exe"
+      - "D:/\u8d44\u6599/jp/ffmpeg-8.0-essentials_build/bin/rc"
+      - "C:/Program Files/bin/rc.com"
+      - "C:/Program Files/bin/rc.exe"
+      - "C:/Program Files/bin/rc"
+      - "C:/Program Files/sbin/rc.com"
+      - "C:/Program Files/sbin/rc.exe"
+      - "C:/Program Files/sbin/rc"
+      - "C:/Program Files/rc.com"
+      - "C:/Program Files/rc.exe"
+      - "C:/Program Files/rc"
+      - "C:/Program Files (x86)/bin/rc.com"
+      - "C:/Program Files (x86)/bin/rc.exe"
+      - "C:/Program Files (x86)/bin/rc"
+      - "C:/Program Files (x86)/sbin/rc.com"
+      - "C:/Program Files (x86)/sbin/rc.exe"
+      - "C:/Program Files (x86)/sbin/rc"
+      - "C:/Program Files (x86)/rc.com"
+      - "C:/Program Files (x86)/rc.exe"
+      - "C:/Program Files (x86)/rc"
+      - "C:/Program Files/CMake/bin/rc.com"
+      - "C:/Program Files/CMake/bin/rc.exe"
+      - "C:/Program Files/CMake/bin/rc"
+      - "C:/Program Files/CMake/sbin/rc.com"
+      - "C:/Program Files/CMake/sbin/rc.exe"
+      - "C:/Program Files/CMake/sbin/rc"
+      - "C:/Program Files/CMake/rc.com"
+      - "C:/Program Files/CMake/rc.exe"
+      - "C:/Program Files/CMake/rc"
+      - "C:/Program Files/kys_cpp/bin/rc.com"
+      - "C:/Program Files/kys_cpp/bin/rc.exe"
+      - "C:/Program Files/kys_cpp/bin/rc"
+      - "C:/Program Files/kys_cpp/sbin/rc.com"
+      - "C:/Program Files/kys_cpp/sbin/rc.exe"
+      - "C:/Program Files/kys_cpp/sbin/rc"
+      - "C:/Program Files/kys_cpp/rc.com"
+      - "C:/Program Files/kys_cpp/rc.exe"
+      - "C:/Program Files/kys_cpp/rc"
+    found: false
+    search_context:
+      ENV{PATH}:
+        - "c:\\\\Users\\\\Administrator.DESKTOP-2L6B2TM\\\\.trae\\\\sdks\\\\workspaces\\\\75ae036b\\\\versions\\\\node\\\\current"
+        - "c:\\\\Users\\\\Administrator.DESKTOP-2L6B2TM\\\\.trae\\\\sdks\\\\versions\\\\node\\\\current"
+        - "c:\\Users\\Administrator.DESKTOP-2L6B2TM\\.trae\\sdks\\workspaces\\75ae036b\\versions\\node\\current"
+        - "c:\\Users\\Administrator.DESKTOP-2L6B2TM\\.trae\\sdks\\versions\\node\\current"
+        - "E:\\python\\Scripts\\"
+        - "E:\\python\\"
+        - "C:\\Windows\\system32"
+        - "C:\\Windows"
+        - "C:\\Windows\\System32\\Wbem"
+        - "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\"
+        - "C:\\Windows\\System32\\OpenSSH\\"
+        - "E:\\Windows Kits\\10\\Windows Performance Toolkit\\"
+        - "E:\\itk_snap\\ITK-SNAP 4.4\\bin"
+        - "D:\\workspace\\vcpkg-master"
+        - "C:\\Program Files\\CMake\\bin"
+        - "E:\\Git\\cmd"
+        - "D:\\workspace\\vcpkg-master\\packages\\pkgconf_x64-windows\\tools\\pkgconf"
+        - "E:\\doxygen\\bin"
+        - "E:\\Graphviz\\bin"
+        - "E:\\Strawberry\\c\\bin"
+        - "E:\\Strawberry\\perl\\site\\bin"
+        - "E:\\Strawberry\\perl\\bin"
+        - "C:\\Qt\\6.9.2\\msvc2022_64\\bin"
+        - "c:\\Users\\Administrator.DESKTOP-2L6B2TM\\.trae-cn\\sdks\\workspaces\\42ed4518\\versions\\node\\current"
+        - "c:\\Users\\Administrator.DESKTOP-2L6B2TM\\.trae-cn\\sdks\\versions\\node\\current"
+        - "E:\\python\\Scripts\\"
+        - "E:\\python\\"
+        - "C:\\Windows\\system32"
+        - "C:\\Windows"
+        - "C:\\Windows\\System32\\Wbem"
+        - "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\"
+        - "C:\\Windows\\System32\\OpenSSH\\"
+        - "E:\\Windows Kits\\10\\Windows Performance Toolkit\\"
+        - "E:\\itk_snap\\ITK-SNAP 4.4\\bin"
+        - "D:\\workspace\\vcpkg-master"
+        - "C:\\Program Files\\CMake\\bin"
+        - "E:\\Git\\cmd"
+        - "D:\\workspace\\vcpkg-master\\packages\\pkgconf_x64-windows\\tools\\pkgconf"
+        - "E:\\doxygen\\bin"
+        - "E:\\Graphviz\\bin"
+        - "E:\\Strawberry\\c\\bin"
+        - "E:\\Strawberry\\perl\\site\\bin"
+        - "E:\\Strawberry\\perl\\bin"
+        - "C:\\Qt\\6.9.2\\msvc2022_64\\bin"
+        - "C:\\Users\\Administrator.DESKTOP-2L6B2TM\\AppData\\Local\\Microsoft\\WindowsApps"
+        - "E:\\Microsoft VS Code\\bin"
+        - "c:\\Users\\Administrator.DESKTOP-2L6B2TM\\.trae-cn\\extensions\\ms-python.debugpy-2025.14.0-win32-x64\\bundled\\scripts\\noConfigScripts"
+        - "D:\\\u8d44\u6599\\jp\\ffmpeg-8.0-essentials_build\\bin"
+      CMAKE_INSTALL_PREFIX: "C:/Program Files/kys_cpp"
+      CMAKE_SYSTEM_PREFIX_PATH:
+        - "C:/Program Files"
+        - "C:/Program Files (x86)"
+        - "C:/Program Files/CMake"
+        - "C:/Program Files/kys_cpp"
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeDetermineCompilerABI.cmake:83 (try_compile)"
+      - "C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:2 (project)"
+    checks:
+      - "Detecting CXX compiler ABI info"
+    directories:
+      source: "D:/program/misc/kys-promise-main/cpp_reborn/build/CMakeFiles/CMakeScratch/TryCompile-7osdoi"
+      binary: "D:/program/misc/kys-promise-main/cpp_reborn/build/CMakeFiles/CMakeScratch/TryCompile-7osdoi"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: "/DWIN32 /D_WINDOWS /GR /EHsc"
+      CMAKE_CXX_FLAGS_DEBUG: "/Zi /Ob0 /Od /RTC1"
+      CMAKE_CXX_SCAN_FOR_MODULES: "OFF"
+      CMAKE_EXE_LINKER_FLAGS: "/machine:x64"
+    buildResult:
+      variable: "CMAKE_CXX_ABI_COMPILED"
+      cached: true
+      stdout: |
+        Change Dir: 'D:/program/misc/kys-promise-main/cpp_reborn/build/CMakeFiles/CMakeScratch/TryCompile-7osdoi'
+        
+        Run Build Command(s): "E:/MSVS/bin/Microsoft Visual Studio/Shared/MSBuild/Current/Bin/amd64/MSBuild.exe" cmTC_20143.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=17.0 /v:n
+        适用于 .NET Framework MSBuild 版本 17.14.19+164abd434
+        生成启动时间为 2026/1/22 16:00:43。
+        
+        节点 1 上的项目“D:\\program\\misc\\kys-promise-main\\cpp_reborn\\build\\CMakeFiles\\CMakeScratch\\TryCompile-7osdoi\\cmTC_20143.vcxproj”(默认目标)。
+        PrepareForBuild:
+          正在创建目录“cmTC_20143.dir\\Debug\\”。
+          已启用结构化输出。编译器诊断的格式设置将反映错误层次结构。有关详细信息，请参阅 https://aka.ms/cpp/structured-output。
+          正在创建目录“D:\\program\\misc\\kys-promise-main\\cpp_reborn\\build\\CMakeFiles\\CMakeScratch\\TryCompile-7osdoi\\Debug\\”。
+          正在创建目录“cmTC_20143.dir\\Debug\\cmTC_20143.tlog\\”。
+        InitializeBuildStatus:
+          正在创建“cmTC_20143.dir\\Debug\\cmTC_20143.tlog\\unsuccessfulbuild”，因为已指定“AlwaysCreate”。
+          正在对“cmTC_20143.dir\\Debug\\cmTC_20143.tlog\\unsuccessfulbuild”执行 Touch 任务。
+        VcpkgTripletSelection:
+          Using triplet "x64-windows" from "D:\\workspace\\vcpkg-master\\installed\\x64-windows\\"
+          Using normalized configuration "Debug"
+        ClCompile:
+          E:\\MSVS\\bin\\Microsoft Visual Studio\\Shared\\VC\\Tools\\MSVC\\14.44.35207\\bin\\HostX64\\x64\\CL.exe /c /I"D:\\workspace\\vcpkg-master\\installed\\x64-windows\\include" /Zi /W1 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\\"Debug\\"" /EHsc /RTC1 /MDd /GS /fp:precise /GR /Fo"cmTC_20143.dir\\Debug\\\\" /Fd"cmTC_20143.dir\\Debug\\vc143.pdb" /external:W1 /Gd /TP /errorReport:queue "C:\\Program Files\\CMake\\share\\cmake-4.1\\Modules\\CMakeCXXCompilerABI.cpp"
+          用于 x64 的 Microsoft (R) C/C++ 优化编译器 19.44.35215 版
+          版权所有(C) Microsoft Corporation。保留所有权利。
+          cl /c /I"D:\\workspace\\vcpkg-master\\installed\\x64-windows\\include" /Zi /W1 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\\"Debug\\"" /EHsc /RTC1 /MDd /GS /fp:precise /GR /Fo"cmTC_20143.dir\\Debug\\\\" /Fd"cmTC_20143.dir\\Debug\\vc143.pdb" /external:W1 /Gd /TP /errorReport:queue "C:\\Program Files\\CMake\\share\\cmake-4.1\\Modules\\CMakeCXXCompilerABI.cpp"
+          CMakeCXXCompilerABI.cpp
+        Link:
+          E:\\MSVS\\bin\\Microsoft Visual Studio\\Shared\\VC\\Tools\\MSVC\\14.44.35207\\bin\\HostX64\\x64\\link.exe /OUT:"D:\\program\\misc\\kys-promise-main\\cpp_reborn\\build\\CMakeFiles\\CMakeScratch\\TryCompile-7osdoi\\Debug\\cmTC_20143.exe" /INCREMENTAL /ILK:"cmTC_20143.dir\\Debug\\cmTC_20143.ilk" /NOLOGO /LIBPATH:"D:\\workspace\\vcpkg-master\\installed\\x64-windows\\debug\\lib" /LIBPATH:"D:\\workspace\\vcpkg-master\\installed\\x64-windows\\debug\\lib\\manual-link" kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib "D:\\workspace\\vcpkg-master\\installed\\x64-windows\\debug\\lib\\*.lib" /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:/program/misc/kys-promise-main/cpp_reborn/build/CMakeFiles/CMakeScratch/TryCompile-7osdoi/Debug/cmTC_20143.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /IMPLIB:"D:/program/misc/kys-promise-main/cpp_reborn/build/CMakeFiles/CMakeScratch/TryCompile-7osdoi/Debug/cmTC_20143.lib" /MACHINE:X64  /machine:x64 cmTC_20143.dir\\Debug\\CMakeCXXCompilerABI.obj
+          cmTC_20143.vcxproj -> D:\\program\\misc\\kys-promise-main\\cpp_reborn\\build\\CMakeFiles\\CMakeScratch\\TryCompile-7osdoi\\Debug\\cmTC_20143.exe
+        AppLocalFromInstalled:
+          pwsh.exe -ExecutionPolicy Bypass -noprofile -File "D:\\workspace\\vcpkg-master\\scripts\\buildsystems\\msbuild\\applocal.ps1" "D:\\program\\misc\\kys-promise-main\\cpp_reborn\\build\\CMakeFiles\\CMakeScratch\\TryCompile-7osdoi\\Debug\\cmTC_20143.exe" "D:\\workspace\\vcpkg-master\\installed\\x64-windows\\debug\\bin" "cmTC_20143.dir\\Debug\\cmTC_20143.tlog\\cmTC_20143.write.1u.tlog" "cmTC_20143.dir\\Debug\\vcpkg.applocal.log"
+          'pwsh.exe' 不是内部或外部命令，也不是可运行的程序
+          或批处理文件。
+          命令“pwsh.exe -ExecutionPolicy Bypass -noprofile -File "D:\\workspace\\vcpkg-master\\scripts\\buildsystems\\msbuild\\applocal.ps1" "D:\\program\\misc\\kys-promise-main\\cpp_reborn\\build\\CMakeFiles\\CMakeScratch\\TryCompile-7osdoi\\Debug\\cmTC_20143.exe" "D:\\workspace\\vcpkg-master\\installed\\x64-windows\\debug\\bin" "cmTC_20143.dir\\Debug\\cmTC_20143.tlog\\cmTC_20143.write.1u.tlog" "cmTC_20143.dir\\Debug\\vcpkg.applocal.log"”已退出，代码为 9009。
+          "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -ExecutionPolicy Bypass -noprofile -File "D:\\workspace\\vcpkg-master\\scripts\\buildsystems\\msbuild\\applocal.ps1" "D:\\program\\misc\\kys-promise-main\\cpp_reborn\\build\\CMakeFiles\\CMakeScratch\\TryCompile-7osdoi\\Debug\\cmTC_20143.exe" "D:\\workspace\\vcpkg-master\\installed\\x64-windows\\debug\\bin" "cmTC_20143.dir\\Debug\\cmTC_20143.tlog\\cmTC_20143.write.1u.tlog" "cmTC_20143.dir\\Debug\\vcpkg.applocal.log"
+        FinalizeBuildStatus:
+          正在删除文件“cmTC_20143.dir\\Debug\\cmTC_20143.tlog\\unsuccessfulbuild”。
+          正在对“cmTC_20143.dir\\Debug\\cmTC_20143.tlog\\cmTC_20143.lastbuildstate”执行 Touch 任务。
+        已完成生成项目“D:\\program\\misc\\kys-promise-main\\cpp_reborn\\build\\CMakeFiles\\CMakeScratch\\TryCompile-7osdoi\\cmTC_20143.vcxproj”(默认目标)的操作。
+        
+        已成功生成。
+            0 个警告
+            0 个错误
+        
+        已用时间 00:00:01.63
+        
+      exitCode: 0
+  -
+    kind: "message-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeDetermineCompilerABI.cmake:253 (message)"
+      - "C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      Parsed CXX implicit link information:
+        link line regex: [^( *|.*[/\\])(ld[0-9]*(|\\.[a-rt-z][a-z]*|\\.s[a-np-z][a-z]*|\\.so[a-z]+)|link\\.exe|lld-link(\\.exe)?|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\\]+-)?ld|collect2)[^/\\]*( |$)]
+        linker tool regex: [^[ 	]*(->|")?[ 	]*(([^"]*[/\\])?(ld[0-9]*(|\\.[a-rt-z][a-z]*|\\.s[a-np-z][a-z]*|\\.so[a-z]+)|link\\.exe|lld-link(\\.exe)?))("|,| |$)]
+        linker tool for 'CXX': E:/MSVS/bin/Microsoft Visual Studio/Shared/VC/Tools/MSVC/14.44.35207/bin/HostX64/x64/link.exe
+        implicit libs: []
+        implicit objs: []
+        implicit dirs: []
+        implicit fwks: []
+      
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-4.1/Modules/Internal/CMakeDetermineLinkerId.cmake:36 (message)"
+      - "C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeDetermineCompilerABI.cmake:299 (cmake_determine_linker_id)"
+      - "C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      Running the CXX compiler's linker: "E:/MSVS/bin/Microsoft Visual Studio/Shared/VC/Tools/MSVC/14.44.35207/bin/HostX64/x64/link.exe" "-v"
+      Microsoft (R) Incremental Linker Version 14.44.35215.0
+      Copyright (C) Microsoft Corporation.  All rights reserved.
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "D:/program/misc/kys-promise-main/SDL3-3.4.0/cmake/sdlcpu.cmake:95 (try_compile)"
+      - "D:/program/misc/kys-promise-main/SDL3-3.4.0/cmake/SDL3ConfigVersion.cmake:32 (SDL_DetectTargetCPUArchitectures)"
+      - "CMakeLists.txt:37 (find_package)"
+    directories:
+      source: "D:/program/misc/kys-promise-main/cpp_reborn/build/CMakeFiles/CMakeTmp/SDL_detect_arch/CMakeFiles/CMakeTmp"
+      binary: "D:/program/misc/kys-promise-main/cpp_reborn/build/CMakeFiles/CMakeTmp/SDL_detect_arch/CMakeFiles/CMakeTmp"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: "/DWIN32 /D_WINDOWS /GR /EHsc"
+      CMAKE_CXX_FLAGS_DEBUG: "/Zi /Ob0 /Od /RTC1"
+      CMAKE_EXE_LINKER_FLAGS: "/machine:x64"
+    buildResult:
+      variable: "SDL_CPU_CHECK_ALL"
+      cached: true
+      stdout: |
+        Change Dir: 'D:/program/misc/kys-promise-main/cpp_reborn/build/CMakeFiles/CMakeTmp/SDL_detect_arch/CMakeFiles/CMakeTmp'
+        
+        Run Build Command(s): "E:/MSVS/bin/Microsoft Visual Studio/Shared/MSBuild/Current/Bin/amd64/MSBuild.exe" cmTC_23ba5.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=17.0 /v:n
+        适用于 .NET Framework MSBuild 版本 17.14.19+164abd434
+        生成启动时间为 2026/1/22 16:00:46。
+        
+        节点 1 上的项目“D:\\program\\misc\\kys-promise-main\\cpp_reborn\\build\\CMakeFiles\\CMakeTmp\\SDL_detect_arch\\CMakeFiles\\CMakeTmp\\cmTC_23ba5.vcxproj”(默认目标)。
+        PrepareForBuild:
+          正在创建目录“cmTC_23ba5.dir\\Debug\\”。
+          已启用结构化输出。编译器诊断的格式设置将反映错误层次结构。有关详细信息，请参阅 https://aka.ms/cpp/structured-output。
+          正在创建目录“D:\\program\\misc\\kys-promise-main\\cpp_reborn\\build\\CMakeFiles\\CMakeTmp\\SDL_detect_arch\\CMakeFiles\\CMakeTmp\\Debug\\”。
+          正在创建目录“cmTC_23ba5.dir\\Debug\\cmTC_23ba5.tlog\\”。
+        InitializeBuildStatus:
+          正在创建“cmTC_23ba5.dir\\Debug\\cmTC_23ba5.tlog\\unsuccessfulbuild”，因为已指定“AlwaysCreate”。
+          正在对“cmTC_23ba5.dir\\Debug\\cmTC_23ba5.tlog\\unsuccessfulbuild”执行 Touch 任务。
+        VcpkgTripletSelection:
+          Using triplet "x64-windows" from "D:\\workspace\\vcpkg-master\\installed\\x64-windows\\"
+          Using normalized configuration "Debug"
+        ClCompile:
+          E:\\MSVS\\bin\\Microsoft Visual Studio\\Shared\\VC\\Tools\\MSVC\\14.44.35207\\bin\\HostX64\\x64\\CL.exe /c /I"D:\\workspace\\vcpkg-master\\installed\\x64-windows\\include" /Zi /W1 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\\"Debug\\"" /EHsc /RTC1 /MDd /GS /fp:precise /GR /std:c++17 /Fo"cmTC_23ba5.dir\\Debug\\\\" /Fd"D:\\program\\misc\\kys-promise-main\\cpp_reborn\\build\\CMakeFiles\\CMakeTmp\\SDL_detect_arch\\CMakeFiles\\CMakeTmp\\Debug\\cmTC_23ba5.pdb" /external:W1 /Gd /TP /errorReport:queue "D:\\program\\misc\\kys-promise-main\\cpp_reborn\\build\\CMakeFiles\\CMakeTmp\\SDL_detect_arch.cpp"
+          用于 x64 的 Microsoft (R) C/C++ 优化编译器 19.44.35215 版
+          版权所有(C) Microsoft Corporation。保留所有权利。
+          cl /c /I"D:\\workspace\\vcpkg-master\\installed\\x64-windows\\include" /Zi /W1 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\\"Debug\\"" /EHsc /RTC1 /MDd /GS /fp:precise /GR /std:c++17 /Fo"cmTC_23ba5.dir\\Debug\\\\" /Fd"D:\\program\\misc\\kys-promise-main\\cpp_reborn\\build\\CMakeFiles\\CMakeTmp\\SDL_detect_arch\\CMakeFiles\\CMakeTmp\\Debug\\cmTC_23ba5.pdb" /external:W1 /Gd /TP /errorReport:queue "D:\\program\\misc\\kys-promise-main\\cpp_reborn\\build\\CMakeFiles\\CMakeTmp\\SDL_detect_arch.cpp"
+          SDL_detect_arch.cpp
+        Lib:
+          E:\\MSVS\\bin\\Microsoft Visual Studio\\Shared\\VC\\Tools\\MSVC\\14.44.35207\\bin\\HostX64\\x64\\Lib.exe /OUT:"D:\\program\\misc\\kys-promise-main\\cpp_reborn\\build\\CMakeFiles\\CMakeTmp\\SDL_detect_arch\\CMakeFiles\\CMakeTmp\\Debug\\cmTC_23ba5.lib" /LIBPATH:"D:\\workspace\\vcpkg-master\\installed\\x64-windows\\debug\\lib" /LIBPATH:"D:\\workspace\\vcpkg-master\\installed\\x64-windows\\debug\\lib\\manual-link" /NOLOGO /MACHINE:X64  /machine:x64 cmTC_23ba5.dir\\Debug\\SDL_detect_arch.obj
+          cmTC_23ba5.vcxproj -> D:\\program\\misc\\kys-promise-main\\cpp_reborn\\build\\CMakeFiles\\CMakeTmp\\SDL_detect_arch\\CMakeFiles\\CMakeTmp\\Debug\\cmTC_23ba5.lib
+        FinalizeBuildStatus:
+          正在删除文件“cmTC_23ba5.dir\\Debug\\cmTC_23ba5.tlog\\unsuccessfulbuild”。
+          正在对“cmTC_23ba5.dir\\Debug\\cmTC_23ba5.tlog\\cmTC_23ba5.lastbuildstate”执行 Touch 任务。
+        已完成生成项目“D:\\program\\misc\\kys-promise-main\\cpp_reborn\\build\\CMakeFiles\\CMakeTmp\\SDL_detect_arch\\CMakeFiles\\CMakeTmp\\cmTC_23ba5.vcxproj”(默认目标)的操作。
+        
+        已成功生成。
+            0 个警告
+            0 个错误
+        
+        已用时间 00:00:00.79
+        
+      exitCode: 0
+...
