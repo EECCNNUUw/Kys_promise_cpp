@@ -71,6 +71,8 @@ kys-promise-androidstudio/build
 # C++ Build and IDE
 build/
 !cpp_reborn/build/
+*.obj
+*.recipe
 cpp_reborn/tests/
 tests/
 *.zip

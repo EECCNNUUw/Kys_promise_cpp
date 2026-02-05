@@ -1,4 +1,4 @@
-﻿#include "UIManager.h"
+#include "UIManager.h"
 #include "GameManager.h"
 #include "PicLoader.h"
 #include "TextManager.h"
@@ -695,6 +695,71 @@ void UIManager::ShowItem(int menuSelection) {
         uint32_t color = (i == menuSelection) ? 0xFFFFFFFF : 0xAAAAAAFF;
         DrawShadowTextUtf8(labels[i], x + 5, y + 5 + 22 * i, color, 0x000000FF);
     }
+
+    const int infoX = 122;
+    const int infoW = 499;
+    DrawRectangle(infoX, 16, infoW, 25, 0, 0xFFFFFFFF, 40);
+    DrawRectangle(infoX, 46, infoW, 25, 0, 0xFFFFFFFF, 40);
+    DrawRectangle(infoX, 76, infoW, 252, 0, 0xFFFFFFFF, 40);
+    DrawRectangle(infoX, 335, infoW, 86, 0, 0xFFFFFFFF, 40);
+
+    const int cols = 6;
+    const int rows = 3;
+    const int cellW = 82;
+    const int cellH = 82;
+    const int gridX = 115 + 12;
+    const int gridY = 95 - 14;
+    const int maxCells = cols * rows;
+
+    std::vector<InventoryItem> filtered;
+    const auto& inventory = GameManager::getInstance().getItemList();
+    int filterType = (menuSelection == 0) ? 100 : (menuSelection - 1);
+    for (const auto& it : inventory) {
+        if (it.id < 0 || it.amount <= 0) continue;
+        Item& item = GameManager::getInstance().getItem(it.id);
+        if (filterType == 100 || item.getItemType() == filterType) {
+            filtered.push_back(it);
+        }
+    }
+
+    for (int i = 0; i < maxCells && i < (int)filtered.size(); ++i) {
+        int col = i % cols;
+        int row = i / cols;
+        int itemId = filtered[i].id;
+        PicImage pic = PicLoader::loadPic("resource/Items.Pic", itemId);
+        if (pic.surface) {
+            SDL_Texture* tex = SDL_CreateTextureFromSurface(m_renderer, pic.surface);
+            if (tex) {
+                SDL_SetTextureBlendMode(tex, SDL_BLENDMODE_BLEND);
+                SDL_FRect dest = { (float)(gridX + col * cellW), (float)(gridY + row * cellH), (float)pic.surface->w, (float)pic.surface->h };
+                SDL_RenderTexture(m_renderer, tex, NULL, &dest);
+                SDL_DestroyTexture(tex);
+            }
+            PicLoader::freePic(pic);
+        }
+    }
+
+    if (!filtered.empty()) {
+        int selectedIndex = 0;
+        int selCol = selectedIndex % cols;
+        int selRow = selectedIndex / cols;
+        DrawRectangle(gridX + selCol * cellW - 2, gridY + selRow * cellH - 2, cellW - 4, cellH - 4, 0, 0xFFFFFFFF, 0);
+
+        Item& item = GameManager::getInstance().getItem(filtered[selectedIndex].id);
+        std::string nameUtf8 = TextManager::getInstance().gbkToUtf8(item.getName());
+        std::string introUtf8 = TextManager::getInstance().gbkToUtf8(item.getIntroduction());
+        std::string amountStr = std::to_string(filtered[selectedIndex].amount);
+        DrawShadowTextUtf8(nameUtf8, 134, 20, 0xFFFF00FF, 0x000000FF);
+        DrawShadowTextUtf8(introUtf8, 134, 50, 0xFFFFFFFF, 0x000000FF);
+        DrawShadowTextUtf8(" 數量", 430, 20, 0xFFFF00FF, 0x000000FF);
+        DrawShadowTextUtf8(amountStr, 490, 20, 0xFFFFFFFF, 0x000000FF);
+
+        const char* typeLabels[] = { " 劇情物品", " 神兵寶甲", " 武功秘笈", " 靈丹妙藥", " 傷人暗器" };
+        int t = item.getItemType();
+        if (t >= 0 && t <= 4) {
+            DrawShadowTextUtf8(typeLabels[t], 134, 350, 0xFFFFFFFF, 0x000000FF);
+        }
+    }
 }
 
 // Stubs for missing implementations
@@ -969,6 +1034,11 @@ void UIManager::ShowDialogue(const std::string& text, int headId, int mode, cons
     std::string showName = sanitizeLabel(nameUtf8);
     std::string remainingText = text;
     std::string rawNameBytes = nameRawBytes;
+    SDL_Texture* frozenBackground = nullptr;
+    SDL_Surface* screenSurface = GameManager::getInstance().getScreenSurface();
+    if (screenSurface) {
+        frozenBackground = SDL_CreateTextureFromSurface(m_renderer, screenSurface);
+    }
 
     while (true) {
         int w, h;
@@ -986,6 +1056,13 @@ void UIManager::ShowDialogue(const std::string& text, int headId, int mode, cons
             pageText = remainingText.substr(0, 1);
         }
 
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_EVENT_QUIT) {
+                GameManager::getInstance().Quit();
+                return;
+            }
+        }
+
         bool waiting = true;
         while (waiting) {
             while (SDL_PollEvent(&event)) {
@@ -993,7 +1070,8 @@ void UIManager::ShowDialogue(const std::string& text, int headId, int mode, cons
                     GameManager::getInstance().Quit();
                     return;
                 }
-                if (event.type == SDL_EVENT_KEY_UP) {
+                if (event.type == SDL_EVENT_KEY_DOWN) {
+                    if (event.key.repeat) continue;
                     if (event.key.key == SDLK_F3) {
                         s_showNameDebug = !s_showNameDebug;
                     }
@@ -1001,12 +1079,18 @@ void UIManager::ShowDialogue(const std::string& text, int headId, int mode, cons
                         waiting = false;
                     }
                 }
-                if (event.type == SDL_EVENT_MOUSE_BUTTON_UP) {
+                if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
                     waiting = false;
                 }
             }
 
-            GameManager::getInstance().RenderScreenTo(m_renderer);
+            SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);
+            SDL_RenderClear(m_renderer);
+            if (frozenBackground) {
+                SDL_RenderTexture(m_renderer, frozenBackground, NULL, NULL);
+            } else {
+                GameManager::getInstance().RenderScreenTo(m_renderer);
+            }
 
             DrawRectangle(20, boxY, w - 40, boxH, 0x000000CC, 0xFFFFFFFF, 200);
 
@@ -1069,6 +1153,9 @@ void UIManager::ShowDialogue(const std::string& text, int headId, int mode, cons
             remainingText.erase(0, 1);
         }
     }
+    if (frozenBackground) {
+        SDL_DestroyTexture(frozenBackground);
+    }
 }
 
 void UIManager::ShowTitle(const std::string& text, int x, int y, uint32_t color1, uint32_t color2) {
@@ -1125,13 +1212,76 @@ int UIManager::ShowChoice(const std::string& text) {
 }
 
 void UIManager::ShowItemNotification(int itemId, int amount) {
-    // Show a timed notification
     Item& item = GameManager::getInstance().getItem(itemId);
-    std::string msg = std::string("獲得 ") + TextManager::getInstance().gbkToUtf8(item.getName()) +
-        (amount > 1 ? " x" + std::to_string(amount) : "");
-    
-    // Just show dialogue for now, simplest way
-    ShowDialogue(msg, -1, 0);
+    std::string nameUtf8 = TextManager::getInstance().gbkToUtf8(item.getName());
+    bool gain = amount >= 0;
+    int showAmount = std::abs(amount);
+    std::string title = gain ? " 得到物品" : " 失去物品";
+
+    PicImage pic = PicLoader::loadPic("resource/Items.Pic", itemId);
+    SDL_Texture* itemTex = nullptr;
+    int picW = 0;
+    int picH = 0;
+    if (pic.surface) {
+        itemTex = SDL_CreateTextureFromSurface(m_renderer, pic.surface);
+        if (itemTex) {
+            SDL_SetTextureBlendMode(itemTex, SDL_BLENDMODE_BLEND);
+            picW = pic.surface->w;
+            picH = pic.surface->h;
+        }
+    }
+
+    SDL_Texture* frozenBackground = nullptr;
+    SDL_Surface* screenSurface = GameManager::getInstance().getScreenSurface();
+    if (screenSurface) {
+        frozenBackground = SDL_CreateTextureFromSurface(m_renderer, screenSurface);
+    }
+
+    bool waiting = true;
+    SDL_Event event;
+    while (waiting) {
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_EVENT_QUIT) {
+                GameManager::getInstance().Quit();
+                waiting = false;
+            }
+            if (event.type == SDL_EVENT_KEY_DOWN || event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
+                waiting = false;
+            }
+        }
+
+        int w, h;
+        SDL_GetWindowSize(m_window, &w, &h);
+        SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);
+        SDL_RenderClear(m_renderer);
+        if (frozenBackground) {
+            SDL_RenderTexture(m_renderer, frozenBackground, NULL, NULL);
+        } else {
+            GameManager::getInstance().RenderScreenTo(m_renderer);
+        }
+
+        int boxW = 260;
+        int boxH = 140;
+        int boxX = (w - boxW) / 2;
+        int boxY = (h - boxH) / 2;
+        DrawRectangle(boxX, boxY, boxW, boxH, 0x000000CC, 0xFFFFFFFF, 200);
+
+        DrawShadowTextUtf8(title, boxX + 12, boxY + 10, 0xFFFF00FF, 0x000000FF);
+        if (itemTex && picW > 0 && picH > 0) {
+            SDL_FRect dest = { (float)(boxX + (boxW - picW) / 2), (float)(boxY + 35), (float)picW, (float)picH };
+            SDL_RenderTexture(m_renderer, itemTex, NULL, &dest);
+        }
+        DrawShadowTextUtf8(nameUtf8, boxX + 12, boxY + 35 + picH + 6, 0xFFFFFFFF, 0x000000FF);
+        DrawShadowTextUtf8(" 數量", boxX + 12, boxY + 35 + picH + 30, 0xFFFF00FF, 0x000000FF);
+        DrawShadowTextUtf8(std::to_string(showAmount), boxX + 70, boxY + 35 + picH + 30, 0xFFFFFFFF, 0x000000FF);
+
+        SDL_RenderPresent(m_renderer);
+        SDL_Delay(16);
+    }
+
+    if (frozenBackground) SDL_DestroyTexture(frozenBackground);
+    if (itemTex) SDL_DestroyTexture(itemTex);
+    if (pic.surface) PicLoader::freePic(pic);
 }
 
 void UIManager::FadeScreen(bool fadeIn) {

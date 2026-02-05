@@ -205,22 +205,15 @@ void EventManager::CheckEvent(int sceneId, int x, int y, bool isManual) {
     int16_t eventIndex = SceneManager::getInstance().GetSceneTile(sceneId, 3, x, y);
     
     if (eventIndex >= 0) {
-        int16_t condition = SceneManager::getInstance().GetEventData(sceneId, eventIndex, 0);
-        int16_t scriptId = SceneManager::getInstance().GetEventData(sceneId, eventIndex, 4);
-        
-        // KYS Condition Logic:
-        // Condition 0: Active/Enabled
-        // Condition != 0: Inactive/Disabled (usually)
-        
-        bool shouldTrigger = false;
-        if (condition == 0) {
-            shouldTrigger = true;
-        }
-        
-        if (shouldTrigger && scriptId > 0) {
+        int16_t scriptId = isManual
+            ? SceneManager::getInstance().GetEventData(sceneId, eventIndex, 2)
+            : SceneManager::getInstance().GetEventData(sceneId, eventIndex, 4);
+
+        bool shouldTrigger = isManual ? (scriptId >= 0) : (scriptId > 0);
+        if (shouldTrigger) {
             m_currentSceneId = sceneId;
             m_currentEventId = eventIndex;
-            std::cout << "[CheckEvent] Triggering Event " << eventIndex << " (Script " << scriptId << ") Condition=" << condition << " Manual=" << isManual << std::endl;
+            std::cout << "[CheckEvent] Triggering Event " << eventIndex << " (Script " << scriptId << ") Manual=" << isManual << std::endl;
             ExecuteEvent(scriptId);
         }
     }
@@ -422,12 +415,10 @@ void EventManager::ExecuteEvent(int eventScriptId) {
                 break;
             }
             case 21: Instruct_LeaveParty(ReadScriptArg(pc)); break;
-            case 23: { // Instruct_23(enum, action, step, speed)
-                int enum_ = ReadScriptArg(pc);
-                int action = ReadScriptArg(pc);
-                int step = ReadScriptArg(pc);
-                int speed = ReadScriptArg(pc); // Usually ignored in KYS or just delay?
-                Instruct_23(enum_, action, step, speed);
+            case 23: {
+                int roleId = ReadScriptArg(pc);
+                int poison = ReadScriptArg(pc);
+                Instruct_23(roleId, poison);
                 break;
             }
             case 25: {
@@ -1210,44 +1201,9 @@ void EventManager::Instruct_27(int eventId, int beginPic, int endPic) {
     Instruct_Redraw();
 }
 
-void EventManager::Instruct_23(int eventId, int action, int step, int speed) {
-    // Multi-frame animation (Sequence)
-    // Modifies DData[CurScene, eventId, 5] (Pic)
-    // Sequence: CurrentPic + action, CurrentPic + 2*action, ...
-    
-    int sceneId = m_executingSceneId;
-    if (eventId == -2) eventId = m_executingEventId;
-    
-    // Safety Check
-    if (eventId < 0) {
-        std::cerr << "Instruct_23: Invalid Event ID " << eventId << std::endl;
-        return;
-    }
-
-    int currentPic = SceneManager::getInstance().GetEventData(sceneId, eventId, 5);
-    
-    // If action is 0, we might just be waiting?
-    // But usually action != 0.
-    
-    for (int i = 1; i <= step; ++i) {
-        // Calculate new pic index
-        int newPic = currentPic + i * action;
-        
-        // Update Event Data
-        SceneManager::getInstance().SetEventData(sceneId, eventId, 5, newPic);
-        
-        // Redraw Screen
-        Instruct_Redraw();
-        
-        // Delay
-        // KYS Speed unit is roughly 20ms-ish?
-        // Default to 50ms if speed is 0?
-        int delay = (speed > 0) ? speed * 20 : 50; 
-        SDL_Delay(delay);
-    }
-    
-    // Note: We do NOT automatically reset the frame here.
-    // KYS scripts often handle reset manually or use this for permanent state change (e.g. Door Open).
+void EventManager::Instruct_23(int roleId, int poison) {
+    Role& role = GameManager::getInstance().getRole(roleId);
+    role.setUsePoi(poison);
 }
 
 void EventManager::Instruct_44(int eventId1, int beginPic1, int endPic1, int eventId2, int beginPic2, int endPic2) {

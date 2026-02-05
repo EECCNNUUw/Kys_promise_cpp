@@ -1244,16 +1244,25 @@ void GameManager::enterScene(int sceneId) {
 }
 
 void GameManager::AddItem(int itemId, int amount) {
-    for (auto& item : m_inventory) {
-        if (item.id == itemId) {
-            item.amount += amount;
-            if (item.amount > MAX_ITEM_AMOUNT) item.amount = MAX_ITEM_AMOUNT;
+    if (amount == 0) return;
+    for (auto it = m_inventory.begin(); it != m_inventory.end(); ++it) {
+        if (it->id == itemId) {
+            int newAmount = it->amount + amount;
+            if (amount >= 0 && newAmount < 0) newAmount = 32767;
+            if (amount < 0 && newAmount < 0) newAmount = 0;
+            if (newAmount > MAX_ITEM_AMOUNT) newAmount = MAX_ITEM_AMOUNT;
+            if (newAmount <= 0) {
+                m_inventory.erase(it);
+            } else {
+                it->amount = static_cast<int16>(newAmount);
+            }
             return;
         }
     }
+    if (amount < 0) return;
     InventoryItem newItem;
     newItem.id = itemId;
-    newItem.amount = amount;
+    newItem.amount = static_cast<int16>(amount);
     if (newItem.amount > MAX_ITEM_AMOUNT) newItem.amount = MAX_ITEM_AMOUNT;
     m_inventory.push_back(newItem);
 }
@@ -1266,10 +1275,7 @@ int GameManager::getItemAmount(int itemId) {
 }
 
 void GameManager::useItem(int itemId) {
-    // Basic logic
     if (getItemAmount(itemId) > 0) {
-        // Apply effect...
-        // Decrease count
         for (auto it = m_inventory.begin(); it != m_inventory.end(); ++it) {
             if (it->id == itemId) {
                 it->amount--;
@@ -1279,6 +1285,7 @@ void GameManager::useItem(int itemId) {
                 break;
             }
         }
+        UIManager::getInstance().ShowItemNotification(itemId, -1);
     }
 }
 

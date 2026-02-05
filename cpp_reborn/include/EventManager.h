@@ -86,7 +86,7 @@ private:
     void Instruct_ModifyDData(int sceneId, int eventId, int index, int value); // Generic DData modifier
     
     // Movement
-    void Instruct_23(int eventId, int action, int step, int speed);
+    void Instruct_23(int roleId, int poison);
     void Instruct_25(int x1, int y1, int x2, int y2); // Pan Camera
     void Instruct_30(int x1, int y1, int x2, int y2); // Move Main Character
     void Instruct_Movement(int eventId, int x, int y); // Move Event (Not standard instruction but needed for logic)
