@@ -123,6 +123,7 @@ void SoundManager::PlayMusic(int musicId) {
             
             // Play with repeat
             mciSendStringA("play bgm repeat", NULL, 0, NULL);
+            SetMusicVolumeLevel(m_musicVolumeLevel);
             
             std::cout << "Playing music (MCI): " << winPath << std::endl;
             break;
@@ -142,6 +143,19 @@ void SoundManager::StopMusic() {
     mciSendStringA("close bgm", NULL, 0, NULL);
 #endif
     m_currentMusicId = -1;
+}
+
+int SoundManager::GetMusicVolumeLevel() const {
+    return m_musicVolumeLevel;
+}
+
+void SoundManager::SetMusicVolumeLevel(int level) {
+    m_musicVolumeLevel = std::clamp(level, 0, 8);
+#ifdef _WIN32
+    int volume = m_musicVolumeLevel * 125;
+    std::string cmd = "setaudio bgm volume to " + std::to_string(volume);
+    mciSendStringA(cmd.c_str(), NULL, 0, NULL);
+#endif
 }
 
 void SoundManager::PlaySound(int soundId) {

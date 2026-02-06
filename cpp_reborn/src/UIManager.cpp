@@ -1,6 +1,7 @@
 #include "UIManager.h"
 #include "GameManager.h"
 #include "PicLoader.h"
+#include "SoundManager.h"
 #include "TextManager.h"
 #include "GraphicsUtils.h"
 #include <SDL3/SDL.h>
@@ -346,10 +347,140 @@ void UIManager::ShowStatus(int roleId) {
 
     DrawHead(role.getHeadNum(), 137, 88);
     DrawShadowTextUtf8(role.getName(), 115, 93, 0xFFFFFFFF, 0x000000FF);
-    
-    // TODO: Complete Status fields
-    DrawShadowTextUtf8("生命", 125, 125, 0xFFFFFFFF, 0x000000FF);
-    DrawShadowTextUtf8(std::to_string(role.getCurrentHP()), 165, 125, 0xFFFFFFFF, 0x000000FF);
+ 
+    int x = 90;
+    int y = 0;
+    DrawShadowTextUtf8("  生命", x + 25, y + 94 + 21, 0xFFD700FF, 0x000000FF);
+    DrawShadowTextUtf8("  內力", x + 25, y + 94 + 42, 0xFFD700FF, 0x000000FF);
+    DrawShadowTextUtf8("  體力", x + 25, y + 94 + 63, 0xFFD700FF, 0x000000FF);
+    DrawShadowTextUtf8("  攻擊", x + 25, y + 115 + 21 * 3, 0xFFFFFFFF, 0x000000FF);
+    DrawShadowTextUtf8("  防禦", x + 25, y + 115 + 21 * 4, 0xFFFFFFFF, 0x000000FF);
+    DrawShadowTextUtf8("  輕功", x + 25, y + 115 + 21 * 5, 0xFFFFFFFF, 0x000000FF);
+    DrawShadowTextUtf8("  醫療能力", x + 25, y + 115 + 21 * 6, 0xFFFFFFFF, 0x000000FF);
+    DrawShadowTextUtf8("  用毒能力", x + 25, y + 115 + 21 * 7, 0xFFFFFFFF, 0x000000FF);
+    DrawShadowTextUtf8("  解毒能力", x + 25, y + 115 + 21 * 8, 0xFFFFFFFF, 0x000000FF);
+    DrawShadowTextUtf8("  拳掌功夫", x + 25, y + 115 + 21 * 9, 0xFFFFFFFF, 0x000000FF);
+    DrawShadowTextUtf8("  御劍能力", x + 25, y + 115 + 21 * 10, 0xFFFFFFFF, 0x000000FF);
+    DrawShadowTextUtf8("  耍刀技巧", x + 25, y + 115 + 21 * 11, 0xFFFFFFFF, 0x000000FF);
+    DrawShadowTextUtf8("  奇門兵器", x + 25, y + 115 + 21 * 12, 0xFFFFFFFF, 0x000000FF);
+    DrawShadowTextUtf8("  暗器技巧", x + 25, y + 115 + 21 * 13, 0xFFFFFFFF, 0x000000FF);
+ 
+    DrawShadowTextUtf8("  中毒", x + 25 + 79, y + 115 - 21, 0x00FF00FF, 0x000000FF);
+    DrawShadowTextUtf8(std::to_string(role.getPoision()), x + 25 + 150, y + 115 - 21, 0xFFFFFFFF, 0x000000FF);
+    DrawShadowTextUtf8("  內傷", x + 30 + 179, y + 115 - 21, 0xFF0000FF, 0x000000FF);
+    DrawShadowTextUtf8(std::to_string(role.getHurt()), x + 125 + 155, y + 115 - 21, 0xFFFFFFFF, 0x000000FF);
+ 
+    int addatk = 0, adddef = 0, addspeed = 0;
+    for (int i = 0; i < 5; ++i) {
+        int itemId = role.getEquip(i);
+        if (itemId >= 0) {
+            Item& item = GameManager::getInstance().getItem(itemId);
+            addatk += item.getAddAttack();
+            adddef += item.getAddDefence();
+            addspeed += item.getAddSpeed();
+        }
+    }
+    if (GameManager::getInstance().CheckEquipSet(role.getEquip(0), role.getEquip(1), role.getEquip(2), role.getEquip(3)) == 5) {
+        addatk += 50;
+        addspeed += 30;
+        adddef += -25;
+    }
+    auto fmtBasePlus = [](int base, int add) {
+        if (add > 0) return std::to_string(base) + "+" + std::to_string(add);
+        if (add < 0) return std::to_string(base) + "-" + std::to_string(-add);
+        return std::to_string(base);
+    };
+    DrawShadowTextUtf8(fmtBasePlus(GameManager::getInstance().GetRoleAttack(roleId, false), addatk), x + 145, y + 115 + 21 * 3, 0xFFFFFFFF, 0x000000FF);
+    DrawShadowTextUtf8(fmtBasePlus(GameManager::getInstance().GetRoleDefence(roleId, false), adddef), x + 145, y + 115 + 21 * 4, 0xFFFFFFFF, 0x000000FF);
+    DrawShadowTextUtf8(fmtBasePlus(GameManager::getInstance().GetRoleSpeed(roleId, false), addspeed), x + 145, y + 115 + 21 * 5, 0xFFFFFFFF, 0x000000FF);
+ 
+    DrawShadowTextUtf8(std::to_string(GameManager::getInstance().GetRoleMedcine(roleId, true)), x + 145, y + 115 + 21 * 6, 0xFFFFFFFF, 0x000000FF);
+    DrawShadowTextUtf8(std::to_string(GameManager::getInstance().GetRoleUsePoi(roleId, true)), x + 145, y + 115 + 21 * 7, 0xFFFFFFFF, 0x000000FF);
+    DrawShadowTextUtf8(std::to_string(GameManager::getInstance().GetRoleMedPoi(roleId, true)), x + 145, y + 115 + 21 * 8, 0xFFFFFFFF, 0x000000FF);
+    DrawShadowTextUtf8(std::to_string(GameManager::getInstance().GetRoleFist(roleId, true)), x + 145, y + 115 + 21 * 9, 0xFFFFFFFF, 0x000000FF);
+    DrawShadowTextUtf8(std::to_string(GameManager::getInstance().GetRoleSword(roleId, true)), x + 145, y + 115 + 21 * 10, 0xFFFFFFFF, 0x000000FF);
+    DrawShadowTextUtf8(std::to_string(GameManager::getInstance().GetRoleKnife(roleId, true)), x + 145, y + 115 + 21 * 11, 0xFFFFFFFF, 0x000000FF);
+    DrawShadowTextUtf8(std::to_string(GameManager::getInstance().GetRoleUnusual(roleId, true)), x + 145, y + 115 + 21 * 12, 0xFFFFFFFF, 0x000000FF);
+    DrawShadowTextUtf8(std::to_string(GameManager::getInstance().GetRoleHidWeapon(roleId, true)), x + 145, y + 115 + 21 * 13, 0xFFFFFFFF, 0x000000FF);
+ 
+    DrawShadowTextUtf8(std::to_string(role.getLevel()), x + 145, y + 115, 0xFFFFFFFF, 0x000000FF);
+    DrawShadowTextUtf8(std::to_string(role.getExp()), x + 135, y + 136, 0xFFFFFFFF, 0x000000FF);
+    int nextExp = GameManager::getInstance().getNextLevelExp(role.getLevel());
+    if (nextExp < 0) {
+        DrawShadowTextUtf8("    =", x + 135, y + 157, 0xFFFFFFFF, 0x000000FF);
+    } else {
+        DrawShadowTextUtf8(std::to_string(nextExp), x + 135, y + 157, 0xFFFFFFFF, 0x000000FF);
+    }
+
+    int hpBaseX = x + 80 + 25;
+    int hpBaseY = y - 85 + 94;
+    DrawShadowTextUtf8(std::to_string(role.getCurrentHP()) + "/" + std::to_string(role.getMaxHP()), hpBaseX + 60, hpBaseY + 131, 0xFFFFFFFF, 0x000000FF);
+    DrawShadowTextUtf8(std::to_string(role.getCurrentMP()) + "/" + std::to_string(role.getMaxMP()), hpBaseX + 60, hpBaseY + 152, 0xFFFFFFFF, 0x000000FF);
+    DrawShadowTextUtf8(std::to_string(role.getPhyPower()) + "/" + std::to_string(MAX_PHYSICAL_POWER), hpBaseX + 60, hpBaseY + 173, 0xFFFFFFFF, 0x000000FF);
+ 
+    DrawShadowTextUtf8(" 武器", x + 190, y + 115 + 21 * 9, 0xFFFFFFFF, 0x000000FF);
+    if (role.getEquip(0) >= 0) {
+        Item& item = GameManager::getInstance().getItem(role.getEquip(0));
+        DrawShadowTextUtf8(item.getName(), x + 240, y + 115 + 21 * 9, 0xFFFFFFFF, 0x000000FF);
+        PicImage pic = PicLoader::loadPic("resource/Items.Pic", role.getEquip(0));
+        if (pic.surface) {
+            SDL_Texture* tex = SDL_CreateTextureFromSurface(m_renderer, pic.surface);
+            SDL_FRect dest = { 411.0f, 144.0f, (float)pic.surface->w, (float)pic.surface->h };
+            SDL_RenderTexture(m_renderer, tex, NULL, &dest);
+            SDL_DestroyTexture(tex);
+            PicLoader::freePic(pic);
+        }
+    } else {
+        DrawShadowTextUtf8(" 無", x + 240, y + 115 + 21 * 9, 0xFFFFFFFF, 0x000000FF);
+    }
+ 
+    DrawShadowTextUtf8(" 身披", x + 190, y + 115 + 21 * 10, 0xFFFFFFFF, 0x000000FF);
+    if (role.getEquip(1) >= 0) {
+        Item& item = GameManager::getInstance().getItem(role.getEquip(1));
+        DrawShadowTextUtf8(item.getName(), x + 240, y + 115 + 21 * 10, 0xFFFFFFFF, 0x000000FF);
+        PicImage pic = PicLoader::loadPic("resource/Items.Pic", role.getEquip(1));
+        if (pic.surface) {
+            SDL_Texture* tex = SDL_CreateTextureFromSurface(m_renderer, pic.surface);
+            SDL_FRect dest = { 523.0f, 144.0f, (float)pic.surface->w, (float)pic.surface->h };
+            SDL_RenderTexture(m_renderer, tex, NULL, &dest);
+            SDL_DestroyTexture(tex);
+            PicLoader::freePic(pic);
+        }
+    } else {
+        DrawShadowTextUtf8(" 無", x + 240, y + 115 + 21 * 10, 0xFFFFFFFF, 0x000000FF);
+    }
+ 
+    DrawShadowTextUtf8(" 頭戴", x + 190, y + 115 + 21 * 11, 0xFFFFFFFF, 0x000000FF);
+    if (role.getEquip(2) >= 0) {
+        Item& item = GameManager::getInstance().getItem(role.getEquip(2));
+        DrawShadowTextUtf8(item.getName(), x + 240, y + 115 + 21 * 11, 0xFFFFFFFF, 0x000000FF);
+        PicImage pic = PicLoader::loadPic("resource/Items.Pic", role.getEquip(2));
+        if (pic.surface) {
+            SDL_Texture* tex = SDL_CreateTextureFromSurface(m_renderer, pic.surface);
+            SDL_FRect dest = { 466.0f, 42.0f, (float)pic.surface->w, (float)pic.surface->h };
+            SDL_RenderTexture(m_renderer, tex, NULL, &dest);
+            SDL_DestroyTexture(tex);
+            PicLoader::freePic(pic);
+        }
+    } else {
+        DrawShadowTextUtf8(" 無", x + 240, y + 115 + 21 * 11, 0xFFFFFFFF, 0x000000FF);
+    }
+ 
+    DrawShadowTextUtf8(" 腳踩", x + 190, y + 115 + 21 * 12, 0xFFFFFFFF, 0x000000FF);
+    if (role.getEquip(3) >= 0) {
+        Item& item = GameManager::getInstance().getItem(role.getEquip(3));
+        DrawShadowTextUtf8(item.getName(), x + 240, y + 115 + 21 * 12, 0xFFFFFFFF, 0x000000FF);
+        PicImage pic = PicLoader::loadPic("resource/Items.Pic", role.getEquip(3));
+        if (pic.surface) {
+            SDL_Texture* tex = SDL_CreateTextureFromSurface(m_renderer, pic.surface);
+            SDL_FRect dest = { 466.0f, 318.0f, (float)pic.surface->w, (float)pic.surface->h };
+            SDL_RenderTexture(m_renderer, tex, NULL, &dest);
+            SDL_DestroyTexture(tex);
+            PicLoader::freePic(pic);
+        }
+    } else {
+        DrawShadowTextUtf8(" 無", x + 240, y + 115 + 21 * 12, 0xFFFFFFFF, 0x000000FF);
+    }
 }
 
 void UIManager::SelectShowMagic() {
@@ -504,6 +635,21 @@ void UIManager::SelectShowSystem() {
                     currentSelection = (currentSelection + 3) % 4;
                 } else if (event.key.key == SDLK_ESCAPE) {
                     running = false;
+                } else if (event.key.key == SDLK_RETURN || event.key.key == SDLK_SPACE) {
+                    switch (currentSelection) {
+                        case 0:
+                            ShowSaveLoadMenu(false);
+                            break;
+                        case 1:
+                            ShowSaveLoadMenu(true);
+                            break;
+                        case 2:
+                            ShowVolumeMenu();
+                            break;
+                        case 3:
+                            GameManager::getInstance().Quit();
+                            return;
+                    }
                 }
             }
         }
@@ -534,6 +680,51 @@ void UIManager::ShowSystem(int selectedIndex) {
     for (int i = 0; i < 4; ++i) {
         uint32_t color = (i == selectedIndex) ? 0xFFFFFFFF : 0xAAAAAAFF;
         DrawShadowTextUtf8(labels[i], 112, 25 + 101 * i, color, 0x000000FF);
+    }
+}
+
+void UIManager::ShowVolumeMenu() {
+    bool running = true;
+    int volumeSelection = SoundManager::getInstance().GetMusicVolumeLevel();
+    SDL_Event event;
+
+    while (running) {
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_EVENT_QUIT) {
+                GameManager::getInstance().Quit();
+                return;
+            }
+            if (event.type == SDL_EVENT_KEY_DOWN) {
+                if (event.key.key == SDLK_LEFT || event.key.key == SDLK_KP_4) {
+                    volumeSelection--;
+                    if (volumeSelection < 0) volumeSelection = 8;
+                } else if (event.key.key == SDLK_RIGHT || event.key.key == SDLK_KP_6) {
+                    volumeSelection++;
+                    if (volumeSelection > 8) volumeSelection = 0;
+                } else if (event.key.key == SDLK_ESCAPE) {
+                    running = false;
+                } else if (event.key.key == SDLK_RETURN || event.key.key == SDLK_SPACE) {
+                    SoundManager::getInstance().SetMusicVolumeLevel(volumeSelection);
+                }
+            }
+        }
+
+        SDL_RenderClear(m_renderer);
+        if (m_texMenuBackground) {
+            SDL_RenderTexture(m_renderer, m_texMenuBackground, NULL, NULL);
+        }
+
+        DrawRectangle(150, 50, 340, 300, 0, 0xFFFFFFFF, 100);
+        DrawShadowTextUtf8("音樂音量", 280, 60, 0xFFFFFFFF, 0x000000FF);
+
+        const char* labels[] = { "零", "一", "二", "三", "四", "五", "六", "七", "八" };
+        for (int i = 0; i < 9; ++i) {
+            uint32_t color = (i == volumeSelection) ? 0xFFFF00FF : 0xFFFFFFFF;
+            DrawShadowTextUtf8(labels[i], 160 + i * 45, 160, color, 0x000000FF);
+        }
+
+        SDL_RenderPresent(m_renderer);
+        SDL_Delay(16);
     }
 }
 
@@ -890,32 +1081,38 @@ void UIManager::ShowCharacterCreation(const Role& role) {
     DrawShadowTextUtf8(TextManager::getInstance().nameToUtf8(role.getName()), 280, 200, 0xFFFF00FF, 0x000000FF);
 }
 
-void UIManager::ShowSaveLoadMenu(bool isSave) {
+bool UIManager::ShowSaveLoadMenu(bool isSave) {
     bool running = true;
     int currentSelection = 0;
     SDL_Event event;
-    const int SLOT_COUNT = 3;
+    const int SLOT_COUNT = 6;
+    const char* slots[] = { "進度一", "進度二", "進度三", "進度四", "進度五", "自動檔" };
+    bool loaded = false;
 
     while (running) {
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_EVENT_QUIT) {
                 GameManager::getInstance().Quit();
-                return;
+                return false;
             }
             if (event.type == SDL_EVENT_KEY_DOWN) {
                 if (event.key.key == SDLK_ESCAPE) {
                     running = false;
-                } else if (event.key.key == SDLK_DOWN || event.key.key == SDLK_KP_2) {
+                } else if (event.key.key == SDLK_RIGHT || event.key.key == SDLK_KP_6) {
                     currentSelection = (currentSelection + 1) % SLOT_COUNT;
-                } else if (event.key.key == SDLK_UP || event.key.key == SDLK_KP_8) {
+                } else if (event.key.key == SDLK_LEFT || event.key.key == SDLK_KP_4) {
                     currentSelection = (currentSelection + SLOT_COUNT - 1) % SLOT_COUNT;
                 } else if (event.key.key == SDLK_RETURN || event.key.key == SDLK_SPACE) {
                     if (isSave) {
-                        GameManager::getInstance().SaveGame(currentSelection + 1);
+                        GameManager::getInstance().SaveGame((currentSelection == 5) ? 6 : (currentSelection + 1));
                         ShowDialogue("進度已保存", 0, 0); 
                     } else {
-                        GameManager::getInstance().LoadGame(currentSelection + 1);
-                        running = false; // Exit menu after load
+                        loaded = GameManager::getInstance().LoadGame((currentSelection == 5) ? 6 : (currentSelection + 1));
+                        if (loaded) {
+                            running = false;
+                        } else {
+                            ShowDialogue("讀取失敗", 0, 0);
+                        }
                     }
                 }
             }
@@ -935,15 +1132,13 @@ void UIManager::ShowSaveLoadMenu(bool isSave) {
 
         for (int i = 0; i < SLOT_COUNT; ++i) {
             uint32_t color = (i == currentSelection) ? 0xFFFF00FF : 0xFFFFFFFF;
-            std::string slotName = "進度 " + std::to_string(i + 1);
-            // Check if file exists (Stub logic, assuming exists for display)
-            // In real impl, check file existence.
-            DrawShadowTextUtf8(slotName, 200, 100 + i * 50, color, 0x000000FF);
+            DrawShadowTextUtf8(slots[i], 170 + i * 70, 160, color, 0x000000FF);
         }
 
         SDL_RenderPresent(m_renderer);
         SDL_Delay(16);
     }
+    return loaded;
 }
 
 void UIManager::ShowDialogue(const std::string& text, int headId, int mode, const std::string& nameUtf8, const std::string& nameRawBytes) {

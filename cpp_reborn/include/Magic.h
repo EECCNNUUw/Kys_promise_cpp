@@ -105,6 +105,11 @@ public:
     // 60-62: AddSpd (array[0..2])
     int16 getAddSpd(int index) const { return (index >= 0 && index < 3) ? m_data[60 + index] : 0; }
     
+    int16 getAddMedcine() const { return m_data[67]; }
+    int16 getAddUsePoi() const { return m_data[68]; }
+    int16 getAddMedPoi() const { return m_data[69]; }
+    int16 getAddDefPoi() const { return m_data[70]; }
+    
     // 71: AddFist
     int16 getAddFist() const { return m_data[71]; }
 

@@ -3,6 +3,8 @@
 #include <memory>
 #include <string>
 #include <SDL3/SDL.h>
+#include <array>
+#include <cstdint>
 #include "Role.h"
 #include "Item.h"
 #include "Scene.h"
@@ -109,10 +111,12 @@ public:
 
     // Save Path
     std::string m_savePath;
+    
+    int getNextLevelExp(int level);
 
     // Save/Load
     void SaveGame(int slot);
-    void LoadGame(int slot);
+    bool LoadGame(int slot);
 
     // Game Logic
     bool GetEquipState(int roleIdx, int state);
@@ -120,6 +124,9 @@ public:
     // Attribute Helpers
     int GetGongtiLevel(int roleIdx, int magicId);
     bool GetGongtiState(int roleIdx, int state);
+    int GetRoleAttack(int roleIdx, bool checkEquip = true);
+    int GetRoleDefence(int roleIdx, bool checkEquip = true);
+    int GetRoleSpeed(int roleIdx, bool checkEquip = true);
     int GetRoleMedPoi(int roleIdx, bool checkEquip = true);
     int GetRoleUsePoi(int roleIdx, bool checkEquip = true);
     int GetRoleDefPoi(int roleIdx, bool checkEquip = true);
@@ -128,6 +135,7 @@ public:
     int GetRoleKnife(int roleIdx, bool checkEquip = true);
     int GetRoleUnusual(int roleIdx, bool checkEquip = true);
     int GetRoleHidWeapon(int roleIdx, bool checkEquip = true);
+    int CheckEquipSet(int e0, int e1, int e2, int e3);
 
     // Testing Helpers
     void addMagicForTest(const Magic& m) { m_magics.push_back(m); }
@@ -149,6 +157,9 @@ private:
     
     std::vector<int> m_teamList; // Stores role IDs of current party members
     std::vector<InventoryItem> m_inventory;
+    std::vector<uint8_t> m_shopRaw;
+    std::vector<int16_t> m_levelUpList;
+    std::vector<std::array<int16_t, 4>> m_setNum;
     
     // Runtime State
     enum class GameState {

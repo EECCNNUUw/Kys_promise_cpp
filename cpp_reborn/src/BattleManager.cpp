@@ -29,11 +29,8 @@ static int GetGongtiLevel(int rnum, int mnum) {
     return std::min((int)magic.getMaxLevel(), magicLevel / 100);
 }
 
-// CheckEquipSet (Placeholder - SetNum data missing in codebase analysis)
 static int CheckEquipSet(int e0, int e1, int e2, int e3) {
-    // TODO: Implement SetNum logic if data becomes available.
-    // For now, return -1 (no set bonus).
-    return -1;
+    return GameManager::getInstance().CheckEquipSet(e0, e1, e2, e3);
 }
 
 static int GetRoleAttack(int rnum, bool equip) {
@@ -226,31 +223,89 @@ static int GetRoleDifficulty(int rnum) {
 static int GetRoleMedcine(int rnum, bool equip) {
     Role& role = GameManager::getInstance().getRole(rnum);
     int result = role.getMedcine();
-    // TODO: Add Gongti/Equip bonuses if any (usually Medcine doesn't have equip bonuses in vanilla, but check pas)
-    // Pascal GetRoleMedcine checks Gongti and Equip.
     if (role.getGongti() > -1) {
-         int l = GetGongtiLevel(rnum, role.getGongti());
-         Magic& magic = GameManager::getInstance().getMagic(role.getGongti());
-         // Magic doesn't standardly have AddMedcine field? 
-         // Actually KYS magic struct has specific fields. 
-         // Assuming standard fields for now.
+        int l = GetGongtiLevel(rnum, role.getGongti());
+        Magic& magic = GameManager::getInstance().getMagic(role.getGongti());
+        if (l == magic.getMaxLevel()) {
+            result += magic.getAddMedcine();
+        }
+    }
+    if (equip) {
+        for (int i = 0; i < 5; ++i) {
+            int itemId = role.getEquip(i);
+            if (itemId >= 0) {
+                Item& item = GameManager::getInstance().getItem(itemId);
+                result += item.getAddMedcine();
+            }
+        }
     }
     return result;
 }
 
 static int GetRoleMedPoi(int rnum, bool equip) {
     Role& role = GameManager::getInstance().getRole(rnum);
-    return role.getMedPoi();
+    int result = role.getMedPoi();
+    if (role.getGongti() > -1) {
+        int l = GetGongtiLevel(rnum, role.getGongti());
+        Magic& magic = GameManager::getInstance().getMagic(role.getGongti());
+        if (l == magic.getMaxLevel()) {
+            result += magic.getAddMedPoi();
+        }
+    }
+    if (equip) {
+        for (int i = 0; i < 5; ++i) {
+            int itemId = role.getEquip(i);
+            if (itemId >= 0) {
+                Item& item = GameManager::getInstance().getItem(itemId);
+                result += item.getAddMedPoi();
+            }
+        }
+    }
+    return result;
 }
 
 static int GetRoleDefPoi(int rnum, bool equip) {
     Role& role = GameManager::getInstance().getRole(rnum);
-    return role.getDefPoi();
+    int result = role.getDefPoi();
+    if (role.getGongti() > -1) {
+        int l = GetGongtiLevel(rnum, role.getGongti());
+        Magic& magic = GameManager::getInstance().getMagic(role.getGongti());
+        if (l == magic.getMaxLevel()) {
+            result += magic.getAddDefPoi();
+        }
+    }
+    if (equip) {
+        for (int i = 0; i < 5; ++i) {
+            int itemId = role.getEquip(i);
+            if (itemId >= 0) {
+                Item& item = GameManager::getInstance().getItem(itemId);
+                result += item.getAddDefPoi();
+            }
+        }
+    }
+    return result;
 }
 
 static int GetRoleUsePoi(int rnum, bool equip) {
     Role& role = GameManager::getInstance().getRole(rnum);
-    return role.getUsePoi();
+    int result = role.getUsePoi();
+    if (role.getGongti() > -1) {
+        int l = GetGongtiLevel(rnum, role.getGongti());
+        Magic& magic = GameManager::getInstance().getMagic(role.getGongti());
+        if (l == magic.getMaxLevel()) {
+            result += magic.getAddUsePoi();
+        }
+    }
+    if (equip) {
+        for (int i = 0; i < 5; ++i) {
+            int itemId = role.getEquip(i);
+            if (itemId >= 0) {
+                Item& item = GameManager::getInstance().getItem(itemId);
+                result += item.getAddUsePoi();
+            }
+        }
+    }
+    return result;
 }
 
 static int GetRoleHidWeapon(int rnum, bool equip) {

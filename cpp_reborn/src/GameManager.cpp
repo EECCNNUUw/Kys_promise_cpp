@@ -368,8 +368,69 @@ void GameManager::loadData(const std::string& savePrefix) {
          SceneManager::getInstance().SetScenes(scenes);
          std::cout << "Loaded " << numScenes << " scenes from ranger.grp. Data Size: " << sceneDataSize << " bytes." << std::endl;
     }
+
+    {
+        std::string levelPath = m_savePath + "list\\levelup.bin";
+        std::ifstream levelFile(levelPath, std::ios::binary | std::ios::ate);
+        if (!levelFile) {
+            levelPath = "cpp_reborn\\build\\Debug\\list\\levelup.bin";
+            levelFile.open(levelPath, std::ios::binary | std::ios::ate);
+        }
+        if (levelFile) {
+            std::streamsize sz = levelFile.tellg();
+            levelFile.seekg(0, std::ios::beg);
+            std::vector<uint8_t> buf(sz);
+            levelFile.read((char*)buf.data(), sz);
+            if (sz >= 200) {
+                m_levelUpList.resize(100);
+                memcpy(m_levelUpList.data(), buf.data(), 200);
+                std::cout << "[loadData] Loaded levelup.bin (" << sz << " bytes)" << std::endl;
+            } else {
+                std::cerr << "[loadData] levelup.bin size unexpected: " << sz << std::endl;
+            }
+        } else {
+            std::cerr << "Failed to load levelup.bin from any known path" << std::endl;
+        }
+    }
+
+    {
+        std::string setPath = m_savePath + "list\\Set.bin";
+        std::ifstream setFile(setPath, std::ios::binary | std::ios::ate);
+        if (!setFile) {
+            setPath = "cpp_reborn\\build\\Debug\\list\\Set.bin";
+            setFile.open(setPath, std::ios::binary | std::ios::ate);
+        }
+        if (setFile) {
+            std::streamsize sz = setFile.tellg();
+            setFile.seekg(0, std::ios::beg);
+            std::vector<uint8_t> buf(sz);
+            setFile.read((char*)buf.data(), sz);
+            if (sz >= 40) {
+                m_setNum.assign(6, { -1, -1, -1, -1 });
+                const int16_t* src = reinterpret_cast<const int16_t*>(buf.data());
+                for (int i = 1; i <= 5; ++i) {
+                    for (int j = 0; j < 4; ++j) {
+                        m_setNum[i][j] = src[(i - 1) * 4 + j];
+                    }
+                }
+                std::cout << "[loadData] Loaded Set.bin (" << sz << " bytes)" << std::endl;
+            } else {
+                std::cerr << "[loadData] Set.bin size unexpected: " << sz << std::endl;
+            }
+        } else {
+            std::cerr << "Failed to load Set.bin from any known path" << std::endl;
+        }
+    }
 }
 
+int GameManager::getNextLevelExp(int level) {
+    if (level <= 0) return 0;
+    if (m_levelUpList.empty()) return 0;
+    int idx = level - 1;
+    if (idx < 0) return 0;
+    if (idx >= (int)m_levelUpList.size()) return -1;
+    return (int)m_levelUpList[idx];
+}
 void GameManager::SaveGame(int slot) {
     std::string filename = (slot == 0) ? "ranger" : "R" + std::to_string(slot);
     std::string grpPath = m_savePath + filename + ".grp";
@@ -394,6 +455,58 @@ void GameManager::SaveGame(int slot) {
     if (!grpFile) {
         std::cerr << "SaveGame: Cannot create " << grpPath << std::endl;
         return;
+    }
+
+    auto write16 = [&](int16_t val) {
+        grpFile.write(reinterpret_cast<const char*>(&val), 2);
+    };
+
+    int16_t whereVal = (m_currentSceneId < 0) ? static_cast<int16_t>(-1) : static_cast<int16_t>(m_currentSceneId);
+
+    write16(m_inShip);
+    write16(whereVal);
+    write16(static_cast<int16_t>(m_mainMapY));
+    write16(static_cast<int16_t>(m_mainMapX));
+    write16(static_cast<int16_t>(m_cameraY));
+    write16(static_cast<int16_t>(m_cameraX));
+    write16(static_cast<int16_t>(m_mainMapFace));
+    write16(m_shipX);
+    write16(m_shipY);
+    write16(m_time);
+    write16(m_timeEvent);
+    write16(m_randomEvent);
+    write16(m_subMapFace);
+    write16(m_shipFace);
+    write16(m_gameTime);
+
+    for (int i = 0; i < MAX_TEAM_SIZE; ++i) {
+        int16_t value = 0;
+        if (i < static_cast<int>(m_teamList.size())) {
+            value = static_cast<int16_t>(m_teamList[i]);
+        }
+        write16(value);
+    }
+
+    int inventoryCount = static_cast<int>(m_inventory.size());
+    for (int i = 0; i < MAX_ITEM_AMOUNT; ++i) {
+        int16_t id = 0;
+        int16_t amount = 0;
+        if (i < inventoryCount) {
+            id = m_inventory[i].id;
+            amount = m_inventory[i].amount;
+        }
+        write16(id);
+        write16(amount);
+    }
+
+    std::streampos headerEnd = grpFile.tellp();
+    if (headerEnd < RoleOffset) {
+        int padSize = static_cast<int>(RoleOffset - headerEnd);
+        std::vector<char> padding(padSize, 0);
+        grpFile.write(padding.data(), padSize);
+    } else if (headerEnd > RoleOffset) {
+        std::cerr << "SaveGame: Header exceeds RoleOffset, truncating to RoleOffset." << std::endl;
+        grpFile.seekp(RoleOffset, std::ios::beg);
     }
 
     // 1. Write Roles
@@ -459,8 +572,22 @@ void GameManager::SaveGame(int slot) {
 
     // 5. Write Shops (WeiShop)
     int shopBytesToWrite = TotalLen - WeiShopOffset;
-    std::vector<char> zeros(shopBytesToWrite, 0);
-    grpFile.write(zeros.data(), shopBytesToWrite);
+    if (shopBytesToWrite > 0) {
+        if (!m_shopRaw.empty()) {
+            // Write preserved shop data, pad/truncate to exact size
+            if ((int)m_shopRaw.size() >= shopBytesToWrite) {
+                grpFile.write(reinterpret_cast<const char*>(m_shopRaw.data()), shopBytesToWrite);
+            } else {
+                grpFile.write(reinterpret_cast<const char*>(m_shopRaw.data()), (std::streamsize)m_shopRaw.size());
+                int pad = shopBytesToWrite - (int)m_shopRaw.size();
+                std::vector<char> zeros(pad, 0);
+                grpFile.write(zeros.data(), pad);
+            }
+        } else {
+            std::vector<char> zeros(shopBytesToWrite, 0);
+            grpFile.write(zeros.data(), shopBytesToWrite);
+        }
+    }
 
     grpFile.close();
 
@@ -498,7 +625,7 @@ void GameManager::reSetEntrance() {
     std::cout << "[GameManager] Entrance map reset." << std::endl;
 }
 
-void GameManager::LoadGame(int slot) {
+bool GameManager::LoadGame(int slot) {
     std::string filename = (slot == 0) ? "ranger" : "R" + std::to_string(slot);
     std::string grpPath = m_savePath + filename + ".grp";
     std::string idxPath = m_savePath + "ranger.idx";
@@ -506,7 +633,7 @@ void GameManager::LoadGame(int slot) {
     std::ifstream idxFile(idxPath, std::ios::binary);
     if (!idxFile) {
         std::cerr << "LoadGame: Cannot open " << idxPath << std::endl;
-        return;
+        return false;
     }
 
     int32_t RoleOffset, ItemOffset, SceneOffset, MagicOffset, WeiShopOffset, TotalLen;
@@ -529,7 +656,7 @@ void GameManager::LoadGame(int slot) {
         }
         if (!grpFile) {
             std::cerr << "LoadGame: Cannot open " << grpPath << std::endl;
-            return;
+            return false;
         }
     }
     std::cout << "[LoadGame] Opened " << grpPath << std::endl;
@@ -541,12 +668,11 @@ void GameManager::LoadGame(int slot) {
     read16(m_inShip);
     int16_t tempWhere;
     read16(tempWhere);
-    if (tempWhere < 0) tempWhere = 0;
-    m_currentSceneId = tempWhere;
-    // Don't call SetCurrentScene here, it triggers RefreshEventLayer which fails because data isn't loaded yet.
-    // SceneManager::getInstance().SetCurrentScene(m_currentSceneId); 
-    // Just set the ID directly in SceneManager if needed, or wait until end.
-    SceneManager::getInstance().SetCurrentScene(m_currentSceneId); // Keep it but we know it fails refresh
+    if (tempWhere < 0) {
+        m_currentSceneId = -1;
+    } else {
+        m_currentSceneId = tempWhere;
+    }
 
     read16((int16_t&)m_mainMapY);
     read16((int16_t&)m_mainMapX);
@@ -580,7 +706,7 @@ void GameManager::LoadGame(int slot) {
     int roleSize = (ItemOffset - RoleOffset) / (ROLE_DATA_SIZE * 2);
     if (roleSize < 0 || roleSize > 10000) {
         std::cerr << "[LoadGame] ERROR: Invalid roleSize " << roleSize << std::endl;
-        return;
+        return false;
     }
     m_roles.resize(roleSize);
     for(int i=0; i<roleSize; ++i) {
@@ -594,7 +720,7 @@ void GameManager::LoadGame(int slot) {
     int itemSize = (SceneOffset - ItemOffset) / (ITEM_DATA_SIZE * 2);
     if (itemSize < 0 || itemSize > 10000) {
         std::cerr << "[LoadGame] ERROR: Invalid itemSize " << itemSize << std::endl;
-        return;
+        return false;
     }
     m_items.resize(itemSize);
     for(int i=0; i<itemSize; ++i) {
@@ -608,7 +734,7 @@ void GameManager::LoadGame(int slot) {
     int sceneSize = (MagicOffset - SceneOffset) / (SCENE_DATA_SIZE * 2);
     if (sceneSize < 0 || sceneSize > 10000) {
          std::cerr << "[LoadGame] ERROR: Invalid sceneSize " << sceneSize << std::endl;
-         return;
+         return false;
     }
     std::vector<Scene> scenes(sceneSize);
     for(int i=0; i<sceneSize; ++i) {
@@ -623,13 +749,25 @@ void GameManager::LoadGame(int slot) {
     int magicSize = (WeiShopOffset - MagicOffset) / (MAGIC_DATA_SIZE * 2);
     if (magicSize < 0 || magicSize > 10000) {
         std::cerr << "[LoadGame] ERROR: Invalid magicSize " << magicSize << std::endl;
-        return;
+        return false;
     }
     m_magics.resize(magicSize);
     for(int i=0; i<magicSize; ++i) {
         std::vector<int16_t> buffer(MAGIC_DATA_SIZE);
         grpFile.read((char*)buffer.data(), MAGIC_DATA_SIZE * 2);
         m_magics[i].setDataVector(buffer);
+    }
+
+    // Preserve Shops (WeiShop) raw bytes for exact re-write on save
+    {
+        int shopBytesToRead = TotalLen - WeiShopOffset;
+        if (shopBytesToRead > 0) {
+            m_shopRaw.resize(shopBytesToRead);
+            grpFile.seekg(WeiShopOffset, std::ios::beg);
+            grpFile.read(reinterpret_cast<char*>(m_shopRaw.data()), shopBytesToRead);
+        } else {
+            m_shopRaw.clear();
+        }
     }
 
     grpFile.close();
@@ -647,12 +785,15 @@ void GameManager::LoadGame(int slot) {
         if (slot == 0) SceneManager::getInstance().LoadEventData(m_savePath + "alldef.grp");
     }
     
+    SceneManager::getInstance().SetCurrentScene(m_currentSceneId);
+
     // Force Refresh Layer 3 after everything is loaded
     if (m_currentSceneId >= 0) {
         SceneManager::getInstance().RefreshEventLayer(m_currentSceneId);
     }
     
     std::cout << "Game Loaded from Slot " << slot << std::endl;
+    return true;
 }
 
 void GameManager::InitNewGame() {
@@ -844,7 +985,9 @@ void GameManager::UpdateTitleScreen() {
                         SDL_StartTextInput(m_window);
                         m_characterCreationTextInputActive = true;
                     } else if (m_titleMenuSelection == 1) {
-                        UIManager::getInstance().ShowSaveLoadMenu(false);
+                        if (UIManager::getInstance().ShowSaveLoadMenu(false)) {
+                            m_currentState = GameState::Roaming;
+                        }
                     } else if (m_titleMenuSelection == 2) {
                         m_isRunning = false;
                     }
@@ -961,11 +1104,7 @@ void GameManager::UpdateRoaming() {
                     break;
 
                 case SDLK_ESCAPE:
-                    if (m_currentSceneId >= 0) {
-                        SceneManager::getInstance().DrawScene(m_renderer, m_cameraX, m_cameraY);
-                        RenderScreenTo(m_renderer);
-                        UIManager::getInstance().ShowMenu();
-                    }
+                    m_currentState = GameState::SystemMenu;
                     break;
             }
             
@@ -1245,26 +1384,39 @@ void GameManager::enterScene(int sceneId) {
 
 void GameManager::AddItem(int itemId, int amount) {
     if (amount == 0) return;
+    if ((int)m_inventory.size() != MAX_ITEM_AMOUNT) {
+        m_inventory.resize(MAX_ITEM_AMOUNT);
+        for (int i = 0; i < MAX_ITEM_AMOUNT; ++i) {
+            if (m_inventory[i].id == 0 && m_inventory[i].amount == 0) {
+                m_inventory[i].id = -1;
+                m_inventory[i].amount = 0;
+            }
+        }
+    }
     for (auto it = m_inventory.begin(); it != m_inventory.end(); ++it) {
         if (it->id == itemId) {
             int newAmount = it->amount + amount;
             if (amount >= 0 && newAmount < 0) newAmount = 32767;
             if (amount < 0 && newAmount < 0) newAmount = 0;
-            if (newAmount > MAX_ITEM_AMOUNT) newAmount = MAX_ITEM_AMOUNT;
-            if (newAmount <= 0) {
-                m_inventory.erase(it);
-            } else {
-                it->amount = static_cast<int16>(newAmount);
+            if (newAmount > 32767) newAmount = 32767;
+            it->amount = static_cast<int16>(newAmount);
+            if (it->amount <= 0) {
+                it->id = -1;
+                it->amount = 0;
             }
             return;
         }
     }
     if (amount < 0) return;
-    InventoryItem newItem;
-    newItem.id = itemId;
-    newItem.amount = static_cast<int16>(amount);
-    if (newItem.amount > MAX_ITEM_AMOUNT) newItem.amount = MAX_ITEM_AMOUNT;
-    m_inventory.push_back(newItem);
+    // Find first empty slot
+    for (int i = 0; i < MAX_ITEM_AMOUNT; ++i) {
+        if (m_inventory[i].id < 0 || m_inventory[i].amount <= 0) {
+            m_inventory[i].id = itemId;
+            m_inventory[i].amount = static_cast<int16>(amount);
+            if (m_inventory[i].amount > 32767) m_inventory[i].amount = 32767;
+            return;
+        }
+    }
 }
 
 int GameManager::getItemAmount(int itemId) {
@@ -1276,11 +1428,12 @@ int GameManager::getItemAmount(int itemId) {
 
 void GameManager::useItem(int itemId) {
     if (getItemAmount(itemId) > 0) {
-        for (auto it = m_inventory.begin(); it != m_inventory.end(); ++it) {
-            if (it->id == itemId) {
-                it->amount--;
-                if (it->amount <= 0) {
-                    m_inventory.erase(it);
+        for (int i = 0; i < (int)m_inventory.size(); ++i) {
+            if (m_inventory[i].id == itemId) {
+                m_inventory[i].amount--;
+                if (m_inventory[i].amount <= 0) {
+                    m_inventory[i].id = -1;
+                    m_inventory[i].amount = 0;
                 }
                 break;
             }
@@ -1325,20 +1478,294 @@ void GameManager::EatOneItem(int roleNum, int itemId, int where) {
     }
 }
 
-// Stubs for Getters needed by header
-int GameManager::GetRoleMedcine(int roleNum, bool checkEquip) { return getRole(roleNum).getMedcine(); }
-int GameManager::GetRoleMedPoi(int roleNum, bool checkEquip) { return getRole(roleNum).getMedPoi(); }
-int GameManager::GetRoleUsePoi(int roleNum, bool checkEquip) { return getRole(roleNum).getUsePoi(); }
-int GameManager::GetRoleDefPoi(int roleNum, bool checkEquip) { return getRole(roleNum).getDefPoi(); }
-int GameManager::GetRoleFist(int roleNum, bool checkEquip) { return getRole(roleNum).getFist(); }
-int GameManager::GetRoleSword(int roleNum, bool checkEquip) { return getRole(roleNum).getSword(); }
-int GameManager::GetRoleKnife(int roleNum, bool checkEquip) { return getRole(roleNum).getKnife(); }
-int GameManager::GetRoleUnusual(int roleNum, bool checkEquip) { return getRole(roleNum).getUnusual(); }
-int GameManager::GetRoleHidWeapon(int roleNum, bool checkEquip) { return getRole(roleNum).getHidWeapon(); }
+int GameManager::GetRoleMedcine(int roleNum, bool checkEquip) {
+    Role& role = getRole(roleNum);
+    int result = role.getMedcine();
+    if (role.getGongti() > -1) {
+        int l = GetGongtiLevel(roleNum, role.getGongti());
+        Magic& magic = getMagic(role.getGongti());
+        if (l == magic.getMaxLevel()) {
+            result += magic.getAddMedcine();
+        }
+    }
+    if (checkEquip) {
+        for (int i = 0; i < 5; ++i) {
+            int itemId = role.getEquip(i);
+            if (itemId >= 0) {
+                Item& item = getItem(itemId);
+                result += item.getAddMedcine();
+            }
+        }
+    }
+    return result;
+}
 
-bool GameManager::GetEquipState(int roleIdx, int state) { return false; } // TODO
-int GameManager::GetGongtiLevel(int roleIdx, int magicId) { return 0; } // TODO
-bool GameManager::GetGongtiState(int roleIdx, int state) { return false; } // TODO
+int GameManager::GetRoleMedPoi(int roleNum, bool checkEquip) {
+    Role& role = getRole(roleNum);
+    int result = role.getMedPoi();
+    if (role.getGongti() > -1) {
+        int l = GetGongtiLevel(roleNum, role.getGongti());
+        Magic& magic = getMagic(role.getGongti());
+        if (l == magic.getMaxLevel()) {
+            result += magic.getAddMedPoi();
+        }
+    }
+    if (checkEquip) {
+        for (int i = 0; i < 5; ++i) {
+            int itemId = role.getEquip(i);
+            if (itemId >= 0) {
+                Item& item = getItem(itemId);
+                result += item.getAddMedPoi();
+            }
+        }
+    }
+    return result;
+}
+
+int GameManager::GetRoleUsePoi(int roleNum, bool checkEquip) {
+    Role& role = getRole(roleNum);
+    int result = role.getUsePoi();
+    if (role.getGongti() > -1) {
+        int l = GetGongtiLevel(roleNum, role.getGongti());
+        Magic& magic = getMagic(role.getGongti());
+        if (l == magic.getMaxLevel()) {
+            result += magic.getAddUsePoi();
+        }
+    }
+    if (checkEquip) {
+        for (int i = 0; i < 5; ++i) {
+            int itemId = role.getEquip(i);
+            if (itemId >= 0) {
+                Item& item = getItem(itemId);
+                result += item.getAddUsePoi();
+            }
+        }
+    }
+    return result;
+}
+
+int GameManager::GetRoleDefPoi(int roleNum, bool checkEquip) {
+    Role& role = getRole(roleNum);
+    int result = role.getDefPoi();
+    if (role.getGongti() > -1) {
+        int l = GetGongtiLevel(roleNum, role.getGongti());
+        Magic& magic = getMagic(role.getGongti());
+        if (l == magic.getMaxLevel()) {
+            result += magic.getAddDefPoi();
+        }
+    }
+    if (checkEquip) {
+        for (int i = 0; i < 5; ++i) {
+            int itemId = role.getEquip(i);
+            if (itemId >= 0) {
+                Item& item = getItem(itemId);
+                result += item.getAddDefPoi();
+            }
+        }
+    }
+    return result;
+}
+
+int GameManager::GetRoleFist(int roleNum, bool checkEquip) {
+    Role& role = getRole(roleNum);
+    int result = role.getFist();
+    if (role.getGongti() > -1) {
+        int l = GetGongtiLevel(roleNum, role.getGongti());
+        Magic& magic = getMagic(role.getGongti());
+        if (l == magic.getMaxLevel()) {
+            result += magic.getAddFist();
+        }
+    }
+    if (checkEquip) {
+        for (int i = 0; i < 5; ++i) {
+            int itemId = role.getEquip(i);
+            if (itemId >= 0) {
+                Item& item = getItem(itemId);
+                result += item.getAddFist();
+            }
+        }
+    }
+    return result;
+}
+
+int GameManager::GetRoleSword(int roleNum, bool checkEquip) {
+    Role& role = getRole(roleNum);
+    int result = role.getSword();
+    if (role.getGongti() > -1) {
+        int l = GetGongtiLevel(roleNum, role.getGongti());
+        Magic& magic = getMagic(role.getGongti());
+        if (l == magic.getMaxLevel()) {
+            result += magic.getAddSword();
+        }
+    }
+    if (checkEquip) {
+        for (int i = 0; i < 5; ++i) {
+            int itemId = role.getEquip(i);
+            if (itemId >= 0) {
+                Item& item = getItem(itemId);
+                result += item.getAddSword();
+            }
+        }
+    }
+    return result;
+}
+
+int GameManager::GetRoleKnife(int roleNum, bool checkEquip) {
+    Role& role = getRole(roleNum);
+    int result = role.getKnife();
+    if (role.getGongti() > -1) {
+        int l = GetGongtiLevel(roleNum, role.getGongti());
+        Magic& magic = getMagic(role.getGongti());
+        if (l == magic.getMaxLevel()) {
+            result += magic.getAddKnife();
+        }
+    }
+    if (checkEquip) {
+        for (int i = 0; i < 5; ++i) {
+            int itemId = role.getEquip(i);
+            if (itemId >= 0) {
+                Item& item = getItem(itemId);
+                result += item.getAddKnife();
+            }
+        }
+    }
+    return result;
+}
+
+int GameManager::GetRoleUnusual(int roleNum, bool checkEquip) {
+    Role& role = getRole(roleNum);
+    int result = role.getUnusual();
+    if (role.getGongti() > -1) {
+        int l = GetGongtiLevel(roleNum, role.getGongti());
+        Magic& magic = getMagic(role.getGongti());
+        if (l == magic.getMaxLevel()) {
+            result += magic.getAddUnusual();
+        }
+    }
+    if (checkEquip) {
+        for (int i = 0; i < 5; ++i) {
+            int itemId = role.getEquip(i);
+            if (itemId >= 0) {
+                Item& item = getItem(itemId);
+                result += item.getAddUnusual();
+            }
+        }
+    }
+    return result;
+}
+
+int GameManager::GetRoleHidWeapon(int roleNum, bool checkEquip) {
+    Role& role = getRole(roleNum);
+    int result = role.getHidWeapon();
+    if (role.getGongti() > -1) {
+        int l = GetGongtiLevel(roleNum, role.getGongti());
+        Magic& magic = getMagic(role.getGongti());
+        if (l == magic.getMaxLevel()) {
+            result += magic.getAddHidWeapon();
+        }
+    }
+    if (checkEquip) {
+        for (int i = 0; i < 5; ++i) {
+            int itemId = role.getEquip(i);
+            if (itemId >= 0) {
+                Item& item = getItem(itemId);
+                result += item.getAddHidWeapon();
+            }
+        }
+    }
+    return result;
+}
+
+int GameManager::GetRoleAttack(int roleNum, bool checkEquip) {
+    Role& role = getRole(roleNum);
+    int result = role.getAttack();
+    if (role.getGongti() > -1) {
+        int l = GetGongtiLevel(roleNum, role.getGongti());
+        Magic& magic = getMagic(role.getGongti());
+        result += magic.getAddAtt(l);
+    }
+    if (checkEquip) {
+        for (int i = 0; i < 5; ++i) {
+            int itemId = role.getEquip(i);
+            if (itemId >= 0) {
+                Item& item = getItem(itemId);
+                result += item.getAddAttack();
+            }
+        }
+    }
+    return result;
+}
+
+int GameManager::GetRoleDefence(int roleNum, bool checkEquip) {
+    Role& role = getRole(roleNum);
+    int result = role.getDefence();
+    if (role.getGongti() > -1) {
+        int l = GetGongtiLevel(roleNum, role.getGongti());
+        Magic& magic = getMagic(role.getGongti());
+        result += magic.getAddDef(l);
+    }
+    if (checkEquip) {
+        for (int i = 0; i < 5; ++i) {
+            int itemId = role.getEquip(i);
+            if (itemId >= 0) {
+                Item& item = getItem(itemId);
+                result += item.getAddDefence();
+            }
+        }
+    }
+    return result;
+}
+
+int GameManager::GetRoleSpeed(int roleNum, bool checkEquip) {
+    Role& role = getRole(roleNum);
+    int result = role.getSpeed();
+    if (role.getGongti() > -1) {
+        int l = GetGongtiLevel(roleNum, role.getGongti());
+        Magic& magic = getMagic(role.getGongti());
+        result += magic.getAddSpd(l);
+    }
+    if (checkEquip) {
+        for (int i = 0; i < 5; ++i) {
+            int itemId = role.getEquip(i);
+            if (itemId >= 0) {
+                Item& item = getItem(itemId);
+                result += item.getAddSpeed();
+            }
+        }
+    }
+    return result;
+}
+
+int GameManager::CheckEquipSet(int e0, int e1, int e2, int e3) {
+    if (m_setNum.size() < 6) return -1;
+    int result = -1;
+    for (int i = 1; i <= 5; ++i) {
+        if (m_setNum[i][0] != e0 && m_setNum[i][0] >= 0) continue;
+        if (m_setNum[i][1] != e1 && m_setNum[i][1] >= 0) continue;
+        if (m_setNum[i][2] != e2 && m_setNum[i][2] >= 0) continue;
+        if (m_setNum[i][3] != e3 && m_setNum[i][3] >= 0) continue;
+        result = i;
+    }
+    return result;
+}
+
+bool GameManager::GetEquipState(int roleIdx, int state) { return false; }
+
+int GameManager::GetGongtiLevel(int roleIdx, int magicId) {
+    if (magicId < 0) return 0;
+    Role& role = getRole(roleIdx);
+    int magicLevel = -1;
+    for (int i = 0; i < 10; ++i) {
+        if (role.getMagic(i) == magicId) {
+            magicLevel = role.getMagLevel(i);
+            break;
+        }
+    }
+    Magic& magic = getMagic(magicId);
+    return std::min((int)magic.getMaxLevel(), magicLevel / 100);
+}
+
+bool GameManager::GetGongtiState(int roleIdx, int state) { return false; }
 void GameManager::JoinParty(int roleId) { /* TODO */ }
 void GameManager::LeaveParty(int roleId) { /* TODO */ }
 void GameManager::Rest() { /* TODO */ }

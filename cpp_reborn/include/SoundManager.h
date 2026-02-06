@@ -15,6 +15,8 @@ public:
     // Music (Not fully implemented for native SDL3 without codecs, placeholders)
     void PlayMusic(int musicId);
     void StopMusic();
+    int GetMusicVolumeLevel() const;
+    void SetMusicVolumeLevel(int level);
 
     // Sound Effect
     void PlaySound(int soundId);
@@ -44,4 +46,5 @@ private:
 
     SDL_AudioDeviceID m_deviceId;
     int m_currentMusicId;
+    int m_musicVolumeLevel = 8;
 };
