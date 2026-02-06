@@ -72,6 +72,7 @@ public:
     void getCameraPosition(int& x, int& y) const { x = m_cameraX; y = m_cameraY; }
     void setMainMapFace(int face) { m_mainMapFace = face; }
     int getMainMapFace() const { return m_mainMapFace; }
+    int16_t getInShip() const { return m_inShip; }
     
     // Walk Animation
     // KYS sprites typically have 6 or 7 frames.
@@ -185,6 +186,10 @@ private:
     int16_t m_time = 0, m_timeEvent = 0, m_randomEvent = 0;
     int16_t m_gameTime = 0;
     bool m_playedTitleAnim = false;
+    uint32_t m_moveHoldStart = 0;
+    uint32_t m_lastMoveTick = 0;
+    int m_holdDx = 0;
+    int m_holdDy = 0;
     
     // System Menu State
     int m_systemMenuSelection = 0;

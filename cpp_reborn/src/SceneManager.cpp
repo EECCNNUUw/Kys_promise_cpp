@@ -746,9 +746,14 @@ void SceneManager::DrawWorldMap(SDL_Renderer* renderer, int centerX, int centerY
          case 3: spriteFace = 1; break;
     }
     int frame = GameManager::getInstance().getWalkFrame();
-    int playerPic = 2501 + spriteFace * 7 + frame;
-
-    DrawSmpSprite(renderer, playerPic, screenX, screenY, 0);
+    if (GameManager::getInstance().getInShip() == 1) {
+        int shipFrame = (frame + 1) / 2;
+        int shipPic = 3714 + spriteFace * 4 + shipFrame;
+        DrawMmapSprite(renderer, shipPic, screenX, screenY, 0);
+    } else {
+        int playerPic = 2501 + spriteFace * 7 + frame;
+        DrawSmpSprite(renderer, playerPic, screenX, screenY, 0);
+    }
     
     // Draw Clouds
     DrawClouds(renderer, centerX, centerY);

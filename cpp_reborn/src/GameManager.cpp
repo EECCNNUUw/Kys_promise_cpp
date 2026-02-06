@@ -1062,12 +1062,67 @@ void GameManager::UpdateRoaming() {
         EventManager::getInstance().ExecuteEvent(pendingEvent);
     }
 
+    auto tryMove = [&](int dx, int dy) {
+        if (dx == 0 && dy == 0) return;
+        int nextX = m_mainMapX + dx;
+        int nextY = m_mainMapY + dy;
+
+        if (m_currentSceneId >= 0) {
+            if (SceneManager::getInstance().CanWalk(nextX, nextY)) {
+                m_mainMapX = nextX;
+                m_mainMapY = nextY;
+                m_cameraX = m_mainMapX;
+                m_cameraY = m_mainMapY;
+                updateWalkFrame();
+                EventManager::getInstance().CheckEvent(m_currentSceneId, m_mainMapX, m_mainMapY, false);
+
+                Scene* scene = SceneManager::getInstance().GetScene(m_currentSceneId);
+                if (scene) {
+                    bool atExit = false;
+                    for (int i = 0; i < 3; ++i) {
+                        int exitX = scene->getExitX(i);
+                        int exitY = scene->getExitY(i);
+                        if (exitX > 0 && exitY > 0 && m_mainMapX == exitX && m_mainMapY == exitY) {
+                            atExit = true;
+                            break;
+                        }
+                    }
+                    
+                    if (atExit) {
+                        UIManager::getInstance().FadeScreen(false);
+                        
+                        m_currentSceneId = -1;
+                        SceneManager::getInstance().SetCurrentScene(-1);
+                        SceneManager::getInstance().ResetEntrance();
+                        
+                        m_mainMapX = m_savedWorldX;
+                        m_mainMapY = m_savedWorldY;
+                        m_cameraX = m_mainMapX;
+                        m_cameraY = m_mainMapY;
+                        
+                        UIManager::getInstance().FadeScreen(true);
+                    }
+                }
+            }
+        } else {
+            if (CanWalkWorld(nextX, nextY)) {
+                m_mainMapX = nextX;
+                m_mainMapY = nextY;
+                m_cameraX = m_mainMapX;
+                m_cameraY = m_mainMapY;
+                updateWalkFrame();
+                CheckWorldEntrance();
+            }
+        }
+    };
+
     SDL_Event e;
     while (SDL_PollEvent(&e) != 0) {
         if (e.type == SDL_EVENT_QUIT) {
             m_isRunning = false;
         } else if (e.type == SDL_EVENT_KEY_DOWN) {
             int dx = 0, dy = 0;
+            uint32_t now = SDL_GetTicks();
             switch (e.key.key) {
                 case SDLK_UP:    case SDLK_W: dx = -1; m_mainMapFace = 1; break;
                 case SDLK_DOWN:  case SDLK_S: dx = 1;  m_mainMapFace = 0; break;
@@ -1103,62 +1158,50 @@ void GameManager::UpdateRoaming() {
             }
             
             if (dx != 0 || dy != 0) {
-                int nextX = m_mainMapX + dx;
-                int nextY = m_mainMapY + dy;
-
-                if (m_currentSceneId >= 0) {
-                    if (SceneManager::getInstance().CanWalk(nextX, nextY)) {
-                        m_mainMapX = nextX;
-                        m_mainMapY = nextY;
-                        m_cameraX = m_mainMapX;
-                        m_cameraY = m_mainMapY;
-                        updateWalkFrame();
-                        EventManager::getInstance().CheckEvent(m_currentSceneId, m_mainMapX, m_mainMapY, false);
-
-                        // Check Scene Exit
-                        // Pascal: if (((sx = RScene[CurScene].ExitX[0]) and (sy = RScene[CurScene].ExitY[0])) ...
-                        Scene* scene = SceneManager::getInstance().GetScene(m_currentSceneId);
-                        if (scene) {
-                            bool atExit = false;
-                            for (int i = 0; i < 3; ++i) {
-                                int exitX = scene->getExitX(i);
-                                int exitY = scene->getExitY(i);
-                                if (exitX > 0 && exitY > 0 && m_mainMapX == exitX && m_mainMapY == exitY) {
-                                    atExit = true;
-                                    break;
-                                }
-                            }
-                            
-                            if (atExit) {
-                                UIManager::getInstance().FadeScreen(false);
-                                
-                                m_currentSceneId = -1; // Switch to World Map
-                                SceneManager::getInstance().SetCurrentScene(-1);
-                                SceneManager::getInstance().ResetEntrance();
-                                
-                                // Restore World Map Position
-                                m_mainMapX = m_savedWorldX;
-                                m_mainMapY = m_savedWorldY;
-                                m_cameraX = m_mainMapX;
-                                m_cameraY = m_mainMapY;
-                                
-                                UIManager::getInstance().FadeScreen(true);
-                            }
-                        }
-                    }
-                } else {
-                    // 大地图移动与入口检测
-                    if (CanWalkWorld(nextX, nextY)) {
-                        m_mainMapX = nextX;
-                        m_mainMapY = nextY;
-                        m_cameraX = m_mainMapX;
-                        m_cameraY = m_mainMapY;
-                        updateWalkFrame();
-                        CheckWorldEntrance();
-                    }
-                }
+                m_holdDx = dx;
+                m_holdDy = dy;
+                m_moveHoldStart = now;
+                m_lastMoveTick = now;
+                tryMove(dx, dy);
             }
         }
+    }
+
+    uint32_t now = SDL_GetTicks();
+    const bool* keys = SDL_GetKeyboardState(nullptr);
+    int holdDx = 0;
+    int holdDy = 0;
+    if (keys[SDL_SCANCODE_UP] || keys[SDL_SCANCODE_W]) {
+        holdDx = -1;
+        m_mainMapFace = 1;
+    } else if (keys[SDL_SCANCODE_DOWN] || keys[SDL_SCANCODE_S]) {
+        holdDx = 1;
+        m_mainMapFace = 0;
+    } else if (keys[SDL_SCANCODE_LEFT] || keys[SDL_SCANCODE_A]) {
+        holdDy = -1;
+        m_mainMapFace = 2;
+    } else if (keys[SDL_SCANCODE_RIGHT] || keys[SDL_SCANCODE_D]) {
+        holdDy = 1;
+        m_mainMapFace = 3;
+    }
+
+    const uint32_t initialDelayMs = 80;
+    const uint32_t repeatIntervalMs = 60;
+    if (holdDx != 0 || holdDy != 0) {
+        if (m_holdDx != holdDx || m_holdDy != holdDy) {
+            m_holdDx = holdDx;
+            m_holdDy = holdDy;
+            m_moveHoldStart = now;
+            m_lastMoveTick = now;
+            tryMove(holdDx, holdDy);
+        } else if (now - m_moveHoldStart >= initialDelayMs &&
+                   now - m_lastMoveTick >= repeatIntervalMs) {
+            m_lastMoveTick = now;
+            tryMove(holdDx, holdDy);
+        }
+    } else {
+        m_holdDx = 0;
+        m_holdDy = 0;
     }
     
     if (m_screenSurface) {
@@ -1191,19 +1234,15 @@ bool GameManager::CanWalkWorld(int x, int y) {
     if ((earth >= 358 && earth <= 362) ||
         (earth >= 506 && earth <= 670) ||
         (earth >= 1016 && earth <= 1022)) {
-        if (m_inShip == 1) {
-            if (earth == 838 || (earth >= 612 && earth <= 670)) {
-                canwalk = false;
-            } else if (surface >= 1746 && surface <= 1788) {
-                canwalk = false;
-            } else {
-                canwalk = true;
-            }
-        } else if (x == m_shipY && y == m_shipX) {
-            canwalk = true;
+        if (m_inShip != 1) {
             m_inShip = 1;
-        } else {
+        }
+        if (earth == 838 || (earth >= 612 && earth <= 670)) {
             canwalk = false;
+        } else if (surface >= 1746 && surface <= 1788) {
+            canwalk = false;
+        } else {
+            canwalk = true;
         }
     } else {
         if (m_inShip == 1) {
