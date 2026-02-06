@@ -465,10 +465,8 @@ void GameManager::SaveGame(int slot) {
 
     write16(m_inShip);
     write16(whereVal);
-    write16(static_cast<int16_t>(m_mainMapY));
     write16(static_cast<int16_t>(m_mainMapX));
-    write16(static_cast<int16_t>(m_cameraY));
-    write16(static_cast<int16_t>(m_cameraX));
+    write16(static_cast<int16_t>(m_mainMapY));
     write16(static_cast<int16_t>(m_mainMapFace));
     write16(m_shipX);
     write16(m_shipY);
@@ -476,8 +474,6 @@ void GameManager::SaveGame(int slot) {
     write16(m_timeEvent);
     write16(m_randomEvent);
     write16(m_subMapFace);
-    write16(m_shipFace);
-    write16(m_gameTime);
 
     for (int i = 0; i < MAX_TEAM_SIZE; ++i) {
         int16_t value = 0;
@@ -674,10 +670,8 @@ bool GameManager::LoadGame(int slot) {
         m_currentSceneId = tempWhere;
     }
 
-    read16((int16_t&)m_mainMapY);
     read16((int16_t&)m_mainMapX);
-    read16((int16_t&)m_cameraY);
-    read16((int16_t&)m_cameraX);
+    read16((int16_t&)m_mainMapY);
     read16((int16_t&)m_mainMapFace);
     read16(m_shipX);
     read16(m_shipY);
@@ -685,10 +679,10 @@ bool GameManager::LoadGame(int slot) {
     read16(m_timeEvent);
     read16(m_randomEvent);
     read16(m_subMapFace);
-    read16(m_shipFace);
-    read16(m_gameTime);
 
     std::cout << "[LoadGame] Header loaded. Scene=" << m_currentSceneId << " Pos=(" << m_mainMapX << "," << m_mainMapY << ")" << std::endl;
+    setMainMapPosition(m_mainMapX, m_mainMapY);
+    resetWalkFrame();
 
     m_teamList.resize(MAX_TEAM_SIZE);
     for(int i=0; i<MAX_TEAM_SIZE; ++i) {

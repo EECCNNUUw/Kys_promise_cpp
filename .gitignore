@@ -3,6 +3,8 @@ CMakeCache
 # Visual Studio
 .vs/
 [Dd]ebug/
+!cpp_reborn/build/Debug/
+!cpp_reborn/build/Debug/**
 [Rr]elease/
 x64/
 x86/
